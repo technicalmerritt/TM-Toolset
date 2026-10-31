@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    />
+    <title>MBTS Launcher</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand__mark">M</div>
+        <div class="brand__text">
+          <strong>MBTS Launcher</strong>
+          <span>Toolset</span>
+        </div>
+      </div>
+      <input id="search" class="search" type="search" placeholder="Search tools…" />
+      <div class="topbar__actions">
+        <button id="revealBtn" class="btn btn--ghost" title="Open the config file location">Config</button>
+        <button id="addBtn" class="btn btn--primary">+ Add tool</button>
+      </div>
+    </header>
+
+    <nav id="categories" class="categories"></nav>
+
+    <main class="content">
+      <div id="grid" class="grid"></div>
+      <div id="empty" class="empty" hidden>
+        <h2>No tools yet</h2>
+        <p>Click <strong>“+ Add tool”</strong> to point the launcher at an executable.</p>
+      </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="modal" class="modal" hidden>
+      <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h2 id="modalTitle">Add tool</h2>
+
+        <label class="field">
+          <span>Name</span>
+          <input id="fName" type="text" placeholder="e.g. Map Editor" />
+        </label>
+
+        <label class="field">
+          <span>Category</span>
+          <input id="fCategory" type="text" placeholder="e.g. Editors (optional)" />
+        </label>
+
+        <label class="field">
+          <span>Description</span>
+          <textarea id="fDescription" rows="2" placeholder="Optional"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Executable</span>
+          <div class="field__row">
+            <input id="fPath" type="text" placeholder="C:\path\to\tool.exe" />
+            <button id="browseExe" class="btn btn--ghost" type="button">Browse</button>
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Arguments</span>
+          <input id="fArgs" type="text" placeholder='Optional, e.g. --profile "default"' />
+        </label>
+
+        <label class="field">
+          <span>Working directory</span>
+          <div class="field__row">
+            <input id="fCwd" type="text" placeholder="Optional (defaults to the executable folder)" />
+            <button id="browseCwd" class="btn btn--ghost" type="button">Browse</button>
+          </div>
+        </label>
+
+        <div class="modal__actions">
+          <button id="modalCancel" class="btn btn--ghost" type="button">Cancel</button>
+          <button id="modalSave" class="btn btn--primary" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
