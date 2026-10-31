@@ -24,6 +24,9 @@
       "src/**/*",
       "package.json"
     ],
+    "asarUnpack": [
+      "**/scanner/**"
+    ],
     "win": {
       "target": [
         { "target": "nsis", "arch": ["x64"] },

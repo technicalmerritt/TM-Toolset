@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const { spawn } = require('node:child_process');
 const crypto = require('node:crypto');
+const scanner = require('./scanner/scan');
 
 let mainWindow = null;
 
@@ -161,6 +162,23 @@ function registerIpc() {
     if (!fs.existsSync(file)) await writeConfig(await readConfig());
     shell.showItemInFolder(file);
     return true;
+  });
+
+  // ---- Issue Scanner ----
+  ipcMain.handle('scan:run', async () => {
+    return scanner.runScan();
+  });
+
+  ipcMain.handle('scan:export', async (_evt, result) => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const res = await dialog.showSaveDialog(mainWindow, {
+      title: 'Save health report',
+      defaultPath: `TM-Toolset-Health-Report-${stamp}.html`,
+      filters: [{ name: 'HTML report', extensions: ['html'] }],
+    });
+    if (res.canceled || !res.filePath) return null;
+    await fsp.writeFile(res.filePath, scanner.buildHtmlReport(result), 'utf8');
+    return res.filePath;
   });
 }
 

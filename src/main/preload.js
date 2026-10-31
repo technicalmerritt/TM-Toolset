@@ -16,3 +16,8 @@ contextBridge.exposeInMainWorld('launcher', {
     return () => ipcRenderer.removeListener('tools:launch-error', handler);
   },
 });
+
+contextBridge.exposeInMainWorld('scanner', {
+  run: () => ipcRenderer.invoke('scan:run'),
+  exportReport: (result) => ipcRenderer.invoke('scan:export', result),
+});
