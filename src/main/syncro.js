@@ -112,10 +112,11 @@ async function createAsset({ subdomain, token, customerId, name, assetTypeId, pr
       }
       return { ok: true, message: `Asset created${id ? ` (#${id})` : ''}.`, assetId: id };
     }
-    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected — the API token needs permission to create assets.' };
-    let txt = '';
-    try { txt = (await res.text()).slice(0, 200); } catch { /* ignore */ }
-    return { ok: false, message: `Syncro returned HTTP ${res.status}. ${txt}`.trim() };
+    const detail = await readError(res);
+    if (res.status === 401 || res.status === 403) {
+      return { ok: false, message: `Syncro rejected it (HTTP ${res.status}).${detail ? ' ' + detail : ' The token needs permission to create assets.'}` };
+    }
+    return { ok: false, message: `Syncro returned HTTP ${res.status}.${detail ? ' ' + detail : ''}` };
   } catch (e) {
     return { ok: false, message: 'Could not reach Syncro: ' + e.message };
   }
@@ -147,14 +148,31 @@ async function postComment({ subdomain, token, ticketId, subject, body, hidden }
       }
       return { ok: true, message: `Posted to ticket #${id}.`, commentId };
     }
-    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected — the API token needs permission to comment on tickets.' };
-    if (res.status === 404) return { ok: false, message: `Ticket id ${id} was not found.` };
-    let txt = '';
-    try { txt = (await res.text()).slice(0, 200); } catch { /* ignore */ }
-    return { ok: false, message: `Syncro returned HTTP ${res.status}. ${txt}`.trim() };
+    const detail = await readError(res);
+    if (res.status === 404) return { ok: false, message: `Ticket id ${id} was not found.${detail ? ' ' + detail : ''}` };
+    if (res.status === 401 || res.status === 403) {
+      return { ok: false, message: `Syncro rejected the comment (HTTP ${res.status}).${detail ? ' ' + detail : ' Check the token has ticket edit/comment permission.'}` };
+    }
+    return { ok: false, message: `Syncro returned HTTP ${res.status}.${detail ? ' ' + detail : ''}` };
   } catch (e) {
     return { ok: false, message: 'Could not reach Syncro: ' + e.message };
   }
+}
+
+// Pull Syncro's real error text out of a failed response (JSON {message:[...]}
+// or plain text), so we surface the actual reason instead of a guess.
+async function readError(res) {
+  let bodyText = '';
+  try { bodyText = await res.text(); } catch { /* ignore */ }
+  let detail = bodyText ? bodyText.slice(0, 400) : '';
+  try {
+    const j = JSON.parse(bodyText);
+    if (j && j.message) detail = Array.isArray(j.message) ? j.message.join('; ') : String(j.message);
+    else if (j && j.error) detail = String(j.error);
+  } catch {
+    /* not JSON — keep raw text */
+  }
+  return detail;
 }
 
 function esc(s) {
