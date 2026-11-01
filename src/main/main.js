@@ -9,6 +9,8 @@ const crypto = require('node:crypto');
 const scanner = require('./scanner/scan');
 const inform = require('./inform/inform');
 const actions = require('./actions');
+const settings = require('./settings');
+const syncro = require('./syncro');
 
 let mainWindow = null;
 
@@ -226,6 +228,31 @@ function registerIpc() {
   // ---- Open a whitelisted Windows location / doc link from a finding ----
   ipcMain.handle('action:open', async (_evt, token) => actions.openToken(String(token || '')));
   ipcMain.handle('action:openUrl', async (_evt, url) => actions.openUrl(String(url || '')));
+
+  // ---- Settings (Syncro credentials) ----
+  ipcMain.handle('settings:get', async () => settings.getPublic());
+  ipcMain.handle('settings:save', async (_evt, payload) => settings.save(payload || {}));
+  ipcMain.handle('settings:test', async (_evt, payload) => {
+    const stored = await settings.getForApi();
+    const subdomain = (payload && payload.subdomain) || stored.subdomain;
+    const token = (payload && payload.token) || stored.token;
+    return syncro.testConnection({ subdomain, token });
+  });
+
+  // ---- Post an Issue Scan as a comment on an existing Syncro ticket ----
+  ipcMain.handle('syncro:postScan', async (_evt, args) => {
+    const { subdomain, token } = await settings.getForApi();
+    if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
+    const body = syncro.buildFindingsComment(args && args.result);
+    return syncro.postComment({
+      subdomain,
+      token,
+      ticketId: args && args.ticketId,
+      hidden: !(args && args.hidden === false),
+      subject: 'TM Toolset Issue Scan',
+      body,
+    });
+  });
 }
 
 // Single-instance: focus the existing window instead of opening a second one.

@@ -810,6 +810,37 @@ body {
   font-size: 12.5px;
 }
 
+/* ================= Settings ================= */
+.settings-card {
+  max-width: 560px;
+}
+
+.settings-hint {
+  font-size: 12px;
+  margin: 2px 0 14px;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.field--check {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.field--check input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.field--check span {
+  color: var(--text);
+}
+
 .finding__detail {
   margin: 10px 0 0;
   background: var(--bg);

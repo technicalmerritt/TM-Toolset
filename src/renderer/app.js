@@ -7,6 +7,7 @@ window.addEventListener('DOMContentLoaded', () => {
     information: document.getElementById('panel-information'),
     scanner: document.getElementById('panel-scanner'),
     tools: document.getElementById('panel-tools'),
+    settings: document.getElementById('panel-settings'),
   };
 
   function select(name) {

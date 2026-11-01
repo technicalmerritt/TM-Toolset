@@ -42,3 +42,13 @@ contextBridge.exposeInMainWorld('sys', {
   open: (token) => ipcRenderer.invoke('action:open', token),
   openUrl: (url) => ipcRenderer.invoke('action:openUrl', url),
 });
+
+contextBridge.exposeInMainWorld('settings', {
+  get: () => ipcRenderer.invoke('settings:get'),
+  save: (payload) => ipcRenderer.invoke('settings:save', payload),
+  test: (payload) => ipcRenderer.invoke('settings:test', payload),
+});
+
+contextBridge.exposeInMainWorld('syncro', {
+  postScan: (args) => ipcRenderer.invoke('syncro:postScan', args),
+});

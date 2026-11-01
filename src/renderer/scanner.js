@@ -213,6 +213,59 @@
     }
   }
 
+  async function openSyncro() {
+    if (!lastResult) {
+      toast('Run a scan first.', 'error');
+      return;
+    }
+    // Make sure Syncro is configured; if not, send them to Settings.
+    try {
+      const s = await window.settings.get();
+      if (!s || !s.subdomain || !s.hasToken) {
+        toast('Set up Syncro in the Settings tab first.', 'error');
+        const tab = document.querySelector('.tab[data-tab="settings"]');
+        if (tab) tab.click();
+        return;
+      }
+    } catch {
+      /* continue; post will report any issue */
+    }
+    els.syncTicket.value = '';
+    els.syncHidden.checked = true;
+    els.syncroModal.hidden = false;
+    els.syncTicket.focus();
+  }
+
+  function closeSyncro() {
+    els.syncroModal.hidden = true;
+  }
+
+  async function postSyncro() {
+    const ticketId = (els.syncTicket.value || '').trim();
+    if (!/^#?\d+$/.test(ticketId)) {
+      toast('Enter a numeric ticket number.', 'error');
+      return;
+    }
+    els.syncPost.disabled = true;
+    try {
+      const res = await window.syncro.postScan({
+        ticketId,
+        hidden: els.syncHidden.checked,
+        result: lastResult,
+      });
+      if (res && res.ok) {
+        closeSyncro();
+        toast(res.message || 'Posted to Syncro.');
+      } else {
+        toast((res && res.message) || 'Could not post to Syncro.', 'error');
+      }
+    } catch (err) {
+      toast('Syncro error: ' + ((err && err.message) || err), 'error');
+    } finally {
+      els.syncPost.disabled = false;
+    }
+  }
+
   async function copyError() {
     const text = `${els.errorMsg.textContent}\n\n${els.errorDetail.textContent}`;
     try {
@@ -241,6 +294,12 @@
     els.errorDetail = $('#scanErrorDetail');
     els.errorCopy = $('#scanErrorCopy');
     els.errorRetry = $('#scanErrorRetry');
+    els.syncBtn = $('#scanToSyncro');
+    els.syncroModal = $('#syncroModal');
+    els.syncTicket = $('#syncTicket');
+    els.syncHidden = $('#syncHidden');
+    els.syncPost = $('#syncPost');
+    els.syncCancel = $('#syncCancel');
     if (!els.runBtn) return;
 
     els.runBtn.addEventListener('click', runScan);
@@ -249,6 +308,13 @@
     els.exportBtn && els.exportBtn.addEventListener('click', exportReport);
     els.errorCopy && els.errorCopy.addEventListener('click', copyError);
     els.errorRetry && els.errorRetry.addEventListener('click', runScan);
+    els.syncBtn && els.syncBtn.addEventListener('click', openSyncro);
+    els.syncPost && els.syncPost.addEventListener('click', postSyncro);
+    els.syncCancel && els.syncCancel.addEventListener('click', closeSyncro);
+    els.syncroModal &&
+      els.syncroModal.addEventListener('click', (e) => {
+        if (e.target === els.syncroModal) closeSyncro();
+      });
 
     // Live status text from the collector.
     if (window.scanner && window.scanner.onProgress) {

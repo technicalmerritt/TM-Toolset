@@ -23,6 +23,7 @@
         <button class="tab tab--active" data-tab="information">Information</button>
         <button class="tab" data-tab="scanner">Issue Scanner</button>
         <button class="tab" data-tab="tools">Tools</button>
+        <button class="tab" data-tab="settings">Settings</button>
       </nav>
     </header>
 
@@ -93,6 +94,7 @@
             <div class="scoreboard__actions">
               <button id="scanRerun" class="btn btn--ghost">Re-scan</button>
               <button id="scanExport" class="btn btn--ghost">Export report (HTML)</button>
+              <button id="scanToSyncro" class="btn btn--ghost">Post to Syncro…</button>
             </div>
           </div>
         </div>
@@ -117,7 +119,57 @@
       </div>
     </main>
 
+    <!-- ================= SETTINGS ================= -->
+    <main id="panel-settings" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Settings</h1>
+          <p class="muted">Connect TM Toolset to your Syncro account so you can post scan results to a ticket.</p>
+        </div>
+      </div>
+
+      <section class="info-card settings-card">
+        <h3 class="info-card__title">Syncro integration</h3>
+        <label class="field">
+          <span>Syncro subdomain</span>
+          <input id="setSubdomain" type="text" placeholder="yourshop   (or yourshop.syncromsp.com)" />
+        </label>
+        <label class="field">
+          <span>API token</span>
+          <input id="setToken" type="password" placeholder="Paste a Syncro API token" autocomplete="off" />
+        </label>
+        <p class="muted settings-hint">
+          Create a token in Syncro under <strong>Admin → API Tokens → New Token</strong>, with ticket
+          view/edit permissions. It is stored encrypted on this PC only and is never shown again.
+        </p>
+        <div class="settings-actions">
+          <button id="setSave" class="btn btn--primary" type="button">Save</button>
+          <button id="setTest" class="btn btn--ghost" type="button">Test connection</button>
+        </div>
+        <p id="setStatus" class="info-line"></p>
+      </section>
+    </main>
+
     <div id="toast" class="toast"></div>
+
+    <!-- Post-to-Syncro modal -->
+    <div id="syncroModal" class="modal" hidden>
+      <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="syncroTitle">
+        <h2 id="syncroTitle">Post scan to a Syncro ticket</h2>
+        <label class="field">
+          <span>Ticket number</span>
+          <input id="syncTicket" type="text" inputmode="numeric" placeholder="e.g. 12345" />
+        </label>
+        <label class="field field--check">
+          <input id="syncHidden" type="checkbox" checked />
+          <span>Private note (hidden from the customer)</span>
+        </label>
+        <div class="modal__actions">
+          <button id="syncCancel" class="btn btn--ghost" type="button">Cancel</button>
+          <button id="syncPost" class="btn btn--primary" type="button">Post comment</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Add/Edit tool modal -->
     <div id="modal" class="modal" hidden>
@@ -170,6 +222,7 @@
     <script src="renderer.js"></script>
     <script src="scanner.js"></script>
     <script src="inform.js"></script>
+    <script src="settings-ui.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
