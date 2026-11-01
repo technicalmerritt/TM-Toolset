@@ -1,15 +1,18 @@
 :root {
-  --bg: #13151a;
-  --bg-elev: #1b1e26;
-  --bg-elev-2: #232733;
-  --border: #2d323f;
-  --text: #e7e9ee;
-  --text-dim: #9aa2b1;
-  --accent: #4c8dff;
-  --accent-hover: #6aa0ff;
+  /* Technical Merit palette — navy base, orange accent */
+  --bg: #0e1b33;
+  --bg-elev: #15294a;
+  --bg-elev-2: #1d3a68;
+  --border: #2a4a7d;
+  --text: #f3f3f4;
+  --text-dim: #c5cbd3;
+  --accent: #ff6600;
+  --accent-hover: #ff7231;
+  --navy: #193661;
+  --navy-2: #20447a;
   --danger: #ff5c6c;
   --radius: 10px;
-  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -25,7 +28,7 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font: 14px/1.5 "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -48,15 +51,12 @@ body {
   flex-shrink: 0;
 }
 
-.brand__mark {
-  width: 34px;
-  height: 34px;
+.brand__logo {
+  width: 38px;
+  height: 38px;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), #8a6bff);
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  color: #fff;
+  display: block;
+  flex: 0 0 auto;
 }
 
 .brand__text {
@@ -164,7 +164,7 @@ body {
   align-self: flex-start;
   font-size: 11px;
   color: var(--accent);
-  background: rgba(76, 141, 255, 0.12);
+  background: rgba(255, 102, 0, 0.14);
   border-radius: 6px;
   padding: 2px 8px;
 }
