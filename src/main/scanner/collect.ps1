@@ -6,7 +6,14 @@
 $ErrorActionPreference = 'SilentlyContinue'
 $ProgressPreference    = 'SilentlyContinue'
 
+# Progress markers go to stderr (never stdout) so they can't corrupt the JSON.
+function Step { param($m) try { [Console]::Error.WriteLine('@@STEP@@' + $m) } catch { } }
 function Safe { param([scriptblock]$b) try { & $b } catch { $null } }
+
+# Any terminating error is reported to stderr with a FATAL marker; nothing goes to stdout.
+trap { try { [Console]::Error.WriteLine('@@FATAL@@' + $_.Exception.Message) } catch { }; exit 1 }
+
+Step 'Reading system information'
 
 $out = [ordered]@{}
 $out.generatedAt      = (Get-Date).ToString('o')
@@ -73,6 +80,7 @@ $out.volumes = Safe {
   }
 }
 
+Step 'Checking storage and drive health'
 # ---------- Physical disks + SMART / reliability ----------
 $out.physicalDisks = Safe {
   Get-PhysicalDisk | ForEach-Object {
@@ -104,6 +112,7 @@ $out.pendingReboot = Safe {
   [bool]$pend
 }
 
+Step 'Checking security and antivirus'
 # ---------- Security ----------
 $mp = Safe { Get-MpComputerStatus }
 $sec = [ordered]@{}
@@ -125,6 +134,7 @@ $out.bitlocker = Safe {
   [ordered]@{ protection = "$($v.ProtectionStatus)"; status = "$($v.VolumeStatus)"; pct = $v.EncryptionPercentage }
 }
 
+Step 'Checking devices and drivers'
 # ---------- Problem devices ----------
 $out.problemDevices = Safe {
   Get-CimInstance Win32_PnPEntity |
@@ -165,6 +175,7 @@ $out.stoppedAutoServices = Safe {
     ForEach-Object { [ordered]@{ name = $_.Name; display = $_.DisplayName; state = $_.State } }
 }
 
+Step 'Reading event logs and crash history'
 # ---------- Event log signals (last 14 days) ----------
 $since = (Get-Date).AddDays(-14)
 $ev = [ordered]@{}
@@ -222,6 +233,7 @@ $out.network = [ordered]@{
 # ---------- System protection ----------
 $out.restorePoints = Safe { @(Get-ComputerRestorePoint).Count }
 
+Step 'Checking for malware indicators'
 $since60 = (Get-Date).AddDays(-60)
 
 # ---------- Drive failure prediction (SMART predict) + dirty bit ----------
@@ -297,4 +309,5 @@ $out.printJobs = Safe {
   })
 }
 
+Step 'Finishing up'
 $out | ConvertTo-Json -Depth 6 -Compress

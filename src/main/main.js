@@ -166,8 +166,23 @@ function registerIpc() {
 
   // ---- Issue Scanner ----
   ipcMain.handle('scan:run', async () => {
-    return scanner.runScan();
+    const onProgress = (msg) => {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('scan:progress', msg);
+    };
+    try {
+      const result = await scanner.runScan(onProgress);
+      return { ok: true, result };
+    } catch (err) {
+      return {
+        ok: false,
+        cancelled: !!(err && err.cancelled),
+        error: (err && err.message) || String(err),
+        detail: (err && err.detail) || '',
+      };
+    }
   });
+
+  ipcMain.handle('scan:cancel', async () => scanner.cancel());
 
   ipcMain.handle('scan:export', async (_evt, result) => {
     const stamp = new Date().toISOString().slice(0, 10);

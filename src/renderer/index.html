@@ -40,6 +40,17 @@
       <div id="scanStatus" class="scan-status" hidden>
         <div class="spinner" aria-hidden="true"></div>
         <p id="scanStatusText" class="muted"></p>
+        <button id="scanStop" class="btn btn--ghost btn--danger" type="button">Stop</button>
+      </div>
+
+      <div id="scanError" class="scan-error" hidden>
+        <h3 id="scanErrorMsg">The scan hit a problem</h3>
+        <p class="muted">Please copy the details below and send them over so I can pinpoint it.</p>
+        <pre id="scanErrorDetail" class="finding__detail"></pre>
+        <div class="scan-error__actions">
+          <button id="scanErrorCopy" class="btn btn--ghost" type="button">Copy details</button>
+          <button id="scanErrorRetry" class="btn btn--primary" type="button">Try again</button>
+        </div>
       </div>
 
       <div id="scanResults" class="scan-results" hidden>

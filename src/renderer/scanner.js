@@ -10,6 +10,7 @@
 
   const els = {};
   let lastResult = null;
+  let scanning = false;
 
   function $(sel) {
     return document.querySelector(sel);
@@ -26,22 +27,56 @@
     }, 3200);
   }
 
+  function setStatus(text) {
+    if (els.statusText) els.statusText.textContent = text;
+  }
+
   async function runScan() {
-    els.runBtn.disabled = true;
-    els.rerunBtn && (els.rerunBtn.disabled = true);
+    scanning = true;
+    lastResult = null;
     els.results.hidden = true;
+    els.error.hidden = true;
     els.status.hidden = false;
-    els.statusText.textContent = 'Scanning… this reads system information only and can take up to a minute.';
+    els.runBtn.disabled = true;
+    setStatus('Starting…');
+
     try {
-      lastResult = await window.scanner.run();
+      const res = await window.scanner.run();
+      if (!res || res.ok !== true) {
+        if (res && res.cancelled) {
+          els.status.hidden = true;
+          toast('Scan stopped.');
+          return;
+        }
+        showError(res ? res.error : 'Unknown error', res ? res.detail : '');
+        return;
+      }
+      lastResult = res.result;
       render(lastResult);
     } catch (err) {
-      els.status.hidden = true;
-      toast('Scan failed: ' + (err && err.message ? err.message : err), 'error');
+      showError((err && err.message) || String(err), '');
     } finally {
+      scanning = false;
       els.runBtn.disabled = false;
-      els.rerunBtn && (els.rerunBtn.disabled = false);
     }
+  }
+
+  async function stopScan() {
+    if (!scanning) return;
+    setStatus('Stopping…');
+    try {
+      await window.scanner.cancel();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function showError(message, detail) {
+    els.status.hidden = true;
+    els.results.hidden = true;
+    els.errorMsg.textContent = message || 'The scan hit a problem';
+    els.errorDetail.textContent = detail && detail.trim() ? detail.trim() : '(no additional detail was returned)';
+    els.error.hidden = false;
   }
 
   function scoreClass(s) {
@@ -50,6 +85,7 @@
 
   function render(result) {
     els.status.hidden = true;
+    els.error.hidden = true;
     els.results.hidden = false;
 
     els.score.textContent = result.score;
@@ -122,7 +158,6 @@
       body.appendChild(d);
     }
 
-    // Critical/warning findings start expanded so they can't be missed.
     if (f.severity === 'critical' || f.severity === 'warning') {
       body.hidden = false;
       el.classList.add('finding--open');
@@ -143,13 +178,24 @@
       const p = await window.scanner.exportReport(lastResult);
       if (p) toast('Report saved:\n' + p);
     } catch (err) {
-      toast('Export failed: ' + (err && err.message ? err.message : err), 'error');
+      toast('Export failed: ' + ((err && err.message) || err), 'error');
+    }
+  }
+
+  async function copyError() {
+    const text = `${els.errorMsg.textContent}\n\n${els.errorDetail.textContent}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast('Details copied.');
+    } catch {
+      toast('Could not copy — please select the text manually.', 'error');
     }
   }
 
   window.addEventListener('DOMContentLoaded', () => {
     els.runBtn = $('#scanRun');
     els.rerunBtn = $('#scanRerun');
+    els.stopBtn = $('#scanStop');
     els.status = $('#scanStatus');
     els.statusText = $('#scanStatusText');
     els.results = $('#scanResults');
@@ -159,10 +205,25 @@
     els.counts = $('#scanCounts');
     els.findings = $('#scanFindings');
     els.exportBtn = $('#scanExport');
+    els.error = $('#scanError');
+    els.errorMsg = $('#scanErrorMsg');
+    els.errorDetail = $('#scanErrorDetail');
+    els.errorCopy = $('#scanErrorCopy');
+    els.errorRetry = $('#scanErrorRetry');
     if (!els.runBtn) return;
 
     els.runBtn.addEventListener('click', runScan);
     els.rerunBtn && els.rerunBtn.addEventListener('click', runScan);
-    els.exportBtn.addEventListener('click', exportReport);
+    els.stopBtn && els.stopBtn.addEventListener('click', stopScan);
+    els.exportBtn && els.exportBtn.addEventListener('click', exportReport);
+    els.errorCopy && els.errorCopy.addEventListener('click', copyError);
+    els.errorRetry && els.errorRetry.addEventListener('click', runScan);
+
+    // Live status text from the collector.
+    if (window.scanner && window.scanner.onProgress) {
+      window.scanner.onProgress((msg) => {
+        if (scanning) setStatus(msg);
+      });
+    }
   });
 })();

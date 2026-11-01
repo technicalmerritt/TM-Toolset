@@ -19,5 +19,11 @@ contextBridge.exposeInMainWorld('launcher', {
 
 contextBridge.exposeInMainWorld('scanner', {
   run: () => ipcRenderer.invoke('scan:run'),
+  cancel: () => ipcRenderer.invoke('scan:cancel'),
   exportReport: (result) => ipcRenderer.invoke('scan:export', result),
+  onProgress: (cb) => {
+    const handler = (_e, msg) => cb(msg);
+    ipcRenderer.on('scan:progress', handler);
+    return () => ipcRenderer.removeListener('scan:progress', handler);
+  },
 });

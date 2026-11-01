@@ -453,6 +453,30 @@ body {
   padding: 36px 8px;
 }
 
+.scan-status #scanStatusText {
+  flex: 1;
+  margin: 0;
+}
+
+.scan-error {
+  margin-top: 18px;
+  background: var(--bg-elev);
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.scan-error h3 {
+  margin: 0 0 6px;
+  color: var(--danger);
+}
+
+.scan-error__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 .spinner {
   width: 26px;
   height: 26px;

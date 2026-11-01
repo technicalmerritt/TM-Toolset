@@ -2,56 +2,139 @@
 
 const { spawn } = require('node:child_process');
 const path = require('node:path');
+const fs = require('node:fs');
 const rules = require('./rules');
 
-// Run the read-only PowerShell collector and return the parsed data object.
-function collect() {
+let active = null; // current child process
+let cancelledFlag = false;
+
+class ScanError extends Error {
+  constructor(message, detail) {
+    super(message);
+    this.detail = detail || '';
+  }
+}
+
+function powershellPath() {
+  const root = process.env.SystemRoot || process.env.windir || 'C:\\Windows';
+  const full = path.join(root, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  try {
+    if (fs.existsSync(full)) return full;
+  } catch {
+    /* ignore */
+  }
+  return 'powershell.exe';
+}
+
+// Run the read-only PowerShell collector; stream step markers via onProgress.
+function collect(onProgress) {
   return new Promise((resolve, reject) => {
     const script = path.join(__dirname, 'collect.ps1');
-    let cmd = 'powershell.exe';
+    if (!fs.existsSync(script)) {
+      reject(new ScanError('Scanner script is missing.', `Expected: ${script}`));
+      return;
+    }
     const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script];
 
     let child;
     try {
-      child = spawn(cmd, args, { windowsHide: true });
-    } catch (err) {
-      reject(err);
+      child = spawn(powershellPath(), args, { windowsHide: true });
+    } catch (e) {
+      reject(new ScanError('Could not start PowerShell.', e.message));
       return;
     }
+    active = child;
+    cancelledFlag = false;
 
     let out = '';
-    let err = '';
-    const killer = setTimeout(() => {
+    const errLines = [];
+    let stderrBuf = '';
+
+    const timer = setTimeout(() => {
       try { child.kill(); } catch { /* ignore */ }
-      reject(new Error('The scan timed out after 3 minutes.'));
+      reject(new ScanError('The scan timed out after 3 minutes.', errLines.join('\n')));
     }, 180000);
 
+    function handleStderrLine(line) {
+      if (!line) return;
+      if (line.startsWith('@@STEP@@')) {
+        if (onProgress) onProgress(line.slice(8).trim());
+      } else if (line.startsWith('@@FATAL@@')) {
+        errLines.push(line.slice(9).trim());
+      } else {
+        errLines.push(line);
+      }
+    }
+
     child.stdout.on('data', (d) => (out += d.toString()));
-    child.stderr.on('data', (d) => (err += d.toString()));
-    child.on('error', (e) => {
-      clearTimeout(killer);
-      reject(new Error(`Could not start PowerShell: ${e.message}`));
+    child.stderr.on('data', (d) => {
+      stderrBuf += d.toString();
+      let idx;
+      while ((idx = stderrBuf.indexOf('\n')) >= 0) {
+        handleStderrLine(stderrBuf.slice(0, idx).replace(/\r$/, ''));
+        stderrBuf = stderrBuf.slice(idx + 1);
+      }
     });
+
+    child.on('error', (e) => {
+      clearTimeout(timer);
+      active = null;
+      reject(new ScanError('Could not start PowerShell.', e.message));
+    });
+
     child.on('close', (code) => {
-      clearTimeout(killer);
-      const text = out.trim();
-      if (!text) {
-        reject(new Error(err.trim() || `The collector exited (code ${code}) without returning data.`));
+      clearTimeout(timer);
+      if (stderrBuf) handleStderrLine(stderrBuf.replace(/\r$/, ''));
+      active = null;
+
+      if (cancelledFlag) {
+        cancelledFlag = false;
+        const e = new ScanError('Scan cancelled.');
+        e.cancelled = true;
+        reject(e);
         return;
       }
-      try {
-        resolve(JSON.parse(text));
-      } catch (e) {
-        reject(new Error(`Could not parse scan output: ${e.message}`));
+
+      // Tolerant extraction: take everything between the first { and last }.
+      const start = out.indexOf('{');
+      const end = out.lastIndexOf('}');
+      if (start < 0 || end <= start) {
+        reject(
+          new ScanError(
+            'The scanner did not return any data.',
+            errLines.join('\n').trim() || `PowerShell exited with code ${code} and produced no output.`
+          )
+        );
+        return;
       }
+
+      let data;
+      try {
+        data = JSON.parse(out.slice(start, end + 1));
+      } catch (e) {
+        reject(new ScanError('The scan data could not be read.', [errLines.join('\n'), e.message].filter(Boolean).join('\n')));
+        return;
+      }
+      resolve(data);
     });
   });
 }
 
-async function runScan() {
-  const data = await collect();
+async function runScan(onProgress) {
+  const data = await collect(onProgress);
+  if (data && data.__error__) throw new ScanError('The scanner reported an internal error.', String(data.__error__));
+  if (onProgress) onProgress('Analysing results…');
   const evaluated = rules.evaluate(data);
   return { data, ...evaluated, generatedAt: data.generatedAt || new Date().toISOString() };
+}
+
+function cancel() {
+  if (active) {
+    cancelledFlag = true;
+    try { active.kill(); } catch { /* ignore */ }
+    return true;
+  }
+  return false;
 }
 
 // ---- Standalone HTML report (self-contained, printable) ----
@@ -136,4 +219,4 @@ function buildHtmlReport(result) {
 </div></body></html>`;
 }
 
-module.exports = { runScan, buildHtmlReport };
+module.exports = { runScan, cancel, buildHtmlReport };
