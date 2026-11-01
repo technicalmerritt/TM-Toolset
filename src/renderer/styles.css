@@ -389,6 +389,94 @@ body {
   background: var(--accent);
 }
 
+/* Active ticket control (top bar) */
+.ticket {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.ticket__form {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 10px;
+}
+
+.ticket__form:focus-within {
+  border-color: var(--accent);
+}
+
+.ticket__hash {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.ticket__input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  padding: 8px 2px;
+  width: 78px;
+  font: inherit;
+}
+
+.ticket__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 5px 6px 5px 12px;
+  max-width: 340px;
+}
+
+.ticket__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.ticket__cust {
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ticket__subj {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ticket__clear {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ticket__clear:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
 .panel {
   flex: 1;
   overflow-y: auto;

@@ -39,6 +39,67 @@ async function testConnection({ subdomain, token }) {
   }
 }
 
+// Resolve a human ticket NUMBER to its internal id (+ customer) via search.
+async function lookupTicket({ subdomain, token, number }) {
+  const base = normalizeBase(subdomain);
+  if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
+  if (!token) return { ok: false, message: 'Syncro API token is not set.' };
+  const num = String(number || '').trim().replace(/^#/, '');
+  if (!/^\d+$/.test(num)) return { ok: false, message: 'Enter a numeric ticket number.' };
+  try {
+    const res = await apiRequest(base, token, `/tickets?number=${encodeURIComponent(num)}`);
+    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected — the API token needs Tickets permission.' };
+    if (res.status !== 200) return { ok: false, message: `Syncro returned HTTP ${res.status}.` };
+    let j = {};
+    try { j = await res.json(); } catch { /* ignore */ }
+    const list = (j && (j.tickets || j.data)) || [];
+    const t = list.find((x) => String(x.number) === num) || list[0];
+    if (!t) return { ok: false, message: `No ticket #${num} found.` };
+    const customerName =
+      t.customer_business_then_name ||
+      t.customer_full_name ||
+      t.customer_fullname ||
+      (t.customer && (t.customer.business_name || [t.customer.firstname, t.customer.lastname].filter(Boolean).join(' ').trim())) ||
+      (t.customer_id ? 'Customer ' + t.customer_id : 'Unknown customer');
+    return {
+      ok: true,
+      ticket: { id: t.id, number: t.number, subject: t.subject || '(no subject)', customerId: t.customer_id, customerName },
+    };
+  } catch (e) {
+    return { ok: false, message: 'Could not reach Syncro: ' + e.message };
+  }
+}
+
+// Create a customer asset from this machine's details.
+async function createAsset({ subdomain, token, customerId, name, assetType, properties }) {
+  const base = normalizeBase(subdomain);
+  if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
+  if (!token) return { ok: false, message: 'Syncro API token is not set.' };
+  if (!customerId) return { ok: false, message: 'No customer selected — set a ticket first so the asset attaches to the right customer.' };
+  try {
+    const res = await apiRequest(base, token, '/customer_assets', {
+      method: 'POST',
+      body: { name: name || 'PC', customer_id: customerId, asset_type: assetType || 'Computer', properties: properties || {} },
+    });
+    if (res.status >= 200 && res.status < 300) {
+      let id = null;
+      try {
+        const j = await res.json();
+        id = (j && j.asset && j.asset.id) || (j && j.customer_asset && j.customer_asset.id) || (j && j.id) || null;
+      } catch {
+        /* ignore */
+      }
+      return { ok: true, message: `Asset created${id ? ` (#${id})` : ''}.`, assetId: id };
+    }
+    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected — the API token needs permission to create assets.' };
+    let txt = '';
+    try { txt = (await res.text()).slice(0, 200); } catch { /* ignore */ }
+    return { ok: false, message: `Syncro returned HTTP ${res.status}. ${txt}`.trim() };
+  } catch (e) {
+    return { ok: false, message: 'Could not reach Syncro: ' + e.message };
+  }
+}
+
 async function postComment({ subdomain, token, ticketId, subject, body, hidden }) {
   const base = normalizeBase(subdomain);
   if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
@@ -65,8 +126,8 @@ async function postComment({ subdomain, token, ticketId, subject, body, hidden }
       }
       return { ok: true, message: `Posted to ticket #${id}.`, commentId };
     }
-    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected.' };
-    if (res.status === 404) return { ok: false, message: `Ticket #${id} was not found.` };
+    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected — the API token needs permission to comment on tickets.' };
+    if (res.status === 404) return { ok: false, message: `Ticket id ${id} was not found.` };
     let txt = '';
     try { txt = (await res.text()).slice(0, 200); } catch { /* ignore */ }
     return { ok: false, message: `Syncro returned HTTP ${res.status}. ${txt}`.trim() };
@@ -107,4 +168,4 @@ function buildFindingsComment(result) {
   return out.join('\n');
 }
 
-module.exports = { testConnection, postComment, buildFindingsComment, normalizeBase };
+module.exports = { testConnection, lookupTicket, postComment, createAsset, buildFindingsComment, normalizeBase };

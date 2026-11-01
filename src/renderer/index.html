@@ -22,6 +22,20 @@
         <button class="tab" data-tab="tools">Tools</button>
         <button class="tab" data-tab="settings">Settings</button>
       </nav>
+
+      <div class="ticket" id="ticketControl">
+        <form id="ticketForm" class="ticket__form">
+          <span class="ticket__hash">#</span>
+          <input id="ticketInput" class="ticket__input" type="text" inputmode="numeric" placeholder="Ticket" autocomplete="off" title="Type a ticket number and press Enter" />
+        </form>
+        <div id="ticketInfo" class="ticket__info" hidden>
+          <div class="ticket__text">
+            <span id="ticketCustomer" class="ticket__cust"></span>
+            <span id="ticketSubject" class="ticket__subj"></span>
+          </div>
+          <button id="ticketClear" class="ticket__clear" type="button" title="Clear ticket">&times;</button>
+        </div>
+      </div>
     </header>
 
     <!-- ================= INFORMATION ================= -->
@@ -32,8 +46,9 @@
           <p class="muted">A full read-only inventory of this PC — system, hardware, disks, software, security, network and history.</p>
         </div>
         <div class="info-top__actions">
+          <button id="infoCreateAsset" class="btn btn--primary" type="button">Create asset in Syncro</button>
           <button id="infoRefresh" class="btn btn--ghost" type="button">Refresh</button>
-          <button id="infoExport" class="btn btn--primary" type="button">Export (.txt)</button>
+          <button id="infoExport" class="btn btn--ghost" type="button">Export (.txt)</button>
         </div>
       </div>
 
@@ -152,11 +167,8 @@
     <!-- Post-to-Syncro modal -->
     <div id="syncroModal" class="modal" hidden>
       <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="syncroTitle">
-        <h2 id="syncroTitle">Post scan to a Syncro ticket</h2>
-        <label class="field">
-          <span>Ticket number</span>
-          <input id="syncTicket" type="text" inputmode="numeric" placeholder="e.g. 12345" />
-        </label>
+        <h2 id="syncroTitle">Post scan to Syncro</h2>
+        <p class="muted" id="syncTarget"></p>
         <label class="field field--check">
           <input id="syncHidden" type="checkbox" checked />
           <span>Private note (hidden from the customer)</span>
@@ -217,6 +229,7 @@
     </div>
 
     <script src="renderer.js"></script>
+    <script src="ticket.js"></script>
     <script src="scanner.js"></script>
     <script src="inform.js"></script>
     <script src="settings-ui.js"></script>

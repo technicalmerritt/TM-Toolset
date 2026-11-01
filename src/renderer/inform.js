@@ -273,6 +273,46 @@
     }
   }
 
+  async function createAsset() {
+    if (!data) {
+      toast('Let the information finish loading first.', 'error');
+      return;
+    }
+    const tk = window.activeTicket && window.activeTicket.get();
+    if (!tk || !tk.customerId) {
+      toast('Set a ticket number in the top bar first (so we know the customer).', 'error');
+      const input = document.getElementById('ticketInput');
+      if (input) input.focus();
+      return;
+    }
+    const os = data.os || {};
+    const c = data.computer || {};
+    const cpu = data.cpu || {};
+    const mem = data.memory || {};
+    const name = [c.manufacturer, c.model].filter(Boolean).join(' ').trim() || 'PC';
+    const properties = {
+      Model: name,
+      Serial: c.serial,
+      'Operating System': [os.name, os.displayVersion].filter(Boolean).join(' '),
+      CPU: cpu.name,
+      RAM: mem.totalGB != null ? mem.totalGB + ' GB' : undefined,
+      'Logged-in user': os.loggedInUser,
+      Source: 'TM Toolset',
+    };
+    Object.keys(properties).forEach((k) => (properties[k] == null || properties[k] === '') && delete properties[k]);
+
+    if (!window.confirm(`Create an asset "${name}" for ${tk.customerName} in Syncro?`)) return;
+    els.createAsset.disabled = true;
+    try {
+      const res = await window.syncro.createAsset({ customerId: tk.customerId, name, assetType: 'Computer', properties });
+      toast((res && res.message) || (res && res.ok ? 'Asset created.' : 'Could not create asset.'), res && res.ok ? undefined : 'error');
+    } catch (err) {
+      toast('Asset error: ' + ((err && err.message) || err), 'error');
+    } finally {
+      els.createAsset.disabled = false;
+    }
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
     els.status = $('#infoStatus');
     els.statusText = $('#infoStatusText');
@@ -282,11 +322,13 @@
     els.refresh = $('#infoRefresh');
     els.export = $('#infoExport');
     els.retry = $('#infoRetry');
+    els.createAsset = $('#infoCreateAsset');
     if (!els.content) return;
 
     els.refresh && els.refresh.addEventListener('click', load);
     els.retry && els.retry.addEventListener('click', load);
     els.export && els.export.addEventListener('click', exportText);
+    els.createAsset && els.createAsset.addEventListener('click', createAsset);
 
     if (window.inform && window.inform.onProgress) {
       window.inform.onProgress((msg) => {

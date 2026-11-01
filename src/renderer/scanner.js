@@ -234,7 +234,6 @@
       toast('Run a scan first.', 'error');
       return;
     }
-    // Make sure Syncro is configured; if not, send them to Settings.
     try {
       const s = await window.settings.get();
       if (!s || !s.subdomain || !s.hasToken) {
@@ -246,10 +245,16 @@
     } catch {
       /* continue; post will report any issue */
     }
-    els.syncTicket.value = '';
+    const tk = window.activeTicket && window.activeTicket.get();
+    if (!tk) {
+      toast('Set a ticket number in the top bar first.', 'error');
+      const input = document.getElementById('ticketInput');
+      if (input) input.focus();
+      return;
+    }
+    els.syncTarget.textContent = `Ticket #${tk.number} — ${tk.customerName}${tk.subject ? ' · ' + tk.subject : ''}`;
     els.syncHidden.checked = true;
     els.syncroModal.hidden = false;
-    els.syncTicket.focus();
   }
 
   function closeSyncro() {
@@ -257,15 +262,15 @@
   }
 
   async function postSyncro() {
-    const ticketId = (els.syncTicket.value || '').trim();
-    if (!/^#?\d+$/.test(ticketId)) {
-      toast('Enter a numeric ticket number.', 'error');
+    const tk = window.activeTicket && window.activeTicket.get();
+    if (!tk) {
+      toast('No active ticket — set one in the top bar.', 'error');
       return;
     }
     els.syncPost.disabled = true;
     try {
       const res = await window.syncro.postScan({
-        ticketId,
+        ticketId: tk.id,
         hidden: els.syncHidden.checked,
         result: lastResult,
       });
@@ -312,7 +317,7 @@
     els.errorRetry = $('#scanErrorRetry');
     els.syncBtn = $('#scanToSyncro');
     els.syncroModal = $('#syncroModal');
-    els.syncTicket = $('#syncTicket');
+    els.syncTarget = $('#syncTarget');
     els.syncHidden = $('#syncHidden');
     els.syncPost = $('#syncPost');
     els.syncCancel = $('#syncCancel');

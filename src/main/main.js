@@ -239,6 +239,13 @@ function registerIpc() {
     return syncro.testConnection({ subdomain, token });
   });
 
+  // ---- Look up a ticket by its human number (→ id + customer) ----
+  ipcMain.handle('syncro:lookup', async (_evt, args) => {
+    const { subdomain, token } = await settings.getForApi();
+    if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
+    return syncro.lookupTicket({ subdomain, token, number: args && args.number });
+  });
+
   // ---- Post an Issue Scan as a comment on an existing Syncro ticket ----
   ipcMain.handle('syncro:postScan', async (_evt, args) => {
     const { subdomain, token } = await settings.getForApi();
@@ -251,6 +258,20 @@ function registerIpc() {
       hidden: !(args && args.hidden === false),
       subject: 'TM Toolset Issue Scan',
       body,
+    });
+  });
+
+  // ---- Create a customer asset from this machine ----
+  ipcMain.handle('syncro:createAsset', async (_evt, args) => {
+    const { subdomain, token } = await settings.getForApi();
+    if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
+    return syncro.createAsset({
+      subdomain,
+      token,
+      customerId: args && args.customerId,
+      name: args && args.name,
+      assetType: (args && args.assetType) || 'Computer',
+      properties: (args && args.properties) || {},
     });
   });
 }
