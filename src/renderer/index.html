@@ -13,8 +13,13 @@
   <body>
     <header class="topbar">
       <div class="brand">
-        <img class="brand__logo" src="logo-icon.png" alt="TM Toolset" />
-        <strong class="brand__name">TM Toolset</strong>
+        <img class="brand__logo" src="logo-icon.png" alt="Technical Merit" />
+        <div class="brand__lockup">
+          <span class="brand__word">TECHNICAL</span>
+          <span class="brand__line"></span>
+          <span class="brand__word">MERIT</span>
+        </div>
+        <span class="brand__product">TM&nbsp;Toolset</span>
       </div>
       <nav class="tabs">
         <button class="tab tab--active" data-tab="information">Information</button>
@@ -224,6 +229,26 @@
         <div class="modal__actions">
           <button id="modalCancel" class="btn btn--ghost" type="button">Cancel</button>
           <button id="modalSave" class="btn btn--primary" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create-asset modal -->
+    <div id="assetModal" class="modal" hidden>
+      <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="assetTitle">
+        <h2 id="assetTitle">Create asset in Syncro</h2>
+        <p class="muted" id="assetTarget"></p>
+        <label class="field">
+          <span>Asset type</span>
+          <select id="assetType" class="select"></select>
+        </label>
+        <label class="field">
+          <span>Asset name</span>
+          <input id="assetName" type="text" />
+        </label>
+        <div class="modal__actions">
+          <button id="assetCancel" class="btn btn--ghost" type="button">Cancel</button>
+          <button id="assetCreate" class="btn btn--primary" type="button">Create asset</button>
         </div>
       </div>
     </div>

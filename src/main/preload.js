@@ -52,5 +52,6 @@ contextBridge.exposeInMainWorld('settings', {
 contextBridge.exposeInMainWorld('syncro', {
   lookup: (args) => ipcRenderer.invoke('syncro:lookup', args),
   postScan: (args) => ipcRenderer.invoke('syncro:postScan', args),
+  assetTypes: () => ipcRenderer.invoke('syncro:assetTypes'),
   createAsset: (args) => ipcRenderer.invoke('syncro:createAsset', args),
 });

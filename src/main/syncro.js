@@ -70,16 +70,37 @@ async function lookupTicket({ subdomain, token, number }) {
   }
 }
 
+// List the account's asset types (so the user can pick a real one).
+async function listAssetTypes({ subdomain, token }) {
+  const base = normalizeBase(subdomain);
+  if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
+  if (!token) return { ok: false, message: 'Syncro API token is not set.' };
+  try {
+    let res = await apiRequest(base, token, '/customer_asset_types');
+    if (res.status === 404) res = await apiRequest(base, token, '/asset_types');
+    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected — the API token needs Assets permission.' };
+    if (res.status !== 200) return { ok: false, message: `Syncro returned HTTP ${res.status}.` };
+    let j = {};
+    try { j = await res.json(); } catch { /* ignore */ }
+    const raw = (j && (j.asset_types || j.customer_asset_types || j.data || j.types)) || [];
+    const types = raw.map((t) => ({ id: t.id, name: t.name })).filter((t) => t.id && t.name);
+    return { ok: true, types };
+  } catch (e) {
+    return { ok: false, message: 'Could not reach Syncro: ' + e.message };
+  }
+}
+
 // Create a customer asset from this machine's details.
-async function createAsset({ subdomain, token, customerId, name, assetType, properties }) {
+async function createAsset({ subdomain, token, customerId, name, assetTypeId, properties }) {
   const base = normalizeBase(subdomain);
   if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
   if (!token) return { ok: false, message: 'Syncro API token is not set.' };
   if (!customerId) return { ok: false, message: 'No customer selected — set a ticket first so the asset attaches to the right customer.' };
+  if (!assetTypeId) return { ok: false, message: 'Choose an asset type.' };
   try {
     const res = await apiRequest(base, token, '/customer_assets', {
       method: 'POST',
-      body: { name: name || 'PC', customer_id: customerId, asset_type: assetType || 'Computer', properties: properties || {} },
+      body: { name: name || 'PC', customer_id: customerId, asset_type_id: assetTypeId, properties: properties || {} },
     });
     if (res.status >= 200 && res.status < 300) {
       let id = null;
@@ -168,4 +189,4 @@ function buildFindingsComment(result) {
   return out.join('\n');
 }
 
-module.exports = { testConnection, lookupTicket, postComment, createAsset, buildFindingsComment, normalizeBase };
+module.exports = { testConnection, lookupTicket, postComment, listAssetTypes, createAsset, buildFindingsComment, normalizeBase };

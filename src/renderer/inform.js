@@ -273,7 +273,7 @@
     }
   }
 
-  async function createAsset() {
+  async function openAssetModal() {
     if (!data) {
       toast('Let the information finish loading first.', 'error');
       return;
@@ -285,31 +285,72 @@
       if (input) input.focus();
       return;
     }
-    const os = data.os || {};
-    const c = data.computer || {};
-    const cpu = data.cpu || {};
-    const mem = data.memory || {};
-    const name = [c.manufacturer, c.model].filter(Boolean).join(' ').trim() || 'PC';
-    const properties = {
-      Model: name,
-      Serial: c.serial,
-      'Operating System': [os.name, os.displayVersion].filter(Boolean).join(' '),
-      CPU: cpu.name,
-      RAM: mem.totalGB != null ? mem.totalGB + ' GB' : undefined,
-      'Logged-in user': os.loggedInUser,
-      Source: 'TM Toolset',
-    };
-    Object.keys(properties).forEach((k) => (properties[k] == null || properties[k] === '') && delete properties[k]);
-
-    if (!window.confirm(`Create an asset "${name}" for ${tk.customerName} in Syncro?`)) return;
     els.createAsset.disabled = true;
     try {
-      const res = await window.syncro.createAsset({ customerId: tk.customerId, name, assetType: 'Computer', properties });
-      toast((res && res.message) || (res && res.ok ? 'Asset created.' : 'Could not create asset.'), res && res.ok ? undefined : 'error');
+      const res = await window.syncro.assetTypes();
+      if (!res || !res.ok) {
+        toast((res && res.message) || 'Could not load asset types.', 'error');
+        return;
+      }
+      if (!res.types.length) {
+        toast('No asset types in Syncro yet — create one under Admin → Asset Types, then try again.', 'error');
+        return;
+      }
+      els.assetType.innerHTML = '';
+      for (const t of res.types) {
+        const o = document.createElement('option');
+        o.value = String(t.id);
+        o.textContent = t.name;
+        els.assetType.appendChild(o);
+      }
+      const c = data.computer || {};
+      els.assetName.value = [c.manufacturer, c.model].filter(Boolean).join(' ').trim() || 'PC';
+      els.assetTarget.textContent = `Customer: ${tk.customerName}`;
+      els.assetModal.hidden = false;
     } catch (err) {
       toast('Asset error: ' + ((err && err.message) || err), 'error');
     } finally {
       els.createAsset.disabled = false;
+    }
+  }
+
+  function closeAssetModal() {
+    els.assetModal.hidden = true;
+  }
+
+  async function doCreateAsset() {
+    const tk = window.activeTicket && window.activeTicket.get();
+    if (!tk || !tk.customerId) {
+      toast('No customer — set a ticket first.', 'error');
+      return;
+    }
+    const assetTypeId = parseInt(els.assetType.value, 10);
+    const name = (els.assetName.value || '').trim() || 'PC';
+    const os = data.os || {};
+    const c = data.computer || {};
+    const cpu = data.cpu || {};
+    const mem = data.memory || {};
+    const properties = {
+      Serial: c.serial,
+      'Operating System': [os.name, os.displayVersion].filter(Boolean).join(' '),
+      CPU: cpu.name,
+      RAM: mem.totalGB != null ? mem.totalGB + ' GB' : undefined,
+    };
+    Object.keys(properties).forEach((k) => (properties[k] == null || properties[k] === '') && delete properties[k]);
+
+    els.assetCreate.disabled = true;
+    try {
+      const res = await window.syncro.createAsset({ customerId: tk.customerId, name, assetTypeId, properties });
+      if (res && res.ok) {
+        closeAssetModal();
+        toast(res.message || 'Asset created.');
+      } else {
+        toast((res && res.message) || 'Could not create asset.', 'error');
+      }
+    } catch (err) {
+      toast('Asset error: ' + ((err && err.message) || err), 'error');
+    } finally {
+      els.assetCreate.disabled = false;
     }
   }
 
@@ -323,12 +364,24 @@
     els.export = $('#infoExport');
     els.retry = $('#infoRetry');
     els.createAsset = $('#infoCreateAsset');
+    els.assetModal = $('#assetModal');
+    els.assetType = $('#assetType');
+    els.assetName = $('#assetName');
+    els.assetTarget = $('#assetTarget');
+    els.assetCreate = $('#assetCreate');
+    els.assetCancel = $('#assetCancel');
     if (!els.content) return;
 
     els.refresh && els.refresh.addEventListener('click', load);
     els.retry && els.retry.addEventListener('click', load);
     els.export && els.export.addEventListener('click', exportText);
-    els.createAsset && els.createAsset.addEventListener('click', createAsset);
+    els.createAsset && els.createAsset.addEventListener('click', openAssetModal);
+    els.assetCreate && els.assetCreate.addEventListener('click', doCreateAsset);
+    els.assetCancel && els.assetCancel.addEventListener('click', closeAssetModal);
+    els.assetModal &&
+      els.assetModal.addEventListener('click', (e) => {
+        if (e.target === els.assetModal) closeAssetModal();
+      });
 
     if (window.inform && window.inform.onProgress) {
       window.inform.onProgress((msg) => {

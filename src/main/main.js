@@ -261,7 +261,13 @@ function registerIpc() {
     });
   });
 
-  // ---- Create a customer asset from this machine ----
+  // ---- Asset types + create a customer asset from this machine ----
+  ipcMain.handle('syncro:assetTypes', async () => {
+    const { subdomain, token } = await settings.getForApi();
+    if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
+    return syncro.listAssetTypes({ subdomain, token });
+  });
+
   ipcMain.handle('syncro:createAsset', async (_evt, args) => {
     const { subdomain, token } = await settings.getForApi();
     if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
@@ -270,7 +276,7 @@ function registerIpc() {
       token,
       customerId: args && args.customerId,
       name: args && args.name,
-      assetType: (args && args.assetType) || 'Computer',
+      assetTypeId: args && args.assetTypeId,
       properties: (args && args.properties) || {},
     });
   });

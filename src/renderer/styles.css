@@ -58,10 +58,35 @@ body {
   flex: 0 0 auto;
 }
 
-.brand__name {
-  font-size: 17px;
+.brand__lockup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  line-height: 1;
+}
+
+.brand__word {
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.2px;
+  letter-spacing: 3.5px;
+  color: var(--text);
+  text-align: center;
+}
+
+.brand__line {
+  height: 2px;
+  background: var(--accent);
+  margin: 3px 0;
+  border-radius: 2px;
+}
+
+.brand__product {
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .brand__text {
@@ -965,6 +990,20 @@ body {
 
 .field--check span {
   color: var(--text);
+}
+
+.select {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 11px;
+  outline: none;
+  font: inherit;
+}
+
+.select:focus {
+  border-color: var(--accent);
 }
 
 .finding__detail {
