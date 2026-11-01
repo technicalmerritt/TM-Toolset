@@ -168,7 +168,7 @@ $out.security = [ordered]@{
 
 Step 'Network'
 $out.network = [ordered]@{
-  status    = Safe { if (Test-Connection -Count 1 -Quiet -ErrorAction SilentlyContinue 8.8.8.8) { 'Connected' } else { 'No internet' } }
+  status    = Safe { $cx = (Get-NetConnectionProfile | Select-Object -First 1).IPv4Connectivity; if ($cx) { "$cx" } else { 'Unknown' } }
   proxy     = Safe { (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').ProxyServer }
   hostsCount = Safe { @(Get-Content "$env:SystemRoot\System32\drivers\etc\hosts" | Where-Object { $_ -match '^\s*[^#\s]' }).Count }
   adapters  = Safe {
@@ -190,8 +190,8 @@ $out.network = [ordered]@{
 
 Step 'History'
 $out.history = [ordered]@{
-  restorePoints = Safe { @(Get-ComputerRestorePoint).Count }
-  shadowCopies  = Safe { @(Get-CimInstance Win32_ShadowCopy).Count }
+  restoreEnabled = Safe { if ((Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore' -Name RPSessionInterval -ErrorAction SilentlyContinue).RPSessionInterval -gt 0) { 'Enabled' } else { 'Disabled' } }
+  shadowCopies  = Safe { @(Get-CimInstance Win32_ShadowCopy -OperationTimeoutSec 10).Count }
   bsodDumps     = Safe { @(Get-ChildItem "$env:SystemRoot\Minidump\*.dmp").Count }
   unexpectedShutdowns = Safe { @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; Id = 41; StartTime = (Get-Date).AddDays(-30) }).Count }
   usbDevices = Safe {

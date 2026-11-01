@@ -1,9 +1,8 @@
 'use strict';
 
-const { spawn } = require('node:child_process');
 const path = require('node:path');
-const fs = require('node:fs');
 const rules = require('./rules');
+const { runPowerShellScript } = require('../ps-runner');
 
 let active = null; // current child process
 let cancelledFlag = false;
@@ -15,113 +14,28 @@ class ScanError extends Error {
   }
 }
 
-function powershellPath() {
-  const root = process.env.SystemRoot || process.env.windir || 'C:\\Windows';
-  const full = path.join(root, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
-  try {
-    if (fs.existsSync(full)) return full;
-  } catch {
-    /* ignore */
-  }
-  return 'powershell.exe';
-}
-
-// Run the read-only PowerShell collector; stream step markers via onProgress.
-function collect(onProgress) {
-  return new Promise((resolve, reject) => {
-    const script = path.join(__dirname, 'collect.ps1');
-    if (!fs.existsSync(script)) {
-      reject(new ScanError('Scanner script is missing.', `Expected: ${script}`));
-      return;
-    }
-    const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script];
-
-    let child;
-    try {
-      child = spawn(powershellPath(), args, { windowsHide: true });
-    } catch (e) {
-      reject(new ScanError('Could not start PowerShell.', e.message));
-      return;
-    }
-    active = child;
-    cancelledFlag = false;
-
-    let out = '';
-    const errLines = [];
-    let stderrBuf = '';
-
-    const timer = setTimeout(() => {
-      try { child.kill(); } catch { /* ignore */ }
-      reject(new ScanError('The scan timed out after 3 minutes.', errLines.join('\n')));
-    }, 180000);
-
-    function handleStderrLine(line) {
-      if (!line) return;
-      if (line.startsWith('@@STEP@@')) {
-        if (onProgress) onProgress(line.slice(8).trim());
-      } else if (line.startsWith('@@FATAL@@')) {
-        errLines.push(line.slice(9).trim());
-      } else {
-        errLines.push(line);
-      }
-    }
-
-    child.stdout.on('data', (d) => (out += d.toString()));
-    child.stderr.on('data', (d) => {
-      stderrBuf += d.toString();
-      let idx;
-      while ((idx = stderrBuf.indexOf('\n')) >= 0) {
-        handleStderrLine(stderrBuf.slice(0, idx).replace(/\r$/, ''));
-        stderrBuf = stderrBuf.slice(idx + 1);
-      }
-    });
-
-    child.on('error', (e) => {
-      clearTimeout(timer);
-      active = null;
-      reject(new ScanError('Could not start PowerShell.', e.message));
-    });
-
-    child.on('close', (code) => {
-      clearTimeout(timer);
-      if (stderrBuf) handleStderrLine(stderrBuf.replace(/\r$/, ''));
-      active = null;
-
-      if (cancelledFlag) {
-        cancelledFlag = false;
-        const e = new ScanError('Scan cancelled.');
-        e.cancelled = true;
-        reject(e);
-        return;
-      }
-
-      // Tolerant extraction: take everything between the first { and last }.
-      const start = out.indexOf('{');
-      const end = out.lastIndexOf('}');
-      if (start < 0 || end <= start) {
-        reject(
-          new ScanError(
-            'The scanner did not return any data.',
-            errLines.join('\n').trim() || `PowerShell exited with code ${code} and produced no output.`
-          )
-        );
-        return;
-      }
-
-      let data;
-      try {
-        data = JSON.parse(out.slice(start, end + 1));
-      } catch (e) {
-        reject(new ScanError('The scan data could not be read.', [errLines.join('\n'), e.message].filter(Boolean).join('\n')));
-        return;
-      }
-      resolve(data);
-    });
-  });
-}
-
 async function runScan(onProgress) {
-  const data = await collect(onProgress);
+  cancelledFlag = false;
+  let data;
+  try {
+    data = await runPowerShellScript({
+      scriptPath: path.join(__dirname, 'collect.ps1'),
+      onProgress,
+      onChild: (c) => { active = c; },
+      timeoutMs: 120000,
+    });
+  } catch (err) {
+    if (cancelledFlag) {
+      cancelledFlag = false;
+      const e = new ScanError('Scan cancelled.');
+      e.cancelled = true;
+      throw e;
+    }
+    throw new ScanError('The scanner could not collect system data.', (err && err.message) || String(err));
+  } finally {
+    active = null;
+  }
+
   if (data && data.__error__) throw new ScanError('The scanner reported an internal error.', String(data.__error__));
   if (onProgress) onProgress('Analysing results…');
   const evaluated = rules.evaluate(data);

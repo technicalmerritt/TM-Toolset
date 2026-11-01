@@ -1,84 +1,13 @@
 'use strict';
 
-const { spawn } = require('node:child_process');
 const path = require('node:path');
-const fs = require('node:fs');
-
-function powershellPath() {
-  const root = process.env.SystemRoot || process.env.windir || 'C:\\Windows';
-  const full = path.join(root, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
-  try {
-    if (fs.existsSync(full)) return full;
-  } catch {
-    /* ignore */
-  }
-  return 'powershell.exe';
-}
+const { runPowerShellScript } = require('../ps-runner');
 
 function runInform(onProgress) {
-  return new Promise((resolve, reject) => {
-    const script = path.join(__dirname, 'collect-inform.ps1');
-    if (!fs.existsSync(script)) {
-      reject(new Error(`Inform script missing: ${script}`));
-      return;
-    }
-    const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script];
-
-    let child;
-    try {
-      child = spawn(powershellPath(), args, { windowsHide: true });
-    } catch (e) {
-      reject(new Error('Could not start PowerShell: ' + e.message));
-      return;
-    }
-
-    let out = '';
-    const errLines = [];
-    let stderrBuf = '';
-    const timer = setTimeout(() => {
-      try { child.kill(); } catch { /* ignore */ }
-      reject(new Error('Gathering system information timed out after 3 minutes.'));
-    }, 180000);
-
-    function handleLine(line) {
-      if (!line) return;
-      if (line.startsWith('@@STEP@@')) {
-        if (onProgress) onProgress(line.slice(8).trim());
-      } else if (line.startsWith('@@FATAL@@')) {
-        errLines.push(line.slice(9).trim());
-      } else {
-        errLines.push(line);
-      }
-    }
-
-    child.stdout.on('data', (d) => (out += d.toString()));
-    child.stderr.on('data', (d) => {
-      stderrBuf += d.toString();
-      let i;
-      while ((i = stderrBuf.indexOf('\n')) >= 0) {
-        handleLine(stderrBuf.slice(0, i).replace(/\r$/, ''));
-        stderrBuf = stderrBuf.slice(i + 1);
-      }
-    });
-    child.on('error', (e) => {
-      clearTimeout(timer);
-      reject(new Error('Could not start PowerShell: ' + e.message));
-    });
-    child.on('close', (code) => {
-      clearTimeout(timer);
-      if (stderrBuf) handleLine(stderrBuf.replace(/\r$/, ''));
-      const start = out.indexOf('{');
-      const end = out.lastIndexOf('}');
-      if (start < 0 || end <= start) {
-        reject(new Error(errLines.join('\n').trim() || `No data returned (exit code ${code}).`));
-        return;
-      }
-      try {
-        resolve(JSON.parse(out.slice(start, end + 1)));
-      } catch (e) {
-        reject(new Error('Could not read system information: ' + e.message));
-      }
-    });
+  return runPowerShellScript({
+    scriptPath: path.join(__dirname, 'collect-inform.ps1'),
+    onProgress,
+    timeoutMs: 120000,
   });
 }
 
@@ -184,7 +113,7 @@ function buildTextReport(d) {
 
   section('History');
   const h = d.history || {};
-  kv('Restore points', h.restorePoints);
+  kv('System Restore', h.restoreEnabled);
   kv('Shadow copies', h.shadowCopies);
   kv('Crash dumps (BSOD)', h.bsodDumps);
   kv('Unexpected shutdowns (30d)', h.unexpectedShutdowns);

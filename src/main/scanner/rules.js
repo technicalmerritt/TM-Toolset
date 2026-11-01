@@ -26,6 +26,9 @@ function evaluate(d) {
       summary,
       detail: opts.detail || '',
       recommendation: opts.recommendation || '',
+      explain: opts.explain || '',
+      actions: Array.isArray(opts.actions) ? opts.actions : [],
+      links: Array.isArray(opts.links) ? opts.links : [],
     });
 
   const sys = d.system || {};
@@ -44,6 +47,10 @@ function evaluate(d) {
           sys.tpmPresent && sys.secureBoot
             ? 'This machine has TPM and Secure Boot, so it looks eligible for Windows 11 — plan the in-place upgrade.'
             : 'Check Windows 11 eligibility (TPM 2.0 + Secure Boot + supported CPU), or enrol the machine in Extended Security Updates.',
+        explain:
+          'Without security updates, newly discovered vulnerabilities on this PC stay unpatched. Three paths: upgrade to Windows 11 if the hardware qualifies (free), enrol in Extended Security Updates to keep getting patches for a while, or replace the machine. For a shop, flag this to the customer so it is their informed decision.',
+        actions: [{ label: 'Check for updates', token: 'windows-update' }],
+        links: [{ label: 'Windows 11 & requirements', url: 'https://www.microsoft.com/windows/windows-11' }],
       }
     );
   } else if (build >= 22000) {
@@ -76,7 +83,14 @@ function evaluate(d) {
     const label = `${v.drive}${v.label ? ' (' + v.label + ')' : ''}`;
     if (pct < 7 || freeGB < 10) {
       add('critical', 'Storage', `Very low disk space on ${label}`, `${freeGB} GB free of ${v.sizeGB} GB (${pct}%). Windows can become unstable below ~10% free.`, {
-        recommendation: 'Free space: run the junk cleanup below, uninstall unused apps, or move data off this drive.',
+        recommendation: 'Free space now: Disk Cleanup, uninstall unused apps, empty the Recycle Bin, and move large files off this drive.',
+        explain:
+          'Windows needs headroom for updates, temp files and virtual memory. When the system drive fills up, updates fail, apps crash and everything slows down. Biggest quick wins are usually the Downloads folder, old Windows Update files (Disk Cleanup → "Clean up system files"), and large media files that can move to another drive or external storage.',
+        actions: [
+          { label: 'Disk Cleanup', token: 'disk-cleanup' },
+          { label: 'Storage settings', token: 'storage-settings' },
+          { label: 'Uninstall programs', token: 'programs' },
+        ],
       });
     } else if (pct < 15) {
       add('warning', 'Storage', `Low disk space on ${label}`, `${freeGB} GB free of ${v.sizeGB} GB (${pct}%).`, {
@@ -120,6 +134,9 @@ function evaluate(d) {
   if (activeAvs.length > 1) {
     add('warning', 'Security', 'Multiple active antivirus products', `${activeAvs.map((a) => a.name).join(' + ')} appear to be running real-time protection at once. Two live AV engines fight each other and cause slowdowns and quarantine loops.`, {
       recommendation: 'Keep one real-time AV; fully uninstall the others (leftover trials like Norton/McAfee are common).',
+      explain:
+        'Two live antivirus engines scanning the same files at the same moment collide — causing slowdowns, files locked in quarantine loops, and sometimes each one disabling the other, leaving the PC less protected than with just one. Decide which to keep, then remove the other with the vendor\'s official removal tool — ordinary Add/Remove Programs often leaves drivers and services behind.',
+      actions: [{ label: 'Uninstall programs', token: 'programs' }],
       detail: avs.map((a) => `${a.name} — state 0x${num(a.state).toString(16)} (${(num(a.state) & 0x1000) ? 'active' : 'off'})`).join('\n'),
     });
   } else if (avs.length > 1) {
@@ -132,6 +149,8 @@ function evaluate(d) {
   if (sec.defenderRTP === false && activeAvs.length === 0) {
     add('critical', 'Security', 'No real-time antivirus protection', 'Microsoft Defender real-time protection is off and no other active AV was detected.', {
       recommendation: 'Turn Defender real-time protection back on, or confirm a working third-party AV is installed.',
+      explain: 'Nothing is actively watching this machine for malware right now. Sometimes malware itself disables protection, so if it will not turn back on, treat the PC as suspect and run an offline scan.',
+      actions: [{ label: 'Open Windows Security', token: 'windows-security' }],
     });
   } else if (sec.defenderRTP === true) {
     add('ok', 'Security', 'Real-time protection active', 'Microsoft Defender real-time protection is enabled.');
@@ -144,7 +163,10 @@ function evaluate(d) {
 
   const fwDisabled = arr(sec.firewallDisabled);
   if (fwDisabled.length) {
-    add('warning', 'Security', 'Windows Firewall partly disabled', `Disabled profile(s): ${fwDisabled.join(', ')}.`, { recommendation: 'Re-enable the firewall for all network profiles unless a managed firewall is in use.' });
+    add('warning', 'Security', 'Windows Firewall partly disabled', `Disabled profile(s): ${fwDisabled.join(', ')}.`, {
+      recommendation: 'Re-enable the firewall for all network profiles unless a managed firewall is in use.',
+      actions: [{ label: 'Firewall settings', token: 'firewall' }],
+    });
   }
 
   if (sec.uac === 0) {
@@ -165,7 +187,10 @@ function evaluate(d) {
   const hosts = arr(net.hostsEntries).filter((l) => l && !/^\s*127\.0\.0\.1\s+localhost|::1\s+localhost/i.test(l));
   if (hosts.length) {
     add('warning', 'Security', 'Custom entries in the hosts file', `${hosts.length} non-default hosts entr${hosts.length === 1 ? 'y' : 'ies'} found. Malware and cracks often redirect domains here.`, {
-      recommendation: 'Review these entries; remove anything unexpected.',
+      recommendation: 'Review the entries; remove anything you do not recognise.',
+      explain:
+        'The hosts file maps website names to IP addresses before normal DNS is consulted. There are legit uses (software development, ad-blocking lists), but malware and pirated/cracked software frequently abuse it — redirecting real sites to fake ones, or pointing antivirus and activation servers at 0.0.0.0 / 127.0.0.1 to block updates. Anything here sending a well-known domain (microsoft.com, your bank, an AV vendor) to an odd or dead address is a red flag.',
+      actions: [{ label: 'Open hosts file', token: 'hosts-file' }],
       detail: hosts.slice(0, 20).join('\n'),
     });
   }
@@ -187,7 +212,13 @@ function evaluate(d) {
   if (bugs.length || dumps) {
     const n = Math.max(bugs.length, dumps);
     add('critical', 'Stability', 'Blue-screen crashes (BSOD)', `${n} bugcheck/crash dump${n === 1 ? '' : 's'} recorded. Repeated BSODs point to a driver, memory or storage fault.`, {
-      recommendation: 'Review the minidumps (C:\\Windows\\Minidump); test RAM and update/roll back recent drivers.',
+      recommendation: 'Check the crash pattern, note the bugcheck code, and test RAM; suspect recently changed drivers/hardware.',
+      explain:
+        'Reliability Monitor shows the timeline — line up the first crash with a recent driver update, Windows update or new hardware. Event Viewer gives the bugcheck (STOP) code, which usually names the culprit. If crashes are random, run Windows Memory Diagnostic to rule out bad RAM. The dump files are in C:\\Windows\\Minidump.',
+      actions: [
+        { label: 'Reliability Monitor', token: 'reliability' },
+        { label: 'Event Viewer', token: 'event-viewer' },
+      ],
       detail: bugs.map((b) => `${b.time} — ${b.msg}`).join('\n'),
     });
   }
@@ -207,7 +238,9 @@ function evaluate(d) {
   const probs = arr(d.problemDevices);
   if (probs.length) {
     add('warning', 'Hardware', `${probs.length} device(s) with driver problems`, 'Devices are reporting errors in Device Manager (missing or faulty drivers).', {
-      recommendation: 'Install correct drivers for these devices.',
+      recommendation: 'Install the correct driver for each flagged device.',
+      explain: 'Open Device Manager and look for the devices below (yellow triangle). Right-click → Update driver, or download the proper driver from the PC/part maker\'s support page. A "Code 28" means no driver is installed at all.',
+      actions: [{ label: 'Open Device Manager', token: 'device-manager' }],
       detail: probs.map((p) => `${p.name} — error ${p.errorCode}${p.class ? ' [' + p.class + ']' : ''}`).join('\n'),
     });
   }
@@ -226,7 +259,13 @@ function evaluate(d) {
   const startup = arr(d.startup);
   if (startup.length >= 12) {
     add('warning', 'Performance', `${startup.length} startup programs`, 'A high number of auto-start programs slows boot and steals memory.', {
-      recommendation: 'Disable non-essential startup items (Task Manager → Startup).',
+      recommendation: 'Disable non-essential startup items, then restart to feel the difference.',
+      explain:
+        'Usually safe to disable: software updaters and "helpers" (Adobe, Java, iTunes, Spotify, Steam, printer/vendor updaters), chat and cloud apps you do not need the moment you log in, and pre-installed bloatware. Keep enabled: antivirus/security, touchpad / audio / graphics utilities, and any backup or sync tool you rely on. Disabling only stops it launching at startup — you can still open it manually any time.',
+      actions: [
+        { label: 'Open Startup settings', token: 'startup-apps' },
+        { label: 'Open Task Manager', token: 'task-manager' },
+      ],
       detail: startup.slice(0, 25).map((s) => `${s.name}  —  ${s.command}`).join('\n'),
     });
   } else if (startup.length >= 7) {
@@ -243,6 +282,7 @@ function evaluate(d) {
   if (junkMB >= 1024) {
     add('info', 'Maintenance', `~${(junkMB / 1024).toFixed(1)} GB of reclaimable junk`, 'Temp files, Windows Update cache, prefetch and crash dumps are using noticeable space.', {
       recommendation: 'Clear temp + update cache (Disk Cleanup / Storage Sense).',
+      actions: [{ label: 'Disk Cleanup', token: 'disk-cleanup' }],
       detail: `User temp: ${junk.userTempMB} MB\nWindows temp: ${junk.winTempMB} MB\nUpdate cache: ${junk.wuCacheMB} MB\nPrefetch: ${junk.prefetchMB} MB\nCrash dumps: ${junk.minidumpMB} MB`,
     });
   }
@@ -251,14 +291,20 @@ function evaluate(d) {
   if (lastHotfix && !Number.isNaN(lastHotfix.getTime())) {
     const days = Math.round((Date.now() - lastHotfix.getTime()) / 86400000);
     if (days >= 60) {
-      add('warning', 'Maintenance', 'Windows updates look stalled', `The last update was installed ${days} days ago.`, { recommendation: 'Run Windows Update; if it fails, reset the update components.' });
+      add('warning', 'Maintenance', 'Windows updates look stalled', `The last update was installed ${days} days ago.`, {
+        recommendation: 'Run Windows Update; if it keeps failing, reset the update components.',
+        actions: [{ label: 'Open Windows Update', token: 'windows-update' }],
+      });
     }
   }
 
   const stopped = arr(d.stoppedAutoServices);
   if (stopped.length >= 1) {
     const names = stopped.slice(0, 15).map((s) => `${s.display || s.name}`);
-    add('info', 'Maintenance', `${stopped.length} automatic service(s) not running`, 'Services set to start automatically are currently stopped. Usually harmless, occasionally a symptom.', { detail: names.join('\n') });
+    add('info', 'Maintenance', `${stopped.length} automatic service(s) not running`, 'Services set to start automatically are currently stopped. Usually harmless, occasionally a symptom.', {
+      actions: [{ label: 'Open Services', token: 'services' }],
+      detail: names.join('\n'),
+    });
   }
 
   // ---------- Drive failure prediction & dirty bit ----------
@@ -287,7 +333,10 @@ function evaluate(d) {
   // ---------- Windows Update failures ----------
   const wuErr = num(d.wuErrors);
   if (wuErr >= 3) {
-    add('warning', 'Maintenance', 'Windows Update is failing', `${wuErr} Windows Update errors logged in the last 60 days.`, { recommendation: 'Run the Windows Update troubleshooter, or reset the update components (SoftwareDistribution + catroot2).' });
+    add('warning', 'Maintenance', 'Windows Update is failing', `${wuErr} Windows Update errors logged in the last 60 days.`, {
+      recommendation: 'Run the Windows Update troubleshooter, or reset the update components (SoftwareDistribution + catroot2).',
+      actions: [{ label: 'Open Windows Update', token: 'windows-update' }],
+    });
   }
 
   // ---------- Malware indicators: policies / default values / associations ----------
@@ -295,6 +344,7 @@ function evaluate(d) {
   if (pol.length) {
     add('warning', 'Security', 'Restrictive policies set on this account', `These restrictions are commonly set by malware to lock you out of cleanup tools: ${pol.join(', ')}.`, {
       recommendation: 'If this is not a managed/enterprise policy, treat it as a malware indicator and clear these policy values.',
+      explain: 'Things like a disabled Task Manager or Registry Editor are classic malware self-defence — it stops you from seeing or removing it. On a company-managed PC these may be set deliberately by IT; on a home machine, assume infection.',
       detail: pol.join('\n'),
     });
   }
@@ -308,7 +358,8 @@ function evaluate(d) {
   const assoc = arr(d.assocHijack);
   if (assoc.length) {
     add('critical', 'Security', 'Executable file association hijacked', 'The handler that runs .exe files has been redirected — malware does this so it launches whenever any program is opened.', {
-      recommendation: 'Restore the .exe association to the Windows default (exefile) and scan for malware.',
+      recommendation: 'Restore the .exe association to the Windows default (exefile) and run a full malware scan.',
+      explain: 'Normally double-clicking any program runs it directly. When this association is hijacked, Windows runs the malware first every single time you open anything — which is why these infections are so persistent. This needs a proper malware clean-up, not just a settings tweak.',
       detail: assoc.join('\n'),
     });
   }

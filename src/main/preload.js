@@ -37,3 +37,8 @@ contextBridge.exposeInMainWorld('inform', {
     return () => ipcRenderer.removeListener('inform:progress', handler);
   },
 });
+
+contextBridge.exposeInMainWorld('sys', {
+  open: (token) => ipcRenderer.invoke('action:open', token),
+  openUrl: (url) => ipcRenderer.invoke('action:openUrl', url),
+});

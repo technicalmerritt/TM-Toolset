@@ -230,8 +230,8 @@ $out.network = [ordered]@{
   autoConfig   = Safe { (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').AutoConfigURL }
 }
 
-# ---------- System protection ----------
-$out.restorePoints = Safe { @(Get-ComputerRestorePoint).Count }
+# ---------- System protection (fast registry check; VSS enumeration can hang) ----------
+$out.restoreEnabled = Safe { if ((Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore' -Name RPSessionInterval -ErrorAction SilentlyContinue).RPSessionInterval -gt 0) { $true } else { $false } }
 
 Step 'Checking for malware indicators'
 $since60 = (Get-Date).AddDays(-60)
@@ -300,13 +300,11 @@ $out.assocHijack = Safe {
   $issues
 }
 
-# ---------- Stuck print jobs ----------
+# ---------- Stuck print jobs (Win32_PrintJob is non-blocking, unlike Get-PrintJob) ----------
 $out.printJobs = Safe {
-  @(Get-Printer | ForEach-Object {
-    $jobs  = @(Get-PrintJob -PrinterName $_.Name -ErrorAction SilentlyContinue)
-    $stuck = @($jobs | Where-Object { "$($_.JobStatus)" -match 'Error|Blocked|Offline|Paused' })
-    if ($stuck.Count -gt 0) { [ordered]@{ printer = $_.Name; stuck = $stuck.Count; total = $jobs.Count } }
-  })
+  $jobs = @(Get-CimInstance Win32_PrintJob -OperationTimeoutSec 10)
+  $stuck = @($jobs | Where-Object { "$($_.Status) $($_.JobStatus)" -match 'Error|Blocked|Offline|Paused|PaperOut' })
+  @($stuck | Group-Object { ($_.Name -split ',')[0] } | ForEach-Object { [ordered]@{ printer = $_.Name; stuck = $_.Count; total = $_.Count } })
 }
 
 Step 'Finishing up'

@@ -8,6 +8,7 @@ const { spawn } = require('node:child_process');
 const crypto = require('node:crypto');
 const scanner = require('./scanner/scan');
 const inform = require('./inform/inform');
+const actions = require('./actions');
 
 let mainWindow = null;
 
@@ -221,6 +222,10 @@ function registerIpc() {
     await fsp.writeFile(res.filePath, inform.buildTextReport(data), 'utf8');
     return res.filePath;
   });
+
+  // ---- Open a whitelisted Windows location / doc link from a finding ----
+  ipcMain.handle('action:open', async (_evt, token) => actions.openToken(String(token || '')));
+  ipcMain.handle('action:openUrl', async (_evt, url) => actions.openUrl(String(url || '')));
 }
 
 // Single-instance: focus the existing window instead of opening a second one.

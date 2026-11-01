@@ -237,7 +237,7 @@
     const hc = card('History');
     hc.appendChild(
       kvGrid([
-        ['Restore points', hist.restorePoints],
+        ['System Restore', hist.restoreEnabled],
         ['Shadow copies', hist.shadowCopies],
         ['Crash dumps (BSOD)', hist.bsodDumps],
         ['Unexpected shutdowns (30d)', hist.unexpectedShutdowns],

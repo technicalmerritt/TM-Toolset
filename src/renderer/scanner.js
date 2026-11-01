@@ -151,6 +151,37 @@
       rec.textContent = 'Recommended: ' + f.recommendation;
       body.appendChild(rec);
     }
+    if (f.explain) {
+      const ex = document.createElement('p');
+      ex.className = 'finding__explain';
+      ex.textContent = f.explain;
+      body.appendChild(ex);
+    }
+    const hasActions = (f.actions && f.actions.length) || (f.links && f.links.length);
+    if (hasActions) {
+      const row = document.createElement('div');
+      row.className = 'finding__actions';
+      for (const a of f.actions || []) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn--sm';
+        btn.type = 'button';
+        btn.textContent = a.label;
+        btn.addEventListener('click', async () => {
+          const ok = window.sys && (await window.sys.open(a.token));
+          if (!ok) toast('Could not open that on this PC.', 'error');
+        });
+        row.appendChild(btn);
+      }
+      for (const l of f.links || []) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn--sm btn--ghost';
+        btn.type = 'button';
+        btn.textContent = l.label + ' ↗';
+        btn.addEventListener('click', () => window.sys && window.sys.openUrl(l.url));
+        row.appendChild(btn);
+      }
+      body.appendChild(row);
+    }
     if (f.detail) {
       const d = document.createElement('pre');
       d.className = 'finding__detail';
