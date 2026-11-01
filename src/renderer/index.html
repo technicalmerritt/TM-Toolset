@@ -19,13 +19,41 @@
         </div>
       </div>
       <nav class="tabs">
-        <button class="tab tab--active" data-tab="scanner">Issue Scanner</button>
+        <button class="tab tab--active" data-tab="information">Information</button>
+        <button class="tab" data-tab="scanner">Issue Scanner</button>
         <button class="tab" data-tab="tools">Tools</button>
       </nav>
     </header>
 
+    <!-- ================= INFORMATION ================= -->
+    <main id="panel-information" class="panel">
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Information</h1>
+          <p class="muted">A full read-only inventory of this PC — system, hardware, disks, software, security, network and history.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="infoRefresh" class="btn btn--ghost" type="button">Refresh</button>
+          <button id="infoExport" class="btn btn--primary" type="button">Export (.txt)</button>
+        </div>
+      </div>
+
+      <div id="infoStatus" class="scan-status">
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="infoStatusText" class="muted">Gathering system information…</p>
+      </div>
+
+      <div id="infoError" class="scan-error" hidden>
+        <h3 id="infoErrorMsg">Could not gather system information</h3>
+        <pre id="infoErrorDetail" class="finding__detail"></pre>
+        <button id="infoRetry" class="btn btn--primary" type="button">Try again</button>
+      </div>
+
+      <div id="infoContent" class="info-content" hidden></div>
+    </main>
+
     <!-- ================= ISSUE SCANNER ================= -->
-    <main id="panel-scanner" class="panel">
+    <main id="panel-scanner" class="panel" hidden>
       <div class="scan-intro">
         <div class="scan-intro__text">
           <h1>Issue Scanner</h1>
@@ -140,6 +168,7 @@
 
     <script src="renderer.js"></script>
     <script src="scanner.js"></script>
+    <script src="inform.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

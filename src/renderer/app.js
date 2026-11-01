@@ -1,9 +1,10 @@
 'use strict';
 
-// Tab controller: toggles the Scanner / Tools panels.
+// Tab controller: toggles the Information / Scanner / Tools panels.
 window.addEventListener('DOMContentLoaded', () => {
   const tabs = Array.from(document.querySelectorAll('.tab'));
   const panels = {
+    information: document.getElementById('panel-information'),
     scanner: document.getElementById('panel-scanner'),
     tools: document.getElementById('panel-tools'),
   };

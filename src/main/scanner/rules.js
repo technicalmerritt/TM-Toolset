@@ -9,6 +9,12 @@ function num(v, fallback = 0) {
   return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
 }
 
+// PowerShell ConvertTo-Json serialises a single-item list as a bare object,
+// not a one-element array. Coerce anything we intend to iterate into an array.
+function arr(v) {
+  return Array.isArray(v) ? v : v == null ? [] : [v];
+}
+
 function evaluate(d) {
   d = d || {};
   const findings = [];
@@ -64,7 +70,7 @@ function evaluate(d) {
   }
 
   // ---------- Storage: free space ----------
-  for (const v of d.volumes || []) {
+  for (const v of arr(d.volumes)) {
     const pct = num(v.freePct);
     const freeGB = num(v.freeGB);
     const label = `${v.drive}${v.label ? ' (' + v.label + ')' : ''}`;
@@ -80,7 +86,7 @@ function evaluate(d) {
   }
 
   // ---------- Storage: SMART / physical health ----------
-  for (const p of d.physicalDisks || []) {
+  for (const p of arr(d.physicalDisks)) {
     const health = (p.healthStatus || '').toLowerCase();
     if (health && health !== 'healthy') {
       add('critical', 'Storage', `Drive health: ${p.friendlyName}`, `Windows reports this ${p.mediaType || 'disk'} as "${p.healthStatus}" (${p.operational || 'unknown'}).`, {
@@ -108,7 +114,7 @@ function evaluate(d) {
 
   // ---------- Security ----------
   const sec = d.security || {};
-  const avs = (sec.avProducts || []).filter((a) => a && a.name);
+  const avs = arr(sec.avProducts).filter((a) => a && a.name);
   // Multiple *active* real-time AV engines conflict. productState middle nibble 0x1000 = enabled.
   const activeAvs = avs.filter((a) => (num(a.state) & 0x1000) !== 0);
   if (activeAvs.length > 1) {
@@ -136,8 +142,9 @@ function evaluate(d) {
     add('warning', 'Security', 'Antivirus definitions out of date', `Defender signatures are ${sigAge} days old.`, { recommendation: 'Update definitions (Windows Security → Virus & threat protection → Check for updates).' });
   }
 
-  if (Array.isArray(sec.firewallDisabled) && sec.firewallDisabled.length) {
-    add('warning', 'Security', 'Windows Firewall partly disabled', `Disabled profile(s): ${sec.firewallDisabled.join(', ')}.`, { recommendation: 'Re-enable the firewall for all network profiles unless a managed firewall is in use.' });
+  const fwDisabled = arr(sec.firewallDisabled);
+  if (fwDisabled.length) {
+    add('warning', 'Security', 'Windows Firewall partly disabled', `Disabled profile(s): ${fwDisabled.join(', ')}.`, { recommendation: 'Re-enable the firewall for all network profiles unless a managed firewall is in use.' });
   }
 
   if (sec.uac === 0) {
@@ -155,7 +162,7 @@ function evaluate(d) {
 
   // ---------- Network tamper indicators ----------
   const net = d.network || {};
-  const hosts = Array.isArray(net.hostsEntries) ? net.hostsEntries.filter((l) => l && !/^\s*127\.0\.0\.1\s+localhost|::1\s+localhost/i.test(l)) : [];
+  const hosts = arr(net.hostsEntries).filter((l) => l && !/^\s*127\.0\.0\.1\s+localhost|::1\s+localhost/i.test(l));
   if (hosts.length) {
     add('warning', 'Security', 'Custom entries in the hosts file', `${hosts.length} non-default hosts entr${hosts.length === 1 ? 'y' : 'ies'} found. Malware and cracks often redirect domains here.`, {
       recommendation: 'Review these entries; remove anything unexpected.',
@@ -175,7 +182,7 @@ function evaluate(d) {
     add('info', 'Stability', 'Unexpected shutdown detected', `${kp} Kernel-Power 41 event(s) in the last 14 days.`);
   }
 
-  const bugs = Array.isArray(ev.bugchecks) ? ev.bugchecks : [];
+  const bugs = arr(ev.bugchecks);
   const dumps = num(d.minidumps);
   if (bugs.length || dumps) {
     const n = Math.max(bugs.length, dumps);
@@ -190,14 +197,14 @@ function evaluate(d) {
     add('critical', 'Storage', 'Disk I/O errors in the event log', `${diskErr} disk-controller error event(s) in the last 14 days — often a dying drive or bad cable.`, { recommendation: 'Back up now; run a full SMART/surface check and reseat/replace the SATA/NVMe connection.' });
   }
 
-  const appErrs = Array.isArray(ev.appErrors) ? ev.appErrors : [];
+  const appErrs = arr(ev.appErrors);
   const noisy = appErrs.filter((a) => num(a.count) >= 5);
   if (noisy.length) {
     add('info', 'Stability', 'Frequently crashing applications', noisy.map((a) => `${a.app} (${a.count}×)`).join(', '), { recommendation: 'Repair/reinstall or update the worst offenders.' });
   }
 
   // ---------- Hardware: problem devices & battery ----------
-  const probs = d.problemDevices || [];
+  const probs = arr(d.problemDevices);
   if (probs.length) {
     add('warning', 'Hardware', `${probs.length} device(s) with driver problems`, 'Devices are reporting errors in Device Manager (missing or faulty drivers).', {
       recommendation: 'Install correct drivers for these devices.',
@@ -216,7 +223,7 @@ function evaluate(d) {
   }
 
   // ---------- Performance / maintenance ----------
-  const startup = d.startup || [];
+  const startup = arr(d.startup);
   if (startup.length >= 12) {
     add('warning', 'Performance', `${startup.length} startup programs`, 'A high number of auto-start programs slows boot and steals memory.', {
       recommendation: 'Disable non-essential startup items (Task Manager → Startup).',
@@ -248,21 +255,21 @@ function evaluate(d) {
     }
   }
 
-  const stopped = d.stoppedAutoServices || [];
+  const stopped = arr(d.stoppedAutoServices);
   if (stopped.length >= 1) {
     const names = stopped.slice(0, 15).map((s) => `${s.display || s.name}`);
     add('info', 'Maintenance', `${stopped.length} automatic service(s) not running`, 'Services set to start automatically are currently stopped. Usually harmless, occasionally a symptom.', { detail: names.join('\n') });
   }
 
   // ---------- Drive failure prediction & dirty bit ----------
-  const fp = d.failurePredict || [];
+  const fp = arr(d.failurePredict);
   if (fp.length) {
     add('critical', 'Storage', 'Drive predicts imminent failure (SMART)', 'The disk controller has set its SMART failure-prediction flag. This is the strongest early warning of drive death there is.', {
       recommendation: 'Back up immediately and replace the drive before it fails.',
       detail: fp.map((x) => x.instance).join('\n'),
     });
   }
-  const dirty = d.dirtyVolumes || [];
+  const dirty = arr(d.dirtyVolumes);
   if (dirty.length) {
     add('warning', 'Storage', `Volume marked "dirty": ${dirty.join(', ')}`, 'Windows has flagged the volume as needing a disk check, usually after an unclean shutdown or file-system errors.', {
       recommendation: 'Run CHKDSK (chkdsk /f) on the affected drive at the next restart.',
@@ -284,21 +291,21 @@ function evaluate(d) {
   }
 
   // ---------- Malware indicators: policies / default values / associations ----------
-  const pol = d.policyHijacks || [];
+  const pol = arr(d.policyHijacks);
   if (pol.length) {
     add('warning', 'Security', 'Restrictive policies set on this account', `These restrictions are commonly set by malware to lock you out of cleanup tools: ${pol.join(', ')}.`, {
       recommendation: 'If this is not a managed/enterprise policy, treat it as a malware indicator and clear these policy values.',
       detail: pol.join('\n'),
     });
   }
-  const defs = d.defaults || [];
+  const defs = arr(d.defaults);
   if (defs.length) {
     add('critical', 'Security', 'Core Windows startup values have been altered', 'Winlogon / boot values were changed from their defaults — a classic persistence trick for malware that loads itself at logon or boot.', {
       recommendation: 'Investigate for infection and restore these values to Windows defaults.',
       detail: defs.join('\n'),
     });
   }
-  const assoc = d.assocHijack || [];
+  const assoc = arr(d.assocHijack);
   if (assoc.length) {
     add('critical', 'Security', 'Executable file association hijacked', 'The handler that runs .exe files has been redirected — malware does this so it launches whenever any program is opened.', {
       recommendation: 'Restore the .exe association to the Windows default (exefile) and scan for malware.',
@@ -307,7 +314,7 @@ function evaluate(d) {
   }
 
   // ---------- Printing ----------
-  const pj = d.printJobs || [];
+  const pj = arr(d.printJobs);
   if (pj.length) {
     const total = pj.reduce((n, p) => n + num(p.stuck), 0);
     add('info', 'Hardware', `${total} stuck print job(s)`, `Jobs are stuck in the queue on: ${pj.map((p) => p.printer).join(', ')}.`, { recommendation: 'Clear the print queue (restart the Print Spooler service if it persists).' });

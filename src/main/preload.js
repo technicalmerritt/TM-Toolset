@@ -27,3 +27,13 @@ contextBridge.exposeInMainWorld('scanner', {
     return () => ipcRenderer.removeListener('scan:progress', handler);
   },
 });
+
+contextBridge.exposeInMainWorld('inform', {
+  run: () => ipcRenderer.invoke('inform:run'),
+  exportText: (data) => ipcRenderer.invoke('inform:export', data),
+  onProgress: (cb) => {
+    const handler = (_e, msg) => cb(msg);
+    ipcRenderer.on('inform:progress', handler);
+    return () => ipcRenderer.removeListener('inform:progress', handler);
+  },
+});

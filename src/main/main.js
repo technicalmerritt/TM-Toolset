@@ -7,6 +7,7 @@ const fsp = require('node:fs/promises');
 const { spawn } = require('node:child_process');
 const crypto = require('node:crypto');
 const scanner = require('./scanner/scan');
+const inform = require('./inform/inform');
 
 let mainWindow = null;
 
@@ -193,6 +194,31 @@ function registerIpc() {
     });
     if (res.canceled || !res.filePath) return null;
     await fsp.writeFile(res.filePath, scanner.buildHtmlReport(result), 'utf8');
+    return res.filePath;
+  });
+
+  // ---- Information (system inventory) ----
+  ipcMain.handle('inform:run', async () => {
+    const onProgress = (msg) => {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('inform:progress', msg);
+    };
+    try {
+      const data = await inform.runInform(onProgress);
+      return { ok: true, data };
+    } catch (err) {
+      return { ok: false, error: (err && err.message) || String(err) };
+    }
+  });
+
+  ipcMain.handle('inform:export', async (_evt, data) => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const res = await dialog.showSaveDialog(mainWindow, {
+      title: 'Export system information',
+      defaultPath: `TM-Toolset-System-Info-${stamp}.txt`,
+      filters: [{ name: 'Text file', extensions: ['txt'] }],
+    });
+    if (res.canceled || !res.filePath) return null;
+    await fsp.writeFile(res.filePath, inform.buildTextReport(data), 'utf8');
     return res.filePath;
   });
 }
