@@ -102,16 +102,32 @@
     }
 
     els.findings.innerHTML = '';
-    const byCat = {};
-    for (const f of result.findings || []) {
-      (byCat[f.category] = byCat[f.category] || []).push(f);
+    const list = result.findings || [];
+    if (!list.length) {
+      const empty = document.createElement('div');
+      empty.className = 'fgroup fgroup--empty';
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.textContent = 'No issues found — this PC looks healthy.';
+      empty.appendChild(p);
+      els.findings.appendChild(empty);
+      return;
     }
-    for (const cat of Object.keys(byCat).sort()) {
-      const group = byCat[cat].sort((a, b) => SEV[a.severity].order - SEV[b.severity].order);
+    // Group by severity so the most important issues are grouped at the top.
+    const bySev = {};
+    for (const f of list) (bySev[f.severity] = bySev[f.severity] || []).push(f);
+    for (const sev of ['critical', 'warning', 'info', 'ok']) {
+      const group = (bySev[sev] || []).sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+      if (!group.length) continue;
       const section = document.createElement('section');
-      section.className = 'fgroup';
+      section.className = 'fgroup ' + SEV[sev].cls;
       const h = document.createElement('h3');
-      h.textContent = cat;
+      h.className = 'fgroup__head';
+      const dot = document.createElement('span');
+      dot.className = 'fgroup__dot';
+      const label = document.createElement('span');
+      label.textContent = `${SEV[sev].label} · ${group.length}`;
+      h.append(dot, label);
       section.appendChild(h);
       for (const f of group) section.appendChild(card(f));
       els.findings.appendChild(section);
@@ -131,10 +147,10 @@
     const title = document.createElement('span');
     title.className = 'finding__title';
     title.textContent = f.title;
-    const sev = document.createElement('span');
-    sev.className = 'finding__sev';
-    sev.textContent = SEV[f.severity].label;
-    head.append(dot, title, sev);
+    const cat = document.createElement('span');
+    cat.className = 'finding__cat';
+    cat.textContent = f.category;
+    head.append(dot, title, cat);
 
     const body = document.createElement('div');
     body.className = 'finding__body';
@@ -163,7 +179,7 @@
       row.className = 'finding__actions';
       for (const a of f.actions || []) {
         const btn = document.createElement('button');
-        btn.className = 'btn btn--sm';
+        btn.className = 'btn btn--sm btn--action';
         btn.type = 'button';
         btn.textContent = a.label;
         btn.addEventListener('click', async () => {

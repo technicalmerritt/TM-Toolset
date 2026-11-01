@@ -52,11 +52,16 @@ body {
 }
 
 .brand__logo {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
   display: block;
   flex: 0 0 auto;
+}
+
+.brand__name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 
 .brand__text {
@@ -718,15 +723,35 @@ body {
 }
 
 .fgroup {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
-.fgroup > h3 {
+.fgroup__head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   font-size: 13px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  color: var(--text);
   margin: 0 0 10px;
+}
+
+.fgroup__dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--sev, #888);
+  flex: 0 0 auto;
+}
+
+.fgroup--empty {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 26px;
+  text-align: center;
 }
 
 .finding {
@@ -769,11 +794,24 @@ body {
   font-weight: 500;
 }
 
-.finding__sev {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--sev, #888);
+.finding__cat {
+  font-size: 10.5px;
+  color: var(--text-dim);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 0 0 auto;
+}
+
+.btn--action {
+  color: var(--accent);
+  border-color: rgba(255, 102, 0, 0.45);
+  background: rgba(255, 102, 0, 0.08);
+}
+
+.btn--action:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .finding__body {
