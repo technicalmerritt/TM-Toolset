@@ -4,8 +4,9 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
-const { spawn } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
 const crypto = require('node:crypto');
+const { runPowerShellScript } = require('./ps-runner');
 const scanner = require('./scanner/scan');
 const inform = require('./inform/inform');
 const actions = require('./actions');
@@ -13,6 +14,17 @@ const settings = require('./settings');
 const syncro = require('./syncro');
 
 let mainWindow = null;
+
+// On Windows, `net session` succeeds only when running elevated.
+function isElevated() {
+  if (process.platform !== 'win32') return true;
+  try {
+    execFileSync('net', ['session'], { stdio: 'ignore', windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function getConfigPath() {
   return path.join(app.getPath('userData'), 'tools.json');
@@ -228,6 +240,39 @@ function registerIpc() {
   // ---- Open a whitelisted Windows location / doc link from a finding ----
   ipcMain.handle('action:open', async (_evt, token) => actions.openToken(String(token || '')));
   ipcMain.handle('action:openUrl', async (_evt, url) => actions.openUrl(String(url || '')));
+
+  // ---- Elevation (administrator) ----
+  ipcMain.handle('app:isElevated', async () => isElevated());
+  ipcMain.handle('app:relaunchElevated', async () => {
+    try {
+      const exe = process.execPath.replace(/'/g, "''");
+      spawn('powershell.exe', ['-NoProfile', '-Command', `Start-Process -FilePath '${exe}' -Verb RunAs`], {
+        detached: true,
+        stdio: 'ignore',
+      }).unref();
+      setTimeout(() => app.quit(), 400);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // ---- Surface / file-system scan (online, needs admin) ----
+  ipcMain.handle('scan:surface', async () => {
+    const onProgress = (msg) => {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('scan:surface-progress', msg);
+    };
+    try {
+      const data = await runPowerShellScript({
+        scriptPath: path.join(__dirname, 'scanner', 'surface.ps1'),
+        onProgress,
+        timeoutMs: 1800000, // up to 30 minutes for large drives
+      });
+      return { ok: true, data };
+    } catch (err) {
+      return { ok: false, error: (err && err.message) || String(err) };
+    }
+  });
 
   // ---- Settings (Syncro credentials) ----
   ipcMain.handle('settings:get', async () => settings.getPublic());

@@ -297,6 +297,61 @@
     }
   }
 
+  async function runSurface() {
+    els.surfaceBox.hidden = false;
+    els.surfaceResults.innerHTML = '';
+    els.surfaceStatus.hidden = false;
+    els.surfaceStatusText.textContent = 'Starting surface scan… this can take several minutes on large drives.';
+    els.surfaceRun.disabled = true;
+    try {
+      const res = await window.surface.run();
+      els.surfaceStatus.hidden = true;
+      if (!res || res.ok !== true) {
+        surfaceError(res ? res.error : 'Surface scan failed.');
+        return;
+      }
+      renderSurface(res.data);
+    } catch (err) {
+      els.surfaceStatus.hidden = true;
+      surfaceError((err && err.message) || String(err));
+    } finally {
+      els.surfaceRun.disabled = false;
+    }
+  }
+
+  function surfaceError(msg) {
+    const p = document.createElement('p');
+    p.className = 'muted';
+    p.style.color = 'var(--danger)';
+    p.textContent = msg;
+    els.surfaceResults.appendChild(p);
+  }
+
+  function renderSurface(data) {
+    els.surfaceResults.innerHTML = '';
+    if (data && data.isAdmin === false) {
+      surfaceError('A surface scan needs administrator rights — use “Run as administrator” at the top, then try again.');
+      return;
+    }
+    let vols = (data && data.volumes) || [];
+    if (!Array.isArray(vols)) vols = vols ? [vols] : [];
+    if (!vols.length) {
+      surfaceError('No fixed volumes were found to scan.');
+      return;
+    }
+    for (const v of vols) {
+      const ok = /no.*error|healthy|notneeded|not needed/i.test(v.result || '');
+      const row = document.createElement('div');
+      row.className = 'surface-row';
+      const dot = document.createElement('span');
+      dot.className = 'finding__dot ' + (ok ? 'sev--ok' : 'sev--warning');
+      const txt = document.createElement('span');
+      txt.textContent = `${v.drive}${v.label ? ' (' + v.label + ')' : ''} — ${v.result}`;
+      row.append(dot, txt);
+      els.surfaceResults.appendChild(row);
+    }
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
     els.runBtn = $('#scanRun');
     els.rerunBtn = $('#scanRerun');
@@ -321,6 +376,11 @@
     els.syncHidden = $('#syncHidden');
     els.syncPost = $('#syncPost');
     els.syncCancel = $('#syncCancel');
+    els.surfaceRun = $('#surfaceRun');
+    els.surfaceBox = $('#surfaceBox');
+    els.surfaceStatus = $('#surfaceStatus');
+    els.surfaceStatusText = $('#surfaceStatusText');
+    els.surfaceResults = $('#surfaceResults');
     if (!els.runBtn) return;
 
     els.runBtn.addEventListener('click', runScan);
@@ -337,10 +397,17 @@
         if (e.target === els.syncroModal) closeSyncro();
       });
 
+    els.surfaceRun && els.surfaceRun.addEventListener('click', runSurface);
+
     // Live status text from the collector.
     if (window.scanner && window.scanner.onProgress) {
       window.scanner.onProgress((msg) => {
         if (scanning) setStatus(msg);
+      });
+    }
+    if (window.surface && window.surface.onProgress) {
+      window.surface.onProgress((msg) => {
+        if (els.surfaceStatusText) els.surfaceStatusText.textContent = msg;
       });
     }
   });

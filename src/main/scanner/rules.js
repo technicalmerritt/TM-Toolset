@@ -126,6 +126,31 @@ function evaluate(d) {
     }
   }
 
+  // ---------- SMART failure attributes ----------
+  for (const s of arr(d.smart)) {
+    const realloc = num(s.reallocatedSectors, 0);
+    const pending = num(s.pendingSectors, 0);
+    const uncorr = num(s.offlineUncorrectable, 0) + num(s.reportedUncorrectable, 0);
+    const poh = num(s.powerOnHours, 0);
+    if (pending > 0 || uncorr > 0) {
+      add('critical', 'Storage', 'Bad sectors detected (SMART)', `${pending} pending and ${uncorr} uncorrectable sector(s) reported by the drive. These are failing or already-lost sectors.`, {
+        recommendation: 'Back up now and replace the drive — pending/uncorrectable sectors mean data is already at risk.',
+        explain: 'Pending sectors are ones the drive could not read and is waiting to remap; uncorrectable sectors are already lost. Any non-zero count is a real early-failure sign — do not wait for it to grow.',
+        detail: smartDetail(s),
+      });
+    } else if (realloc >= 10) {
+      add('warning', 'Storage', 'Reallocated sectors (SMART)', `${realloc} sectors have been remapped after read/write errors.`, {
+        recommendation: 'Keep backups current and monitor — a rising count means replace the drive.',
+        detail: smartDetail(s),
+      });
+    } else if (realloc > 0) {
+      add('info', 'Storage', 'A few reallocated sectors (SMART)', `${realloc} reallocated sector(s) — not urgent, but worth watching.`, { detail: smartDetail(s) });
+    }
+    if (poh >= 43800) {
+      add('info', 'Storage', 'High drive age', `About ${Math.round(poh / 8760)} years of power-on time (${poh} hours).`, { detail: smartDetail(s) });
+    }
+  }
+
   // ---------- Security ----------
   const sec = d.security || {};
   const avs = arr(sec.avProducts).filter((a) => a && a.name);
@@ -387,6 +412,18 @@ function evaluate(d) {
   const summary = buildSummary(sys, counts);
 
   return { findings, counts, score, summary };
+}
+
+function smartDetail(s) {
+  const bits = [];
+  if (s.reallocatedSectors != null) bits.push(`Reallocated sectors (5): ${s.reallocatedSectors}`);
+  if (s.pendingSectors != null) bits.push(`Pending sectors (197): ${s.pendingSectors}`);
+  if (s.offlineUncorrectable != null) bits.push(`Uncorrectable (198): ${s.offlineUncorrectable}`);
+  if (s.reportedUncorrectable != null) bits.push(`Reported uncorrectable (187): ${s.reportedUncorrectable}`);
+  if (s.reallocationEvents != null) bits.push(`Reallocation events (196): ${s.reallocationEvents}`);
+  if (s.powerOnHours != null) bits.push(`Power-on hours: ${s.powerOnHours}`);
+  if (s.temperatureC != null) bits.push(`Temperature: ${s.temperatureC} °C`);
+  return bits.join('\n');
 }
 
 function diskDetail(p) {

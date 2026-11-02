@@ -43,6 +43,20 @@ contextBridge.exposeInMainWorld('sys', {
   openUrl: (url) => ipcRenderer.invoke('action:openUrl', url),
 });
 
+contextBridge.exposeInMainWorld('appInfo', {
+  isElevated: () => ipcRenderer.invoke('app:isElevated'),
+  relaunchElevated: () => ipcRenderer.invoke('app:relaunchElevated'),
+});
+
+contextBridge.exposeInMainWorld('surface', {
+  run: () => ipcRenderer.invoke('scan:surface'),
+  onProgress: (cb) => {
+    const handler = (_e, msg) => cb(msg);
+    ipcRenderer.on('scan:surface-progress', handler);
+    return () => ipcRenderer.removeListener('scan:surface-progress', handler);
+  },
+});
+
 contextBridge.exposeInMainWorld('settings', {
   get: () => ipcRenderer.invoke('settings:get'),
   save: (payload) => ipcRenderer.invoke('settings:save', payload),

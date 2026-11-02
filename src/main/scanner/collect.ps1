@@ -99,6 +99,34 @@ $out.physicalDisks = Safe {
   }
 }
 
+# ---------- SMART failure attributes (needs admin; root\wmi) ----------
+# Parses MSStorageDriver_FailurePredictData raw bytes for the attributes that
+# actually predict drive failure (5/187/196/197/198 + power-on hours/temp).
+$out.smart = Safe {
+  @(Get-CimInstance -Namespace root\wmi -ClassName MSStorageDriver_FailurePredictData | ForEach-Object {
+    $vs = $_.VendorSpecific
+    $attrs = @{}
+    if ($vs -and $vs.Count -ge 362) {
+      for ($i = 2; $i -lt 362; $i += 12) {
+        $id = [int]$vs[$i]
+        if ($id -eq 0) { continue }
+        $raw = [int64]$vs[$i + 5] + ([int64]$vs[$i + 6] -shl 8) + ([int64]$vs[$i + 7] -shl 16) + ([int64]$vs[$i + 8] -shl 24)
+        $attrs["$id"] = $raw
+      }
+    }
+    [ordered]@{
+      instance              = "$($_.InstanceName)"
+      reallocatedSectors    = $attrs['5']
+      reportedUncorrectable = $attrs['187']
+      reallocationEvents    = $attrs['196']
+      pendingSectors        = $attrs['197']
+      offlineUncorrectable  = $attrs['198']
+      powerOnHours          = $attrs['9']
+      temperatureC          = $attrs['194']
+    }
+  })
+}
+
 # ---------- Pending reboot ----------
 $out.pendingReboot = Safe {
   $pend = $false

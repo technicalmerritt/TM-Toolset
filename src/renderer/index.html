@@ -37,6 +37,11 @@
       </div>
     </header>
 
+    <div id="elevBanner" class="elev-banner" hidden>
+      <span>Running <strong>without administrator rights</strong> — some checks (BitLocker, TPM, Secure Boot, full event log, SMART sectors, surface scan) are limited.</span>
+      <button id="elevBtn" class="btn btn--sm btn--action" type="button">Run as administrator</button>
+    </div>
+
     <!-- ================= INFORMATION ================= -->
     <main id="panel-information" class="panel">
       <div class="info-top">
@@ -75,7 +80,19 @@
             maintenance. It inspects the system only and makes no changes.
           </p>
         </div>
-        <button id="scanRun" class="btn btn--primary btn--lg">Run scan</button>
+        <div class="scan-intro__actions">
+          <button id="scanRun" class="btn btn--primary btn--lg">Run scan</button>
+          <button id="surfaceRun" class="btn btn--ghost" title="Online surface / file-system scan — can take several minutes">Surface scan</button>
+        </div>
+      </div>
+
+      <div id="surfaceBox" class="surface-box" hidden>
+        <h3>Surface / file-system scan</h3>
+        <div id="surfaceStatus" class="scan-status" hidden>
+          <div class="spinner" aria-hidden="true"></div>
+          <p id="surfaceStatusText" class="muted"></p>
+        </div>
+        <div id="surfaceResults"></div>
       </div>
 
       <div id="scanStatus" class="scan-status" hidden>
@@ -248,6 +265,7 @@
     </div>
 
     <script src="renderer.js"></script>
+    <script src="elevate.js"></script>
     <script src="ticket.js"></script>
     <script src="scanner.js"></script>
     <script src="inform.js"></script>

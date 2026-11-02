@@ -538,7 +538,51 @@ body {
   color: var(--text-dim);
 }
 
+/* Elevation banner */
+.elev-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 102, 0, 0.12);
+  border-bottom: 1px solid var(--accent);
+  color: var(--text);
+  padding: 10px 20px;
+  font-size: 13px;
+}
+
+.elev-banner span {
+  flex: 1;
+}
+
 /* ================= Issue Scanner ================= */
+.scan-intro__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.surface-box {
+  margin-top: 16px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.surface-box > h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.surface-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
 .scan-intro {
   display: flex;
   align-items: center;
