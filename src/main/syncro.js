@@ -91,17 +91,16 @@ async function listAssetTypes({ subdomain, token }) {
 }
 
 // Create a customer asset from this machine's details.
-async function createAsset({ subdomain, token, customerId, name, assetTypeId, properties }) {
+async function createAsset({ subdomain, token, customerId, name, assetTypeId, serial, properties }) {
   const base = normalizeBase(subdomain);
   if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
   if (!token) return { ok: false, message: 'Syncro API token is not set.' };
   if (!customerId) return { ok: false, message: 'No customer selected — set a ticket first so the asset attaches to the right customer.' };
   if (!assetTypeId) return { ok: false, message: 'Choose an asset type.' };
   try {
-    const res = await apiRequest(base, token, '/customer_assets', {
-      method: 'POST',
-      body: { name: name || 'PC', customer_id: customerId, asset_type_id: assetTypeId, properties: properties || {} },
-    });
+    const body = { name: name || 'PC', customer_id: customerId, asset_type_id: assetTypeId, properties: properties || {} };
+    if (serial) body.asset_serial = serial; // native "Serial Number" field
+    const res = await apiRequest(base, token, '/customer_assets', { method: 'POST', body });
     if (res.status >= 200 && res.status < 300) {
       let id = null;
       try {

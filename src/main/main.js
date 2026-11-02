@@ -277,6 +277,7 @@ function registerIpc() {
       customerId: args && args.customerId,
       name: args && args.name,
       assetTypeId: args && args.assetTypeId,
+      serial: args && args.serial,
       properties: (args && args.properties) || {},
     });
   });

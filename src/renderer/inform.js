@@ -351,13 +351,14 @@
       Board: [board.manufacturer, board.product].filter(Boolean).join(' '),
       BIOS: [board.biosVersion, board.biosDate].filter(Boolean).join('  '),
       Installed: os.installDate,
+      Licenses: os.activation,
       IP: ip,
     };
     Object.keys(properties).forEach((k) => (properties[k] == null || properties[k] === '') && delete properties[k]);
 
     els.assetCreate.disabled = true;
     try {
-      const res = await window.syncro.createAsset({ customerId: tk.customerId, name, assetTypeId, properties });
+      const res = await window.syncro.createAsset({ customerId: tk.customerId, name, assetTypeId, serial: c.serial, properties });
       if (res && res.ok) {
         closeAssetModal();
         toast(res.message || 'Asset created.');
