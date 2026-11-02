@@ -28,6 +28,7 @@
       "**/scanner/**"
     ],
     "win": {
+      "icon": "src/icon.ico",
       "requestedExecutionLevel": "requireAdministrator",
       "target": [
         { "target": "nsis", "arch": ["x64"] },

@@ -70,14 +70,15 @@ foreach ($f in $folders) {
 }
 
 # ---------- Scheduled tasks with logon/boot triggers (third-party) ----------
-Safe {
-  Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {
+# Build via the pipeline so the collection returns out of the Safe scope.
+$taskItems = Safe {
+  @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {
     $_.TaskPath -notlike '\Microsoft\*' -and
     (@($_.Triggers) | Where-Object { "$($_.CimClass.CimClassName)" -match 'Logon|Boot' }).Count -gt 0
   } | ForEach-Object {
     $t = $_
     $act = (@($t.Actions | ForEach-Object { "$($_.Execute) $($_.Arguments)".Trim() }) -join '  ;  ')
-    $items += [ordered]@{
+    [ordered]@{
       id       = "task|$($t.TaskPath)$($t.TaskName)"
       name     = "$($t.TaskName)"
       type     = 'Scheduled task'
@@ -88,7 +89,8 @@ Safe {
       taskName = "$($t.TaskName)"
       taskPath = "$($t.TaskPath)"
     }
-  }
+  })
 }
+foreach ($ti in @($taskItems)) { if ($ti) { $items += $ti } }
 
 [ordered]@{ items = @($items) } | ConvertTo-Json -Depth 6 -Compress

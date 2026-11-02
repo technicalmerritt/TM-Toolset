@@ -81,9 +81,10 @@ function createWindow() {
     height: 720,
     minWidth: 820,
     minHeight: 540,
-    backgroundColor: '#13151a',
+    backgroundColor: '#0e1b33',
     show: false,
-    title: 'MBTS Launcher',
+    title: 'TM Toolset',
+    icon: path.join(__dirname, '..', 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -269,11 +270,17 @@ function registerIpc() {
   ipcMain.handle('app:relaunchElevated', async () => {
     try {
       const exe = process.execPath.replace(/'/g, "''");
-      spawn('powershell.exe', ['-NoProfile', '-Command', `Start-Process -FilePath '${exe}' -Verb RunAs`], {
+      const ps = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+      // Wait for THIS instance to fully exit (releasing the single-instance lock),
+      // THEN relaunch elevated — otherwise the new elevated copy sees us still
+      // running and quits itself. Detached so it survives our own quit.
+      const cmd = `Wait-Process -Id ${process.pid} -ErrorAction SilentlyContinue; Start-Process -FilePath '${exe}' -Verb RunAs`;
+      const child = spawn(ps, ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', cmd], {
         detached: true,
         stdio: 'ignore',
-      }).unref();
-      setTimeout(() => app.quit(), 400);
+      });
+      child.unref();
+      setTimeout(() => app.quit(), 250);
       return true;
     } catch (e) {
       return false;
