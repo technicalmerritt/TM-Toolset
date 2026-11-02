@@ -19,6 +19,11 @@
   box-sizing: border-box;
 }
 
+/* Ensure the hidden attribute always wins over explicit display rules below. */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   margin: 0;
@@ -52,7 +57,7 @@ body {
 }
 
 .brand__logo {
-  height: 32px;
+  height: 40px;
   width: auto;
   display: block;
   flex: 0 0 auto;
