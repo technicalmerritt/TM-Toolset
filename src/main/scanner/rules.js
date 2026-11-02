@@ -257,8 +257,8 @@ function evaluate(d) {
       .map((x) => `Disk ${x.harddisk} — ${x.model}${x.serial ? ' (S/N ' + x.serial + ')' : ''}`);
     const where = named.length ? named.join('; ') : 'an attached drive (disk number not recorded in the events)';
     add('critical', 'Storage', 'Disk I/O errors in the event log', `${diskErrTotal} disk-controller error event(s) in the last 14 days on: ${where}. Often a failing drive or a bad cable/port.`, {
-      recommendation: 'Identify the drive below. If it is a customer drive on the bench, note it against that job; if it is an internal drive, back it up, run a surface check, and reseat or replace the cable.',
-      explain: '"Disk" controller errors mean Windows retried or failed an I/O to a specific physical disk. The disk number below (Disk 0, 1, 2…) matches Disk Management / the physical drive, so you can tell an internal drive from a customer drive you have temporarily attached.',
+      recommendation: 'Check the identified drive(s) below — the Drive Health tab (SMART) and a surface scan will show whether it is a failing drive or just a bad cable/port.',
+      explain: '"Disk" controller errors mean Windows retried or failed an I/O to a specific physical disk. The disk number below (Disk 0, 1, 2…) matches Disk Management / the physical drive, so you can tell which drive it was.',
       detail: byDisk.map((x) => `Disk ${x.harddisk}: ${x.count}× — ${x.model}${x.serial ? ' (S/N ' + x.serial + ')' : ''}`).join('\n'),
     });
   }
