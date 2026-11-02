@@ -6,6 +6,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const panels = {
     information: document.getElementById('panel-information'),
     scanner: document.getElementById('panel-scanner'),
+    startup: document.getElementById('panel-startup'),
     tools: document.getElementById('panel-tools'),
     settings: document.getElementById('panel-settings'),
   };

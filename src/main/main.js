@@ -12,6 +12,7 @@ const inform = require('./inform/inform');
 const actions = require('./actions');
 const settings = require('./settings');
 const syncro = require('./syncro');
+const startup = require('./startup/startup');
 
 let mainWindow = null;
 
@@ -240,6 +241,17 @@ function registerIpc() {
   // ---- Open a whitelisted Windows location / doc link from a finding ----
   ipcMain.handle('action:open', async (_evt, token) => actions.openToken(String(token || '')));
   ipcMain.handle('action:openUrl', async (_evt, url) => actions.openUrl(String(url || '')));
+
+  // ---- Startup items (list + toggle) ----
+  ipcMain.handle('startup:list', async () => {
+    try {
+      const data = await startup.runList();
+      return { ok: true, data };
+    } catch (err) {
+      return { ok: false, error: (err && err.message) || String(err) };
+    }
+  });
+  ipcMain.handle('startup:toggle', async (_evt, args) => startup.toggle(args && args.item, args && args.enable));
 
   // ---- Elevation (administrator) ----
   ipcMain.handle('app:isElevated', async () => isElevated());

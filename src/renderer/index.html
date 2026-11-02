@@ -18,6 +18,7 @@
       <nav class="tabs">
         <button class="tab tab--active" data-tab="information">Information</button>
         <button class="tab" data-tab="scanner">Issue Scanner</button>
+        <button class="tab" data-tab="startup">Startup Items</button>
         <button class="tab" data-tab="tools">Tools</button>
         <button class="tab" data-tab="settings">Settings</button>
       </nav>
@@ -178,6 +179,31 @@
       </section>
     </main>
 
+    <!-- ================= STARTUP ITEMS ================= -->
+    <main id="panel-startup" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Startup Items</h1>
+          <p class="muted">Everything that launches at startup — registry Run keys, Startup folders, and logon/boot scheduled tasks. Flip the switch to enable or disable any of them (machine-wide items need administrator rights).</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="startupRefresh" class="btn btn--ghost" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div id="startupStatus" class="scan-status" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted">Loading startup items…</p>
+      </div>
+
+      <div id="startupError" class="scan-error" hidden>
+        <h3>Couldn’t load startup items</h3>
+        <pre id="startupErrorDetail" class="finding__detail"></pre>
+      </div>
+
+      <div id="startupList" class="startup-list" hidden></div>
+    </main>
+
     <div id="toast" class="toast"></div>
 
     <!-- Post-to-Syncro modal -->
@@ -270,6 +296,7 @@
     <script src="scanner.js"></script>
     <script src="inform.js"></script>
     <script src="settings-ui.js"></script>
+    <script src="startup-ui.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

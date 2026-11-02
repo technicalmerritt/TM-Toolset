@@ -48,6 +48,11 @@ contextBridge.exposeInMainWorld('appInfo', {
   relaunchElevated: () => ipcRenderer.invoke('app:relaunchElevated'),
 });
 
+contextBridge.exposeInMainWorld('startupItems', {
+  list: () => ipcRenderer.invoke('startup:list'),
+  toggle: (item, enable) => ipcRenderer.invoke('startup:toggle', { item, enable }),
+});
+
 contextBridge.exposeInMainWorld('surface', {
   run: () => ipcRenderer.invoke('scan:surface'),
   onProgress: (cb) => {
