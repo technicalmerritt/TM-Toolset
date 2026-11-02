@@ -396,6 +396,107 @@ function evaluate(d) {
     add('info', 'Hardware', `${total} stuck print job(s)`, `Jobs are stuck in the queue on: ${pj.map((p) => p.printer).join(', ')}.`, { recommendation: 'Clear the print queue (restart the Print Spooler service if it persists).' });
   }
 
+  // ---------- Network ----------
+  const nd = d.net || {};
+  const internet = (nd.internet || '').toLowerCase();
+  const apipa = arr(nd.apipa).filter(Boolean);
+  if (apipa.length) {
+    add('warning', 'Network', 'No IP from DHCP (APIPA address)', `The adapter has a self-assigned 169.254.x.x address — it is not getting an IP from the router.`, {
+      recommendation: 'Check the cable/Wi-Fi, run ipconfig /renew, and confirm the router/DHCP is working.',
+      explain: 'A 169.254 "APIPA" address is Windows giving up on DHCP. It is the classic "connected but no internet" cause.',
+    });
+  } else if (internet && internet !== 'internet') {
+    add('warning', 'Network', 'No internet connectivity', `Windows reports this connection as "${nd.internet}".`, { recommendation: 'If it is local-only, the gateway or DNS is the likely culprit.' });
+  }
+  if (nd.dnsResolves === false) {
+    add('warning', 'Network', 'DNS resolution is failing', 'The PC could not resolve a well-known domain — DNS is misconfigured, or malware/filtering is blocking it.', {
+      recommendation: 'Flush DNS (ipconfig /flushdns), check the DNS servers, and consider a Winsock/TCP-IP reset if it persists.',
+      detail: arr(nd.dns).length ? 'Configured DNS: ' + arr(nd.dns).join(', ') : '',
+    });
+  }
+  const gp = nd.gatewayPing;
+  if (gp && gp.ok === false) {
+    add('warning', 'Network', 'Cannot reach the gateway', 'Pinging the default gateway failed — likely a local link or router problem.', { recommendation: 'Check the cable/Wi-Fi and the router.' });
+  } else if (gp && gp.ok && num(gp.avgMs) >= 10) {
+    add('info', 'Network', 'High latency to the router', `~${gp.avgMs} ms to the gateway — high for a local link; possible Wi-Fi interference or a failing connection.`);
+  }
+  if (nd.smb1 === true) {
+    add('warning', 'Security', 'SMBv1 is enabled', 'The obsolete SMBv1 protocol is on — a well-known security risk (the WannaCry vector).', { recommendation: 'Disable SMB1 unless a genuine legacy device needs it.' });
+  }
+
+  // ---------- Defender exclusions + tamper protection ----------
+  const dex = d.defenderExclusions || {};
+  const exPaths = arr(dex.paths).filter(Boolean);
+  const exProcs = arr(dex.processes).filter(Boolean);
+  const allEx = exPaths.concat(exProcs, arr(dex.extensions).filter(Boolean));
+  const suspEx = exPaths.concat(exProcs).filter((p) => /\\Temp\\|\\AppData\\|\\ProgramData\\|\\Users\\Public|Downloads/i.test(p));
+  if (suspEx.length) {
+    add('warning', 'Security', 'Antivirus exclusions in suspicious locations', `${suspEx.length} Defender exclusion(s) point at Temp/AppData-type paths — malware commonly adds these to whitelist itself.`, {
+      recommendation: 'Review each exclusion and remove any you did not set.',
+      explain: 'Legit software occasionally adds an exclusion, but Temp/AppData/Downloads exclusions are a classic way malware tells antivirus to ignore it.',
+      detail: suspEx.join('\n'),
+      actions: [{ label: 'Open Windows Security', token: 'windows-security' }],
+    });
+  } else if (allEx.length) {
+    add('info', 'Security', `${allEx.length} antivirus exclusion(s) configured`, 'Worth a glance to confirm they are all intentional.', { detail: allEx.join('\n') });
+  }
+  if (dex.tamperOff === true) {
+    add('warning', 'Security', 'Defender Tamper Protection is off', 'Tamper Protection stops malware (or users) from disabling Defender — it is off here.', {
+      recommendation: 'Turn Tamper Protection back on in Windows Security.',
+      actions: [{ label: 'Open Windows Security', token: 'windows-security' }],
+    });
+  }
+
+  // ---------- Suspicious persistence ----------
+  const tasks = arr(d.suspiciousTasks);
+  if (tasks.length) {
+    add('warning', 'Security', `${tasks.length} scheduled task(s) running from Temp/AppData`, 'Scheduled tasks launching from temp or user folders are a common malware persistence trick.', {
+      recommendation: 'Review these in Task Scheduler and delete anything you do not recognise.',
+      actions: [{ label: 'Open Task Scheduler', token: 'task-scheduler' }],
+      detail: tasks.slice(0, 15).map((t) => `${t.path || ''}${t.name}  →  ${t.run}`).join('\n'),
+    });
+  }
+  const suspStartup = arr(d.startup).filter((s) => /\\Temp\\|\\AppData\\|\\ProgramData\\|\\Users\\Public|%TEMP%|%APPDATA%/i.test(s.command || ''));
+  if (suspStartup.length) {
+    add('warning', 'Security', `${suspStartup.length} startup item(s) running from Temp/AppData`, 'Auto-start entries pointing at temp or user folders are a common malware persistence location.', {
+      recommendation: 'Review these startup entries and remove anything unexpected.',
+      actions: [{ label: 'Open Startup settings', token: 'startup-apps' }],
+      detail: suspStartup.slice(0, 15).map((s) => `${s.name}  →  ${s.command}`).join('\n'),
+    });
+  }
+
+  // ---------- Browser extensions ----------
+  const be = d.browserExt || {};
+  const beParts = [];
+  if (num(be.chrome)) beParts.push(`Chrome: ${num(be.chrome)}`);
+  if (num(be.edge)) beParts.push(`Edge: ${num(be.edge)}`);
+  if (num(be.firefox)) beParts.push(`Firefox: ${num(be.firefox)}`);
+  const beTotal = num(be.chrome) + num(be.edge) + num(be.firefox);
+  if (beTotal > 0) {
+    add(beTotal >= 15 ? 'warning' : 'info', 'Security', `${beTotal} browser extension(s) installed`, `${beParts.join(' · ')}. Extensions are the main route for adware and PUPs.`, {
+      recommendation: beTotal >= 15 ? 'Review and remove unknown extensions — a high count often means bundled adware.' : 'Worth a quick review for anything the customer did not install.',
+    });
+  }
+
+  // ---------- Windows image health ----------
+  const ih = (d.imageHealth || '').toLowerCase();
+  if (ih === 'repairable') {
+    add('warning', 'System', 'Windows system files are corrupt (repairable)', 'DISM reports the component store is corrupt but repairable.', {
+      recommendation: 'Run DISM /Online /Cleanup-Image /RestoreHealth, then sfc /scannow.',
+      explain: 'This typically causes update failures and odd glitches. RestoreHealth pulls fresh files from Windows Update; follow with SFC to repair protected system files.',
+    });
+  } else if (ih === 'notrepairable') {
+    add('critical', 'System', 'Windows system files are corrupt (not repairable online)', 'DISM reports component-store corruption it cannot repair online.', { recommendation: 'An in-place repair/upgrade (or clean reinstall) is likely needed.' });
+  }
+
+  // ---------- Time sync ----------
+  const ts = d.timeSync || {};
+  if (ts.service && String(ts.service).toLowerCase() !== 'running') {
+    add('info', 'Maintenance', 'Clock-sync service not running', `The Windows Time service is "${ts.service}". A drifting clock breaks Windows Update and secure (HTTPS) sites.`, { recommendation: 'Start and enable the Windows Time (w32time) service.' });
+  } else if (ts.source && /local cmos/i.test(String(ts.source))) {
+    add('info', 'Maintenance', 'Clock not syncing to the internet', 'The time source is the local hardware clock, not an internet time server — it can drift and break updates/secure sites.', { recommendation: 'Point w32time at an NTP server and resync (w32tm /resync).' });
+  }
+
   // ---------- Score & counts ----------
   const counts = { critical: 0, warning: 0, info: 0, ok: 0 };
   let penalty = 0;

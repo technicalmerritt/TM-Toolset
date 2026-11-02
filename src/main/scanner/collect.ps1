@@ -335,5 +335,78 @@ $out.printJobs = Safe {
   @($stuck | Group-Object { ($_.Name -split ',')[0] } | ForEach-Object { [ordered]@{ printer = $_.Name; stuck = $_.Count; total = $_.Count } })
 }
 
+Step 'Checking network health'
+# ---------- Network diagnostics ----------
+$cfg = Safe { Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -and $_.NetAdapter.Status -eq 'Up' } | Select-Object -First 1 }
+$net = [ordered]@{}
+$net.ipv4        = Safe { $cfg.IPv4Address.IPAddress }
+$net.gateway     = Safe { $cfg.IPv4DefaultGateway.NextHop }
+$net.dns         = Safe { @($cfg.DNSServer | Where-Object { $_.AddressFamily -eq 2 } | Select-Object -ExpandProperty ServerAddresses) }
+$net.apipa       = Safe { @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -like '169.254.*' } | Select-Object -ExpandProperty IPAddress) }
+$net.internet    = Safe { "$((Get-NetConnectionProfile | Select-Object -First 1).IPv4Connectivity)" }
+$net.dnsResolves = Safe { [bool](Resolve-DnsName -Name 'www.microsoft.com' -Type A -QuickTimeout -ErrorAction SilentlyContinue) }
+$net.smb1        = Safe { [bool]((Get-SmbServerConfiguration).EnableSMB1Protocol) }
+$net.gatewayPing = Safe {
+  $gw = $cfg.IPv4DefaultGateway.NextHop
+  if ($gw) {
+    $p = @(Test-Connection -ComputerName $gw -Count 2 -ErrorAction SilentlyContinue)
+    if ($p.Count -gt 0) { [ordered]@{ ok = $true; avgMs = [math]::Round(($p | Measure-Object -Property ResponseTime -Average).Average) } }
+    else { [ordered]@{ ok = $false } }
+  }
+}
+$out.net = $net
+
+Step 'Checking antivirus exclusions and persistence'
+# ---------- Defender exclusions + tamper protection ----------
+$out.defenderExclusions = Safe {
+  $mp = Get-MpPreference
+  [ordered]@{
+    paths      = @($mp.ExclusionPath)
+    processes  = @($mp.ExclusionProcess)
+    extensions = @($mp.ExclusionExtension)
+    tamperOff  = ((Get-MpComputerStatus).IsTamperProtected -eq $false)
+  }
+}
+
+# ---------- Suspicious scheduled tasks (Temp/AppData persistence) ----------
+$out.suspiciousTasks = Safe {
+  @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object { $_.State -ne 'Disabled' } | ForEach-Object {
+    $t = $_
+    foreach ($a in @($t.Actions)) {
+      $exec = "$($a.Execute) $($a.Arguments)"
+      if ($exec -match '(?i)\\Temp\\|\\AppData\\|\\ProgramData\\|\\Users\\Public|%TEMP%|%APPDATA%') {
+        [ordered]@{ name = "$($t.TaskName)"; path = "$($t.TaskPath)"; run = $exec.Trim() }
+      }
+    }
+  } | Where-Object { $_ })
+}
+
+Step 'Checking browsers'
+# ---------- Browser extension counts ----------
+$out.browserExt = Safe {
+  [ordered]@{
+    chrome  = @(Get-ChildItem "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Extensions" -Directory -ErrorAction SilentlyContinue).Count
+    edge    = @(Get-ChildItem "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Extensions" -Directory -ErrorAction SilentlyContinue).Count
+    firefox = @(Get-ChildItem "$env:APPDATA\Mozilla\Firefox\Profiles\*\extensions\*" -ErrorAction SilentlyContinue).Count
+  }
+}
+
+Step 'Checking system integrity and clock'
+# ---------- Windows image health (DISM CheckHealth, fast) ----------
+$out.imageHealth = Safe {
+  $o = "$(& dism.exe /Online /Cleanup-Image /CheckHealth 2>$null)"
+  if ($o -match 'No component store corruption') { 'Healthy' }
+  elseif ($o -match 'is repairable') { 'Repairable' }
+  elseif ($o -match 'not repairable') { 'NotRepairable' }
+  else { 'Unknown' }
+}
+
+# ---------- Time sync ----------
+$out.timeSync = Safe {
+  $svc = (Get-Service w32time -ErrorAction SilentlyContinue).Status
+  $src = "$(& w32tm /query /source 2>$null)".Trim()
+  [ordered]@{ service = "$svc"; source = $src }
+}
+
 Step 'Finishing up'
 $out | ConvertTo-Json -Depth 6 -Compress

@@ -31,6 +31,9 @@ async function openToken(token) {
     case 'services':
       await shell.openPath(sys32('services.msc'));
       return true;
+    case 'task-scheduler':
+      await shell.openPath(sys32('taskschd.msc'));
+      return true;
     case 'device-manager':
       await shell.openPath(sys32('devmgmt.msc'));
       return true;
