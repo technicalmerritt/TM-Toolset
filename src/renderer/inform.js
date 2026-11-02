@@ -330,11 +330,28 @@
     const c = data.computer || {};
     const cpu = data.cpu || {};
     const mem = data.memory || {};
+    const board = data.board || {};
+    const gpus = arr(data.graphics).map((x) => x.name).filter(Boolean).join('; ');
+    const disks = arr(data.disks)
+      .map((x) => [x.model, x.sizeGB ? x.sizeGB + ' GB' : '', x.media].filter(Boolean).join(' '))
+      .join('; ');
+    const ip = (arr(data.network && data.network.adapters).find((a) => a.ipv4) || {}).ipv4;
+    const osStr = [os.name, os.displayVersion].filter(Boolean).join(' ');
+
+    // Keys must match Syncro's Computer asset field names exactly to populate.
+    // "Serial" / "Serial Number" = the BIOS/system serial (Dell/Lenovo service tag).
     const properties = {
+      'Serial Number': c.serial,
       Serial: c.serial,
-      'Operating System': [os.name, os.displayVersion].filter(Boolean).join(' '),
+      OS: osStr ? osStr + (os.build ? ` (build ${os.build})` : '') : undefined,
       CPU: cpu.name,
       RAM: mem.totalGB != null ? mem.totalGB + ' GB' : undefined,
+      Video: gpus,
+      Disks: disks,
+      Board: [board.manufacturer, board.product].filter(Boolean).join(' '),
+      BIOS: [board.biosVersion, board.biosDate].filter(Boolean).join('  '),
+      Installed: os.installDate,
+      IP: ip,
     };
     Object.keys(properties).forEach((k) => (properties[k] == null || properties[k] === '') && delete properties[k]);
 
