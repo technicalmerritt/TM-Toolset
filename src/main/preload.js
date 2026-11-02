@@ -53,6 +53,10 @@ contextBridge.exposeInMainWorld('startupItems', {
   toggle: (item, enable) => ipcRenderer.invoke('startup:toggle', { item, enable }),
 });
 
+contextBridge.exposeInMainWorld('drives', {
+  list: () => ipcRenderer.invoke('drives:list'),
+});
+
 contextBridge.exposeInMainWorld('surface', {
   run: () => ipcRenderer.invoke('scan:surface'),
   onProgress: (cb) => {

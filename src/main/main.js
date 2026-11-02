@@ -13,6 +13,7 @@ const actions = require('./actions');
 const settings = require('./settings');
 const syncro = require('./syncro');
 const startup = require('./startup/startup');
+const drives = require('./drives/drives');
 
 let mainWindow = null;
 
@@ -241,6 +242,16 @@ function registerIpc() {
   // ---- Open a whitelisted Windows location / doc link from a finding ----
   ipcMain.handle('action:open', async (_evt, token) => actions.openToken(String(token || '')));
   ipcMain.handle('action:openUrl', async (_evt, url) => actions.openUrl(String(url || '')));
+
+  // ---- Drive health ----
+  ipcMain.handle('drives:list', async () => {
+    try {
+      const data = await drives.runDrives();
+      return { ok: true, data };
+    } catch (err) {
+      return { ok: false, error: (err && err.message) || String(err) };
+    }
+  });
 
   // ---- Startup items (list + toggle) ----
   ipcMain.handle('startup:list', async () => {

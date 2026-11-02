@@ -5,8 +5,23 @@
 param([Parameter(Mandatory = $true)][string]$Payload)
 $ErrorActionPreference = 'Stop'
 
+# Always export a .reg backup of a key before we change it.
+function Backup-RegKey {
+  param($psKey)
+  try {
+    $regKey = $psKey -replace '^HKLM:\\', 'HKLM\' -replace '^HKCU:\\', 'HKCU\'
+    $dir = Join-Path $env:USERPROFILE 'Documents\TM Toolset Backups\Registry'
+    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $safe = ($regKey -replace '[\\:><|]', '_')
+    $file = Join-Path $dir "$safe-$stamp.reg"
+    & reg.exe export "$regKey" "$file" /y 2>$null | Out-Null
+  } catch { }
+}
+
 function Set-Approved {
   param($approvedKey, $valueName, [bool]$enable)
+  Backup-RegKey $approvedKey
   if (-not (Test-Path $approvedKey)) { New-Item -Path $approvedKey -Force | Out-Null }
   $bytes = New-Object byte[] 12
   $bytes[0] = $(if ($enable) { 2 } else { 3 })

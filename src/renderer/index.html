@@ -19,6 +19,7 @@
         <button class="tab tab--active" data-tab="information">Information</button>
         <button class="tab" data-tab="scanner">Issue Scanner</button>
         <button class="tab" data-tab="startup">Startup Items</button>
+        <button class="tab" data-tab="drives">Drive Health</button>
         <button class="tab" data-tab="tools">Tools</button>
         <button class="tab" data-tab="settings">Settings</button>
       </nav>
@@ -179,6 +180,31 @@
       </section>
     </main>
 
+    <!-- ================= DRIVE HEALTH ================= -->
+    <main id="panel-drives" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Drive Health</h1>
+          <p class="muted">SMART health, temperature, wear and power-on life for every attached drive. Run as administrator for the full SMART attribute set.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="drivesRefresh" class="btn btn--ghost" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div id="drivesStatus" class="scan-status" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted">Reading drive health…</p>
+      </div>
+
+      <div id="drivesError" class="scan-error" hidden>
+        <h3>Couldn’t read drive health</h3>
+        <pre id="drivesErrorDetail" class="finding__detail"></pre>
+      </div>
+
+      <div id="drivesList" class="drives-list" hidden></div>
+    </main>
+
     <!-- ================= STARTUP ITEMS ================= -->
     <main id="panel-startup" class="panel" hidden>
       <div class="info-top">
@@ -297,6 +323,7 @@
     <script src="inform.js"></script>
     <script src="settings-ui.js"></script>
     <script src="startup-ui.js"></script>
+    <script src="drives-ui.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

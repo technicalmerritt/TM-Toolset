@@ -538,6 +538,127 @@ body {
   color: var(--text-dim);
 }
 
+/* ================= Drive Health ================= */
+.drives-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.drive-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.drive-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.drive-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.drive-title h3 {
+  margin: 0 0 3px;
+  font-size: 16px;
+}
+
+.drive-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.drive-health {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: #fff;
+  text-align: center;
+  line-height: 1;
+}
+
+.drive-health small {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+.drive-health__pct {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.drive-health--good {
+  background: linear-gradient(135deg, #2e9e5b, #3ec07a);
+}
+.drive-health--warn {
+  background: linear-gradient(135deg, #d8912a, #f3b23c);
+}
+.drive-health--bad {
+  background: linear-gradient(135deg, #d8414f, #ff5c6c);
+}
+
+.drive-gauges {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gauge__top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.gauge__label {
+  color: var(--text-dim);
+}
+
+.gauge__val {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.gauge__track {
+  height: 8px;
+  background: var(--bg);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.gauge__fill {
+  height: 100%;
+  border-radius: 6px;
+  background: var(--accent);
+}
+
+.gauge__fill.good {
+  background: #3ec07a;
+}
+.gauge__fill.warn {
+  background: #f3b23c;
+}
+.gauge__fill.bad {
+  background: #ff5c6c;
+}
+
+.drive-specs {
+  margin-top: 16px;
+}
+
 /* ================= Startup Items ================= */
 .startup-list {
   display: flex;

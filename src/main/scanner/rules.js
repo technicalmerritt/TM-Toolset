@@ -248,9 +248,19 @@ function evaluate(d) {
     });
   }
 
-  const diskErr = num(ev.diskErrors);
-  if (diskErr >= 1) {
-    add('critical', 'Storage', 'Disk I/O errors in the event log', `${diskErr} disk-controller error event(s) in the last 14 days — often a dying drive or bad cable.`, { recommendation: 'Back up now; run a full SMART/surface check and reseat/replace the SATA/NVMe connection.' });
+  const diskErrRaw = ev.diskErrors;
+  const diskErrTotal = diskErrRaw && typeof diskErrRaw === 'object' ? num(diskErrRaw.total) : num(diskErrRaw);
+  if (diskErrTotal >= 1) {
+    const byDisk = arr(diskErrRaw && diskErrRaw.byDisk);
+    const named = byDisk
+      .filter((x) => x.harddisk !== 'unknown')
+      .map((x) => `Disk ${x.harddisk} — ${x.model}${x.serial ? ' (S/N ' + x.serial + ')' : ''}`);
+    const where = named.length ? named.join('; ') : 'an attached drive (disk number not recorded in the events)';
+    add('critical', 'Storage', 'Disk I/O errors in the event log', `${diskErrTotal} disk-controller error event(s) in the last 14 days on: ${where}. Often a failing drive or a bad cable/port.`, {
+      recommendation: 'Identify the drive below. If it is a customer drive on the bench, note it against that job; if it is an internal drive, back it up, run a surface check, and reseat or replace the cable.',
+      explain: '"Disk" controller errors mean Windows retried or failed an I/O to a specific physical disk. The disk number below (Disk 0, 1, 2…) matches Disk Management / the physical drive, so you can tell an internal drive from a customer drive you have temporarily attached.',
+      detail: byDisk.map((x) => `Disk ${x.harddisk}: ${x.count}× — ${x.model}${x.serial ? ' (S/N ' + x.serial + ')' : ''}`).join('\n'),
+    });
   }
 
   const appErrs = arr(ev.appErrors);

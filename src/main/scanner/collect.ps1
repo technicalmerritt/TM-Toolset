@@ -208,7 +208,32 @@ Step 'Reading event logs and crash history'
 $since = (Get-Date).AddDays(-14)
 $ev = [ordered]@{}
 $ev.kernelPower41 = Safe { @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; Id = 41; StartTime = $since }).Count }
-$ev.diskErrors    = Safe { @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'disk'; StartTime = $since }).Count }
+# Disk controller errors, grouped by which physical disk, with model/serial.
+$ev.diskErrors = Safe {
+  $evs = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'disk'; StartTime = $since } -ErrorAction SilentlyContinue)
+  $groups = @{}
+  foreach ($e in $evs) {
+    $hd = $null
+    if ("$($e.Message)" -match 'Harddisk(\d+)') { $hd = $Matches[1] }
+    else { foreach ($pp in @($e.Properties)) { if ("$($pp.Value)" -match 'Harddisk(\d+)') { $hd = $Matches[1]; break } } }
+    $key = if ($hd) { $hd } else { 'unknown' }
+    if (-not $groups.ContainsKey($key)) { $groups[$key] = 0 }
+    $groups[$key] = $groups[$key] + 1
+  }
+  $dd = @{}
+  Get-CimInstance Win32_DiskDrive -ErrorAction SilentlyContinue | ForEach-Object { $dd["$($_.Index)"] = $_ }
+  $byDisk = @()
+  foreach ($k in $groups.Keys) {
+    $drv = $dd[$k]
+    $byDisk += [ordered]@{
+      harddisk = $k
+      model    = if ($drv) { "$($drv.Model)".Trim() } else { 'Unidentified disk' }
+      serial   = if ($drv) { "$($drv.SerialNumber)".Trim() } else { $null }
+      count    = $groups[$k]
+    }
+  }
+  [ordered]@{ total = $evs.Count; byDisk = $byDisk }
+}
 $ev.bugchecks     = Safe {
   @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; Id = 1001; ProviderName = 'Microsoft-Windows-WER-SystemErrorReporting'; StartTime = $since } |
     Select-Object -First 10 | ForEach-Object { [ordered]@{ time = $_.TimeCreated.ToString('o'); msg = (($_.Message -split "`n")[0]).Trim() } })
