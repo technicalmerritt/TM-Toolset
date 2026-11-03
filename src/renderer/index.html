@@ -415,13 +415,21 @@
           <label class="field"><span>Accent colour</span><input id="brandAccent" type="color" value="#ff6600" /></label>
           <label class="field"><span>Background colour</span><input id="brandBg" type="color" value="#0e1b33" /></label>
         </div>
-        <label class="field"><span>Logo</span>
+        <label class="field"><span>Logo (header)</span>
           <div class="field__row">
             <button id="brandLogoPick" class="btn btn--ghost" type="button">Choose logo…</button>
             <button id="brandLogoClear" class="btn btn--ghost" type="button">Clear</button>
             <img id="brandLogoPreview" class="brand-logo-preview" alt="logo preview" hidden />
           </div>
         </label>
+        <label class="field"><span>App icon (window &amp; taskbar)</span>
+          <div class="field__row">
+            <img id="brandAppIconPreview" class="brand-appicon-preview" alt="app icon preview" />
+            <button id="brandAppIconPick" class="btn btn--ghost" type="button">Choose icon…</button>
+            <button id="brandAppIconReset" class="btn btn--ghost" type="button">Default</button>
+          </div>
+        </label>
+        <p class="muted settings-hint">The app icon changes live (and follows a preset — e.g. the Oaklands theme uses their tree). The icon on the <strong>.exe file itself</strong> is set when the app is built, so it updates when you install a new full download, not via an in-app change.</p>
         <p class="muted settings-hint">Changes apply live. Text colour auto-switches light/dark to stay readable against your background. Quick presets:</p>
         <div id="brandPresets" class="brand-presets"></div>
         <div class="settings-actions">

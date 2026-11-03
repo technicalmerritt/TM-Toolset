@@ -3,7 +3,7 @@
 // White-label theming: brand name, logo, and a colour scheme derived from a
 // base background + accent, with automatic light/dark text contrast.
 (function () {
-  const DEFAULT = { brand: '', accent: '#ff6600', bg: '#0e1b33', logo: '' };
+  const DEFAULT = { brand: '', accent: '#ff6600', bg: '#0e1b33', logo: '', appIcon: '' };
   const PRESETS = [
     ['TM Default', '#0e1b33', '#ff6600'],
     ['Light', '#f4f6fa', '#ff6600'],
@@ -12,7 +12,7 @@
     ['Emerald', '#0f2420', '#16c784'],
     ['Crimson', '#241014', '#ff4d4f'],
     ['Paper', '#faf9f6', '#2f6df6'],
-    ['Oaklands', '#f5f7f4', '#0a7f39'],   // Oaklands Computer Services - oak-green on white
+    ['Oaklands', '#f5f7f4', '#0a7f39', { brand: 'Oaklands Computer Services', logo: 'logo-oaklands.svg', appIcon: 'oaklands' }],
   ];
   let current = Object.assign({}, DEFAULT);
 
@@ -59,6 +59,8 @@
       else img.src = vars._dark ? 'logo-dark.svg' : 'logo-light.svg';
     }
     if (t.brand) { try { document.title = t.brand; } catch { /* ignore */ } }
+    // App icon (window + taskbar) follows the theme.
+    try { if (window.theme && window.theme.setAppIcon) window.theme.setAppIcon(t.appIcon || ''); } catch { /* ignore */ }
     try { localStorage.setItem('tmTheme', JSON.stringify(t)); } catch { /* ignore */ }
   }
 
@@ -70,6 +72,13 @@
     const a = $('#brandAccent'); if (a) a.value = isHex(current.accent) ? current.accent : '#ff6600';
     const g = $('#brandBg'); if (g) g.value = isHex(current.bg) ? current.bg : '#0e1b33';
     const prev = $('#brandLogoPreview'); if (prev) { if (current.logo) { prev.src = current.logo; prev.hidden = false; } else prev.hidden = true; }
+    const ip = $('#brandAppIconPreview');
+    if (ip) {
+      const v = current.appIcon || '';
+      ip.src = !v || v === 'default' ? '../icon.png'
+        : (v === 'oaklands' ? '../icons/oaklands-icon.png'
+          : (/^data:/.test(v) ? v : ('../' + v)));
+    }
   }
 
   function wireSettings() {
@@ -86,14 +95,31 @@
       });
     });
     $('#brandLogoClear') && $('#brandLogoClear').addEventListener('click', () => { current.logo = ''; apply(current); save(); fillSettings(); });
+    $('#brandAppIconPick') && $('#brandAppIconPick').addEventListener('click', () => {
+      window.theme.pickAppIcon().then((r) => {
+        if (r && r.cancelled) return;
+        if (r && r.ok && r.data) { current.appIcon = r.data; apply(current); save(); fillSettings(); }
+        else { const s = $('#brandStatus'); if (s) s.textContent = 'Could not use that image as an icon.'; }
+      });
+    });
+    $('#brandAppIconReset') && $('#brandAppIconReset').addEventListener('click', () => { current.appIcon = ''; apply(current); save(); fillSettings(); });
     $('#brandReset') && $('#brandReset').addEventListener('click', () => { apply(Object.assign({}, DEFAULT)); save(); fillSettings(); });
     const presetWrap = $('#brandPresets');
     if (presetWrap) {
       presetWrap.innerHTML = '';
-      for (const [label, pbg, pacc] of PRESETS) {
+      for (const [label, pbg, pacc, extra] of PRESETS) {
         const chip = document.createElement('button');
         chip.type = 'button'; chip.className = 'ov-chip'; chip.textContent = label;
-        chip.addEventListener('click', () => { apply({ brand: current.brand, accent: pacc, bg: pbg, logo: current.logo }); save(); fillSettings(); });
+        chip.addEventListener('click', () => {
+          const e = extra || {};
+          apply({
+            brand: e.brand != null ? e.brand : current.brand,
+            accent: pacc, bg: pbg,
+            logo: e.logo != null ? e.logo : current.logo,
+            appIcon: e.appIcon != null ? e.appIcon : current.appIcon,
+          });
+          save(); fillSettings();
+        });
         presetWrap.appendChild(chip);
       }
     }

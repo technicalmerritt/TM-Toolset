@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, nativeImage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
@@ -563,6 +563,23 @@ function parseArgs(argString) {
   return out;
 }
 
+// ---- App icon (window + taskbar), can follow the theme or a custom pick ----
+// value: '' or 'default' = the bundled TM icon; 'oaklands' = bundled tree icon;
+// a data: URL = a custom image; anything else = a path under src/.
+function resolveAppIcon(value) {
+  try {
+    if (!value || value === 'default') return nativeImage.createFromPath(path.join(__dirname, '..', 'icon.png'));
+    if (value === 'oaklands') return nativeImage.createFromPath(path.join(__dirname, '..', 'icons', 'oaklands-icon.png'));
+    if (/^data:/i.test(value)) return nativeImage.createFromDataURL(value);
+    return nativeImage.createFromPath(path.join(__dirname, '..', value));
+  } catch { return null; }
+}
+function applyAppIcon(value) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const img = resolveAppIcon(value);
+  if (img && !img.isEmpty()) { try { mainWindow.setIcon(img); } catch { /* ignore */ } }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
@@ -584,6 +601,8 @@ function createWindow() {
   mainWindow.removeMenu();
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   mainWindow.once('ready-to-show', () => mainWindow.show());
+  // Apply the saved per-theme app icon (window + taskbar) once we have a window.
+  readConfig().then((cfg) => { const t = cfg.theme || {}; if (t.appIcon) applyAppIcon(t.appIcon); }).catch(() => {});
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -766,6 +785,20 @@ function registerIpc() {
   // ---- White-label theme (brand + colours + logo) ----
   ipcMain.handle('theme:get', async () => { const cfg = await readConfig(); return { theme: cfg.theme || null }; });
   ipcMain.handle('theme:set', async (_evt, args) => { const cfg = await readConfig(); cfg.theme = (args && args.theme) || null; await writeConfig(cfg); return { ok: true }; });
+  // Apply an app icon (window + taskbar) live when the theme changes.
+  ipcMain.handle('theme:appIcon', async (_evt, args) => { applyAppIcon(String((args && args.value) || '')); return { ok: true }; });
+  // Let the user choose a custom app icon image; returned as a PNG data URL.
+  ipcMain.handle('theme:pickAppIcon', async () => {
+    const r = await dialog.showOpenDialog(mainWindow, { title: 'Choose an app icon', properties: ['openFile'], filters: [{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'ico', 'bmp', 'gif', 'webp'] }] });
+    if (r.canceled || !r.filePaths[0]) return { cancelled: true };
+    try {
+      const img = nativeImage.createFromPath(r.filePaths[0]);
+      if (img.isEmpty()) return { ok: false, error: 'bad-image' };
+      // Normalise to a 256px square PNG so it behaves as an icon everywhere.
+      const resized = img.resize({ width: 256, height: 256, quality: 'best' });
+      return { ok: true, data: resized.toDataURL() };
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
   ipcMain.handle('theme:pickLogo', async () => {
     const r = await dialog.showOpenDialog(mainWindow, { title: 'Choose a logo image', properties: ['openFile'], filters: [{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp'] }] });
     if (r.canceled || !r.filePaths[0]) return { cancelled: true };

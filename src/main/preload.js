@@ -73,6 +73,8 @@ contextBridge.exposeInMainWorld('theme', {
   get: () => ipcRenderer.invoke('theme:get'),
   set: (theme) => ipcRenderer.invoke('theme:set', { theme }),
   pickLogo: () => ipcRenderer.invoke('theme:pickLogo'),
+  setAppIcon: (value) => ipcRenderer.invoke('theme:appIcon', { value }),
+  pickAppIcon: () => ipcRenderer.invoke('theme:pickAppIcon'),
 });
 
 contextBridge.exposeInMainWorld('appInfo', {

@@ -1,5 +1,5 @@
 {
-  "version": "0.66.5",
-  "notes": "New 'Oaklands' theme preset (Settings > Branding & theme) - oak-green on white, based on Oaklands Computer Services' branding. Pick it, then set the brand name and upload their logo to finish the white-label look.",
-  "zip": "tmtoolset-app-0.66.5.zip"
+  "version": "0.67.0",
+  "notes": "New app icon: a TM cog badge on the window and taskbar (and on the .exe in a fresh download). The Oaklands theme now also sets their tree logo and app icon. Fixed the Light/Paper themes shrinking the header logo. You can change the app icon under Settings > Branding & theme.",
+  "zip": "tmtoolset-app-0.67.0.zip"
 }
