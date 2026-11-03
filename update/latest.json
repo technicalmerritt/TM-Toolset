@@ -1,5 +1,5 @@
 {
-  "version": "0.66.4",
-  "notes": "Fix: per-drive Speed test and Surface test failed with 'Cannot convert MSFT_Disk to Int32' (and surface tests failing to open the disk). A local variable was colliding with the $Disk parameter because PowerShell variable names are case-insensitive.",
-  "zip": "tmtoolset-app-0.66.4.zip"
+  "version": "0.66.5",
+  "notes": "New 'Oaklands' theme preset (Settings > Branding & theme) - oak-green on white, based on Oaklands Computer Services' branding. Pick it, then set the brand name and upload their logo to finish the white-label look.",
+  "zip": "tmtoolset-app-0.66.5.zip"
 }

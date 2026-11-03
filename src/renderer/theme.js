@@ -12,6 +12,7 @@
     ['Emerald', '#0f2420', '#16c784'],
     ['Crimson', '#241014', '#ff4d4f'],
     ['Paper', '#faf9f6', '#2f6df6'],
+    ['Oaklands', '#f5f7f4', '#0a7f39'],   // Oaklands Computer Services - oak-green on white
   ];
   let current = Object.assign({}, DEFAULT);
 
