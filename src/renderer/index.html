@@ -46,30 +46,29 @@
           <button class="tab tab--active" data-tab="overview"><span class="nav-ico">🏠</span>Overview</button>
           <button class="tab" data-tab="news"><span class="nav-ico">📰</span>Industry News</button>
           <button class="tab" data-tab="m365"><span class="nav-ico">📅</span>Microsoft 365</button>
-          <div class="nav-label">Diagnostics</div>
+          <div class="nav-label">Diagnose</div>
           <button class="tab" data-tab="scanner"><span class="nav-ico">🔍</span>Issue Scanner</button>
           <button class="tab" data-tab="diagnose"><span class="nav-ico">🩺</span>Diagnose</button>
-          <button class="tab" data-tab="drives"><span class="nav-ico">💽</span>Drive Health</button>
-          <button class="tab" data-tab="battery"><span class="nav-ico">🔋</span>Battery</button>
-          <button class="tab" data-tab="devices"><span class="nav-ico">🔌</span>Devices</button>
           <button class="tab" data-tab="crash"><span class="nav-ico">💥</span>Crash Analysis</button>
           <button class="tab" data-tab="network"><span class="nav-ico">🌐</span>Networking</button>
-          <div class="nav-label">System</div>
+          <button class="tab" data-tab="battery"><span class="nav-ico">🔋</span>Battery</button>
+          <button class="tab" data-tab="devices"><span class="nav-ico">🔌</span>Devices</button>
+          <div class="nav-label">Storage</div>
+          <button class="tab" data-tab="storage"><span class="nav-ico">💽</span>Storage</button>
+          <div class="nav-label">System &amp; setup</div>
           <button class="tab" data-tab="information"><span class="nav-ico">🖥️</span>Information</button>
           <button class="tab" data-tab="startup"><span class="nav-ico">🚀</span>Startup Items</button>
-          <button class="tab" data-tab="bios"><span class="nav-ico">🧬</span>BIOS / UEFI</button>
-          <div class="nav-label">Maintenance</div>
-          <button class="tab" data-tab="repairs"><span class="nav-ico">🛠️</span>Repairs</button>
-          <button class="tab" data-tab="disktools"><span class="nav-ico">🧹</span>Disk Tools</button>
-          <button class="tab" data-tab="debloat"><span class="nav-ico">🧼</span>Debloat</button>
-          <button class="tab" data-tab="board"><span class="nav-ico">🔧</span>Board Repair</button>
-          <button class="tab" data-tab="backup"><span class="nav-ico">💾</span>Backup &amp; Imaging</button>
           <button class="tab" data-tab="drivers"><span class="nav-ico">🧩</span>Drivers</button>
+          <button class="tab" data-tab="debloat"><span class="nav-ico">🧼</span>Debloat</button>
+          <button class="tab" data-tab="repairs"><span class="nav-ico">🛠️</span>Repairs</button>
+          <div class="nav-label">Advanced</div>
+          <button class="tab" data-tab="bios"><span class="nav-ico">🧬</span>BIOS / UEFI</button>
+          <button class="tab" data-tab="board"><span class="nav-ico">🔧</span>Board Repair</button>
           <div class="nav-label">More</div>
-          <button class="tab" data-tab="report"><span class="nav-ico">📄</span>Customer Report</button>
-          <button class="tab" data-tab="feedback"><span class="nav-ico">💡</span>Feedback &amp; Fixes</button>
-          <button class="tab" data-tab="logs"><span class="nav-ico">📜</span>Activity Log</button>
           <button class="tab" data-tab="tools"><span class="nav-ico">📦</span>Tools</button>
+          <button class="tab" data-tab="report"><span class="nav-ico">📄</span>Customer Report</button>
+          <button class="tab" data-tab="logs"><span class="nav-ico">📜</span>Activity Log</button>
+          <button class="tab" data-tab="feedback"><span class="nav-ico">💡</span>Feedback &amp; Fixes</button>
           <button class="tab" data-tab="settings"><span class="nav-ico">⚙️</span>Settings</button>
         </nav>
       </aside>
@@ -467,6 +466,15 @@
         </div>
         <p id="setM365FeedStatus" class="info-line"></p>
       </section>
+    </main>
+
+    <!-- ============ STORAGE HUB (sub-nav for the 3 panels below) ============ -->
+    <main id="panel-storage" class="panel panel--bare" hidden>
+      <nav id="storageSub" class="storage-subtabs">
+        <button class="subtab subtab--active" data-sub="health" type="button"><span class="nav-ico">🩺</span>Drive Health</button>
+        <button class="subtab" data-sub="disktools" type="button"><span class="nav-ico">🧹</span>Disk Tools</button>
+        <button class="subtab" data-sub="backup" type="button"><span class="nav-ico">💾</span>Backup &amp; Clone</button>
+      </nav>
     </main>
 
     <!-- ================= DRIVE HEALTH ================= -->
@@ -1882,5 +1890,6 @@
     <script src="news-ui.js"></script>
     <script src="report-ui.js"></script>
     <script src="app.js"></script>
+    <script src="storage-ui.js"></script>
   </body>
 </html>

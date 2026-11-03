@@ -17,7 +17,16 @@
   }
   function safe(p) { return Promise.resolve(p).then((r) => r).catch(() => null); }
 
-  function openTab(t) { const b = document.querySelector('.tab[data-tab="' + t + '"]'); if (b) b.click(); }
+  // Drive Health, Disk Tools and Backup now live under the Storage hub.
+  const STORAGE_SUB = { drives: 'health', disktools: 'disktools', backup: 'backup' };
+  function openTab(t) {
+    if (STORAGE_SUB[t] && window.tmStorage) {
+      const s = document.querySelector('.tab[data-tab="storage"]'); if (s) s.click();
+      window.tmStorage.show(STORAGE_SUB[t]);
+      return;
+    }
+    const b = document.querySelector('.tab[data-tab="' + t + '"]'); if (b) b.click();
+  }
 
   const START = [
     ['First look at any PC', [['Overview (here)', 'overview'], ['Issue Scanner', 'scanner'], ['Guided diagnose', 'diagnose']]],
@@ -59,10 +68,7 @@
     const head = el('div', 'ov-tile__head');
     head.append(el('span', 'ov-tile__title', title), el('span', 'ov-tile__ico', icon));
     t.append(head, el('div', 'ov-tile__val', val), el('div', 'ov-tile__sub', sub || ''));
-    t.addEventListener('click', () => {
-      const btn = document.querySelector('.tab[data-tab="' + tab + '"]');
-      if (btn) btn.click();
-    });
+    t.addEventListener('click', () => openTab(tab));
     return t;
   }
 

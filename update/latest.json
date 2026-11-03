@@ -1,5 +1,5 @@
 {
-  "version": "0.67.0",
-  "notes": "New app icon: a TM cog badge on the window and taskbar (and on the .exe in a fresh download). The Oaklands theme now also sets their tree logo and app icon. Fixed the Light/Paper themes shrinking the header logo. You can change the app icon under Settings > Branding & theme.",
-  "zip": "tmtoolset-app-0.67.0.zip"
+  "version": "0.68.0",
+  "notes": "Navigation tidy-up: Drive Health, Disk Tools and Backup are now one 'Storage' hub with sub-tabs (and the duplicate speed test is gone - it lives once under Disk Tools > Speed). Sidebar regrouped into Diagnose / Storage / System & setup / Advanced / More, with Drivers moved to System.",
+  "zip": "tmtoolset-app-0.68.0.zip"
 }

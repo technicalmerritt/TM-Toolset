@@ -2111,3 +2111,11 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 
 /* app-icon preview in Branding settings */
 .brand-appicon-preview { width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg); object-fit: contain; flex: 0 0 auto; }
+
+/* ========== Storage hub sub-nav ========== */
+.panel--bare { flex: 0 0 auto; overflow: visible; padding: 16px 20px 0; }
+.storage-subtabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--border); }
+.storage-subtabs .subtab { display: inline-flex; align-items: center; gap: 7px; }
+.storage-subtabs .nav-ico { font-size: 15px; }
+/* the sub-panel under the bar shouldn't re-pad the top as heavily */
+#panel-storage + #panel-drives, #panel-storage ~ #panel-disktools, #panel-storage ~ #panel-backup { }

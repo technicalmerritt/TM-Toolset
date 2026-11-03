@@ -105,20 +105,33 @@
       els.results.appendChild(r);
     });
   }
+  // Drive Health, Disk Tools and Backup now live under the Storage hub.
+  const STORAGE_SUB = { drives: 'health', disktools: 'disktools', backup: 'backup' };
+  const STORAGE_NAME = { drives: 'Drive Health', disktools: 'Disk Tools', backup: 'Backup & Clone' };
   function tabName(tab) {
+    if (STORAGE_NAME[tab]) return STORAGE_NAME[tab];
     const b = document.querySelector('.tab[data-tab="' + tab + '"]');
     return b ? b.textContent.trim() : tab;
   }
+  function clickSub(it) {
+    if (!it.sub) return;
+    setTimeout(() => {
+      const sb = document.querySelector('#panel-' + it.tab + ' [' + it.sub[0] + '="' + it.sub[1] + '"]');
+      if (sb) sb.click();
+    }, 40);
+  }
   function go(it) {
     close();
+    if (STORAGE_SUB[it.tab] && window.tmStorage) {
+      const s = document.querySelector('.tab[data-tab="storage"]');
+      if (s) s.click();
+      window.tmStorage.show(STORAGE_SUB[it.tab]);
+      clickSub(it);
+      return;
+    }
     const b = document.querySelector('.tab[data-tab="' + it.tab + '"]');
     if (b) b.click();
-    if (it.sub) {
-      setTimeout(() => {
-        const sb = document.querySelector('#panel-' + it.tab + ' [' + it.sub[0] + '="' + it.sub[1] + '"]');
-        if (sb) sb.click();
-      }, 30);
-    }
+    clickSub(it);
   }
 
   window.addEventListener('DOMContentLoaded', () => {

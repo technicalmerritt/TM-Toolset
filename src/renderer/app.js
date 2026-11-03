@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
     news: document.getElementById('panel-news'),
     m365: document.getElementById('panel-m365'),
     feedback: document.getElementById('panel-feedback'),
+    storage: document.getElementById('panel-storage'),
     information: document.getElementById('panel-information'),
     scanner: document.getElementById('panel-scanner'),
     startup: document.getElementById('panel-startup'),

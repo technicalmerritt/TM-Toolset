@@ -583,8 +583,8 @@
     }
     syncCreateMode();
 
-    const tab = document.querySelector('.tab[data-tab="backup"]');
-    if (tab) tab.addEventListener('click', () => { if (!loadedOnce) { loadedOnce = true; loadMap(); } });
+    // Loaded lazily when the Storage hub shows the Backup & Clone sub-tab.
+    window.addEventListener('tm-storage-show', (e) => { if (e.detail === 'backup' && !loadedOnce) { loadedOnce = true; loadMap(); } });
   }
 
   window.addEventListener('DOMContentLoaded', wire);

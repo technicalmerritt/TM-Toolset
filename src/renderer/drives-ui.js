@@ -510,19 +510,18 @@
     add('Reported status', dr.health);
     card.appendChild(specs);
 
-    // Tests (surface + speed)
+    // Tests (surface + capacity). The read/write SPEED test now lives once, in
+    // the Storage hub's Disk Tools > Speed sub-tab (it was duplicated here).
     const testWrap = el('div', 'drive-tests');
     const btnRow = el('div', 'drive-tests__btns');
     const resBox = el('div', 'drive-tests__box');
     resBox.hidden = true;
     const bSurface = el('button', 'btn btn--ghost btn--sm', 'Surface test');
-    const bSpeed = el('button', 'btn btn--ghost btn--sm', 'Speed test');
     const bCap = el('button', 'btn btn--ghost btn--sm', 'Capacity test');
-    bSurface.type = 'button'; bSpeed.type = 'button'; bCap.type = 'button';
+    bSurface.type = 'button'; bCap.type = 'button';
     bSurface.addEventListener('click', () => runTest(dr, 'surface', bSurface, resBox));
-    bSpeed.addEventListener('click', () => runTest(dr, 'speed', bSpeed, resBox));
     bCap.addEventListener('click', () => startCapacityUI(dr, bCap, resBox));
-    btnRow.append(bSurface, bSpeed, bCap);
+    btnRow.append(bSurface, bCap);
     testWrap.append(btnRow, resBox);
     card.appendChild(testWrap);
 
@@ -620,7 +619,7 @@
         window.TMActivity && window.TMActivity.update(key, p.msg);
       });
     }
-    const tab = document.querySelector('.tab[data-tab="drives"]');
-    if (tab) tab.addEventListener('click', () => { if (!loaded) load(); });
+    // Loaded lazily when the Storage hub shows the Drive Health sub-tab.
+    window.addEventListener('tm-storage-show', (e) => { if (e.detail === 'health' && !loaded) load(); });
   });
 })();
