@@ -1,5 +1,5 @@
 {
-  "version": "0.69.4",
-  "notes": "Power Signatures: zero the idle current so it reads 0.000 A at rest (matching the meter) instead of 0.001 A. Voltage and current are now calibrated to your meter.",
-  "zip": "tmtoolset-app-0.69.4.zip"
+  "version": "0.69.5",
+  "notes": "Power Signatures now reads the PLD meter EXACTLY. Reverse-engineered the meter app's own conversion constants from its binary: voltage = counts/320, current = counts/5000. Verified against a real capture (8.650 V / 2.141 A - spot on). Volts, amps and watts are now accurate across the whole range.",
+  "zip": "tmtoolset-app-0.69.5.zip"
 }
