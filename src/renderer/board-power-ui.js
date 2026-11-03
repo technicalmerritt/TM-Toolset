@@ -125,15 +125,16 @@
   }
   // PLD frame = currentCounts(4 hex) + voltageCounts(4 hex), raw ADC counts.
   // Scales calibrated against a known reading: 5.1 V / 0.112 A <-> vRaw 1653 / iRaw ~124.
-  const PLD_V_SCALE = 5.1 / 1653;   // volts per count
-  const PLD_A_SCALE = 0.112 / 124;  // amps per count
+  const PLD_V_SCALE = 5.1 / 1653;    // volts per count
+  const PLD_A_OFFSET = 1;            // counts at zero current (meter reads 0.000 A idle)
+  const PLD_A_SCALE = 0.112 / 123;   // amps per count (above the offset)
   function decodeLine(s) {
     if (!s) return;
     if (/^[0-9a-fA-F]{8}$/.test(s)) {           // PLD frame
       const iRaw = parseInt(s.slice(0, 4), 16); // current, ADC counts
       const vRaw = parseInt(s.slice(4, 8), 16); // voltage, ADC counts
       const V = vRaw * PLD_V_SCALE;
-      const A = iRaw * PLD_A_SCALE;
+      const A = Math.max(0, iRaw - PLD_A_OFFSET) * PLD_A_SCALE;
       if (V >= 0 && V < 60 && A >= 0 && A < 40) { gotParse = true; sample(V, A); }
       return;
     }

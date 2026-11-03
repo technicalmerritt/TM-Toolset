@@ -1,5 +1,5 @@
 {
-  "version": "0.69.3",
-  "notes": "Power Signatures now reads the PLD meter correctly: the frame is currentCounts + voltageCounts (raw ADC), calibrated to your meter (5.1 V / 0.112 A). Live volts/amps, watts and the graph are now accurate. The 5 V scale is spot-on; if you later capture a 9 V or 12 V PD source and send the raw + real reading, I can fine-tune the higher-voltage scale.",
-  "zip": "tmtoolset-app-0.69.3.zip"
+  "version": "0.69.4",
+  "notes": "Power Signatures: zero the idle current so it reads 0.000 A at rest (matching the meter) instead of 0.001 A. Voltage and current are now calibrated to your meter.",
+  "zip": "tmtoolset-app-0.69.4.zip"
 }
