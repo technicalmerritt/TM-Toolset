@@ -118,23 +118,57 @@ async function downloadToFile(url, destPath, onProgress) {
   return { bytes: received };
 }
 
+// Salvage the first complete top-level JSON object from a string, ignoring any
+// trailing junk. Lets us recover a config that an older build corrupted by
+// racing writes (which produced "{...}{...}" or a half-written tail).
+function recoverFirstJson(raw) {
+  let depth = 0, start = -1, inStr = false, esc = false;
+  for (let i = 0; i < raw.length; i++) {
+    const c = raw[i];
+    if (inStr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') inStr = false; continue; }
+    if (c === '"') { inStr = true; continue; }
+    if (c === '{') { if (depth === 0) start = i; depth++; }
+    else if (c === '}') { depth--; if (depth === 0 && start >= 0) { try { return JSON.parse(raw.slice(start, i + 1)); } catch { return null; } } }
+  }
+  return null;
+}
+
 async function readConfig() {
+  let raw;
   try {
-    const raw = await fsp.readFile(getConfigPath(), 'utf8');
-    const data = JSON.parse(raw);
-    if (!data || !Array.isArray(data.tools)) return { tools: [] };
-    return data;
+    raw = await fsp.readFile(getConfigPath(), 'utf8');
   } catch (err) {
     if (err.code === 'ENOENT') return { tools: [] };
     throw err;
   }
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    // Corrupted file (older build's concurrent-write race). Back it up, then
+    // recover the first valid object so licence/settings survive if possible.
+    try { await fsp.writeFile(getConfigPath() + '.corrupt-' + Date.now(), raw); } catch { /* ignore */ }
+    data = recoverFirstJson(raw);
+    if (data && typeof data === 'object') { try { await writeConfig(data); } catch { /* ignore */ } }
+    else data = { tools: [] };
+  }
+  if (!data || typeof data !== 'object') return { tools: [] };
+  if (!Array.isArray(data.tools)) data.tools = [];
+  return data;
 }
 
+// Serialized atomic writes with a unique temp name, so concurrent callers can
+// never clobber each other's temp file (the bug that corrupted tools.json).
+let _cfgWriteChain = Promise.resolve();
 async function writeConfig(config) {
-  const file = getConfigPath();
-  const tmp = `${file}.${process.pid}.tmp`;
-  await fsp.writeFile(tmp, JSON.stringify(config, null, 2), 'utf8');
-  await fsp.rename(tmp, file);
+  const run = async () => {
+    const file = getConfigPath();
+    const tmp = `${file}.${process.pid}.${Date.now().toString(36)}.${Math.random().toString(36).slice(2)}.tmp`;
+    await fsp.writeFile(tmp, JSON.stringify(config, null, 2), 'utf8');
+    await fsp.rename(tmp, file);
+  };
+  _cfgWriteChain = _cfgWriteChain.then(run, run);
+  return _cfgWriteChain;
 }
 
 // ---- Driver library location (stored in the portable config) ----
