@@ -62,6 +62,7 @@
     if (!activeLog || line == null) return;
     activeLog.textContent += String(line).replace(/\s+$/, '') + '\n';
     activeLog.scrollTop = activeLog.scrollHeight;
+    window.TMActivity && window.TMActivity.update('drivers:pack', String(line).replace(/\s+$/, ''));
   }
   function endRun(ok, msg) {
     appendLog('\n' + msg);
@@ -352,6 +353,7 @@
     if (busy) { toast('Something is already running.'); return; }
     startRun(els.packsLog, els.packsState, title, els.packsTitle);
     els.packsCancel.hidden = false;
+    window.TMActivity && window.TMActivity.start('drivers:pack', title);
     factory().then((res) => {
       const r = (res && res.data) || {};
       if (!res || !res.ok) { endRun(false, 'Failed: ' + ((res && res.error) || 'error')); return; }
@@ -360,7 +362,7 @@
       endRun(true, doneMsg(r));
       loadPacksAuto();
     }).catch((e) => endRun(false, 'Failed: ' + ((e && e.message) || e)))
-      .finally(() => { els.packsCancel.hidden = true; });
+      .finally(() => { els.packsCancel.hidden = true; window.TMActivity && window.TMActivity.end('drivers:pack'); });
   }
 
   function fetchScope(scope, label) {

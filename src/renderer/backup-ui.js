@@ -391,6 +391,7 @@
     if (!window.confirm(human)) return;
 
     busy = true;
+    window.TMActivity && window.TMActivity.start('backup:image', mode === 'systemimage' ? 'Creating system image' : 'Capturing volume');
     els.createRunner.hidden = false;
     els.createTitle.textContent = mode === 'systemimage' ? 'Creating system image…' : 'Capturing volume…';
     els.createState.textContent = 'Running…';
@@ -406,7 +407,7 @@
       if (d.error) { finishRun(els.createState, false, errLine(d)); return; }
       finishRun(els.createState, d.ok, d.ok ? 'Completed.' : ('Finished (exit ' + d.exitCode + ').'));
     }).catch((e) => finishRun(els.createState, false, 'Failed: ' + ((e && e.message) || e)))
-      .finally(() => { busy = false; activeLog = null; });
+      .finally(() => { busy = false; activeLog = null; window.TMActivity && window.TMActivity.end('backup:image'); });
   }
 
   // ---------- apply / restore ----------
@@ -578,7 +579,7 @@
     els.modal.addEventListener('click', (e) => { if (e.target === els.modal) closeModal(); });
 
     if (window.backup && window.backup.onProgress) {
-      window.backup.onProgress((msg) => { if (activeLog) appendLog(activeLog, msg); });
+      window.backup.onProgress((msg) => { if (activeLog) { appendLog(activeLog, msg); window.TMActivity && window.TMActivity.update('backup:image', String(msg)); } });
     }
     syncCreateMode();
 

@@ -1,5 +1,5 @@
 {
-  "version": "0.66.1",
-  "notes": "Top-bar activity indicator: background tasks (issue scan, drive capacity test, surface/speed tests, disk/USB speed test) now show a live spinner and task list in the top-right, whatever tab you're on. Click it to see what's running.",
-  "zip": "tmtoolset-app-0.66.1.zip"
+  "version": "0.66.3",
+  "notes": "Activity indicator now also tracks driver-pack downloads and backup/imaging jobs, so long downloads and captures show in the top bar from any tab. Also includes the config-corruption fix from v0.66.2.",
+  "zip": "tmtoolset-app-0.66.3.zip"
 }
