@@ -33,6 +33,7 @@
 
   async function runScan() {
     scanning = true;
+    window.TMActivity && window.TMActivity.start('scan', 'Issue scan');
     lastResult = null;
     els.results.hidden = true;
     els.error.hidden = true;
@@ -57,6 +58,7 @@
       showError((err && err.message) || String(err), '');
     } finally {
       scanning = false;
+      window.TMActivity && window.TMActivity.end('scan');
       els.runBtn.disabled = false;
     }
   }
@@ -402,7 +404,7 @@
     // Live status text from the collector.
     if (window.scanner && window.scanner.onProgress) {
       window.scanner.onProgress((msg) => {
-        if (scanning) setStatus(msg);
+        if (scanning) { setStatus(msg); window.TMActivity && window.TMActivity.update('scan', msg); }
       });
     }
     if (window.surface && window.surface.onProgress) {

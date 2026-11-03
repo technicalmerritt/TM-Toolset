@@ -311,6 +311,7 @@
     const sizeMB = parseInt(els.speedSize.value, 10) || 256;
     speedBusy = true; els.speedGo.disabled = true; els.speedCancel.hidden = false;
     els.speedResult.hidden = true; els.speedStatus.hidden = false; els.speedStatusText.textContent = 'Starting...';
+    window.TMActivity && window.TMActivity.start('usbspeed', 'Disk/USB speed test (' + path + ')');
     try {
       const res = await window.disktools.usbSpeed(path, sizeMB);
       if (!res || res.ok !== true) { toast('Speed test failed: ' + ((res && res.error) || ''), 'error'); return; }
@@ -321,7 +322,7 @@
       }
       renderSpeed(d);
     } catch (e) { toast('Speed test failed: ' + ((e && e.message) || e), 'error'); }
-    finally { speedBusy = false; els.speedGo.disabled = false; els.speedCancel.hidden = true; els.speedStatus.hidden = true; }
+    finally { speedBusy = false; window.TMActivity && window.TMActivity.end('usbspeed'); els.speedGo.disabled = false; els.speedCancel.hidden = true; els.speedStatus.hidden = true; }
   }
   function renderSpeed(d) {
     els.speedResult.hidden = false; els.speedResult.innerHTML = '';
@@ -388,7 +389,7 @@
       window.disktools.onProgress((p) => {
         if (!p || p.msg == null) return;
         if (p.kind === 'cleanup' && els.cleanStatusText) { els.cleanStatusText.textContent = p.msg; return; }
-        if (p.kind === 'usbspeed' && els.speedStatusText) { els.speedStatusText.textContent = p.msg; return; }
+        if (p.kind === 'usbspeed' && els.speedStatusText) { els.speedStatusText.textContent = p.msg; window.TMActivity && window.TMActivity.update('usbspeed', p.msg); return; }
         if (p.kind === 'usage' && initialScanning) {
           const m = String(p.msg);
           if (m.indexOf('@@USAGE@@') === 0) {

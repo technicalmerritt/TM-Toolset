@@ -17,6 +17,14 @@
         <span id="appVersion" class="brand__ver" title="Build version"></span>
       </div>
       <button id="quickFindBtn" class="qf-btn" type="button" title="Search / jump (Ctrl+K)"><span>🔍</span> Search<kbd>Ctrl K</kbd></button>
+      <div id="activity" class="activity" hidden>
+        <button id="activityBtn" class="activity__btn" type="button" title="Background activity">
+          <span class="activity__spin" aria-hidden="true"></span>
+          <span id="activityCount" class="activity__count">0</span>
+          <span id="activityLabel" class="activity__lbl">running</span>
+        </button>
+        <div id="activityMenu" class="activity__menu" hidden></div>
+      </div>
       <div class="ticket" id="ticketControl">
         <form id="ticketForm" class="ticket__form">
           <span class="ticket__hash">#</span>
@@ -1833,6 +1841,7 @@
     </div>
 
     <script src="theme.js"></script>
+    <script src="activity.js"></script>
     <script src="renderer.js"></script>
     <script src="elevate.js"></script>
     <script src="ticket.js"></script>

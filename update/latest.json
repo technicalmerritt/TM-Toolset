@@ -1,5 +1,5 @@
 {
-  "version": "0.66.0",
-  "notes": "Microsoft 365 tab (what's new + impact ratings, training, live roadmap), Feedback & Fixes tab, built-in self-update, and per-user licensing. Fab's AutoBackup added under Tools > Worth paying for.",
-  "zip": "tmtoolset-app-0.66.0.zip"
+  "version": "0.66.1",
+  "notes": "Top-bar activity indicator: background tasks (issue scan, drive capacity test, surface/speed tests, disk/USB speed test) now show a live spinner and task list in the top-right, whatever tab you're on. Click it to see what's running.",
+  "zip": "tmtoolset-app-0.66.1.zip"
 }

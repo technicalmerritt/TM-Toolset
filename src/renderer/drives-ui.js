@@ -278,6 +278,7 @@
     btn.disabled = true;
     const other = btn.parentNode.querySelectorAll('button');
     other.forEach((b) => (b.disabled = true));
+    window.TMActivity && window.TMActivity.start(key, (kind === 'surface' ? 'Surface scan' : 'Drive speed test') + ' (disk ' + disk + ')');
 
     const call = kind === 'surface' ? window.drives.surfaceTest(disk) : window.drives.speedTest(disk);
     call.then((res) => {
@@ -294,6 +295,7 @@
       box.innerHTML = '';
       box.appendChild(el('p', 'test-err', 'Test failed: ' + ((e && e.message) || String(e))));
     }).finally(() => {
+      window.TMActivity && window.TMActivity.end(key);
       other.forEach((b) => (b.disabled = false));
     });
   }
@@ -387,6 +389,7 @@
 
     const sib = btn.parentNode.querySelectorAll('button');
     sib.forEach((b) => (b.disabled = true));
+    window.TMActivity && window.TMActivity.start('capacity:' + path, 'Capacity test (' + letter.toUpperCase() + ':)');
 
     window.drives.capacityTest({ path, maxGB }).then((res) => {
       delete progressNodes['capacity:' + path];
@@ -398,6 +401,7 @@
       box.innerHTML = '';
       box.appendChild(el('p', 'test-err', 'Test failed: ' + ((e && e.message) || String(e))));
     }).finally(() => {
+      window.TMActivity && window.TMActivity.end('capacity:' + path);
       sib.forEach((b) => (b.disabled = false));
     });
   }
@@ -613,6 +617,7 @@
         const key = p.kind === 'capacity' ? ('capacity:' + (p.path || '')) : (p.disk + ':' + p.kind);
         const node = progressNodes[key];
         if (node) node.textContent = p.msg;
+        window.TMActivity && window.TMActivity.update(key, p.msg);
       });
     }
     const tab = document.querySelector('.tab[data-tab="drives"]');
