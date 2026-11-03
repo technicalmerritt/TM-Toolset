@@ -202,24 +202,35 @@ function cmpVer(a, b) {
 }
 async function getUpdateRepo() { try { const c = await readConfig(); return (c.updateRepo && String(c.updateRepo).trim()) || UPDATE_REPO; } catch { return UPDATE_REPO; } }
 function sendUpdateProgress(m) { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:progress', m); }
+async function fetchJsonFresh(repo) {
+  // Prefer GitHub's contents API with the raw media type: it reflects a new
+  // commit immediately (no CDN lag). Fall back to raw.githubusercontent.com if
+  // the API is unreachable or rate-limited (60/hr unauthenticated is plenty for
+  // a desktop app, but the fallback keeps it working regardless).
+  const apiUrl = 'https://api.github.com/repos/' + repo + '/contents/update/latest.json?ref=' + UPDATE_BRANCH;
+  const rawUrl = 'https://raw.githubusercontent.com/' + repo + '/' + UPDATE_BRANCH + '/update/latest.json?t=' + Date.now();
+  async function get(url, accept) {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 10000);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'TM-Toolset', Accept: accept, 'Cache-Control': 'no-cache' } });
+      clearTimeout(to);
+      if (res.status === 404) throw new Error('No update manifest published yet.');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) { clearTimeout(to); throw e; }
+  }
+  try { return await get(apiUrl, 'application/vnd.github.raw+json'); }
+  catch (e) { if (/No update manifest/.test(e.message)) throw e; return await get(rawUrl, 'application/json'); }
+}
 async function checkForUpdate() {
   const repo = await getUpdateRepo();
-  // Updates are published as a small manifest + payload committed to the repo
-  // and served from raw.githubusercontent.com (no GitHub auth, works offline-
-  // tolerant). Cache-busted so a fresh push is seen promptly.
-  const base = 'https://raw.githubusercontent.com/' + repo + '/' + UPDATE_BRANCH + '/update/';
-  const ctrl = new AbortController();
-  const to = setTimeout(() => ctrl.abort(), 10000);
-  let man;
-  try {
-    const res = await fetch(base + 'latest.json?t=' + Date.now(), { signal: ctrl.signal, headers: { 'User-Agent': 'TM-Toolset', 'Cache-Control': 'no-cache' } });
-    clearTimeout(to);
-    if (res.status === 404) throw new Error('No update manifest published yet.');
-    if (!res.ok) throw new Error('Update server returned HTTP ' + res.status + '.');
-    man = await res.json();
-  } catch (e) { clearTimeout(to); throw e; }
+  const man = await fetchJsonFresh(repo);
   const latest = man.version || '';
   const current = app.getVersion();
+  // The payload is a versioned filename, so the raw CDN can serve it safely
+  // (a new version is always a new URL that was never cached).
+  const base = 'https://raw.githubusercontent.com/' + repo + '/' + UPDATE_BRANCH + '/update/';
   let assetUrl = man.zip || '';
   if (assetUrl && !/^https?:\/\//i.test(assetUrl)) assetUrl = base + assetUrl.replace(/^\.?\//, '');
   return { current, latest, newer: cmpVer(latest, current) > 0, notes: String(man.notes || '').slice(0, 4000), assetUrl, assetName: 'update', pageUrl: man.page || ('https://github.com/' + repo + '/commits/' + UPDATE_BRANCH) };
