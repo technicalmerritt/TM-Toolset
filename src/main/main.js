@@ -193,6 +193,7 @@ async function licenseStatus() {
 // the code-only update asset, extracts it with the bundled 7za, overwrites the
 // app's own source (never the bundled tool binaries), then relaunches.
 const UPDATE_REPO = 'technicalmerritt/tm-toolset';
+const UPDATE_BRANCH = 'main';
 function cmpVer(a, b) {
   const pa = String(a).replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0);
   const pb = String(b).replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0);
@@ -203,23 +204,25 @@ async function getUpdateRepo() { try { const c = await readConfig(); return (c.u
 function sendUpdateProgress(m) { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:progress', m); }
 async function checkForUpdate() {
   const repo = await getUpdateRepo();
+  // Updates are published as a small manifest + payload committed to the repo
+  // and served from raw.githubusercontent.com (no GitHub auth, works offline-
+  // tolerant). Cache-busted so a fresh push is seen promptly.
+  const base = 'https://raw.githubusercontent.com/' + repo + '/' + UPDATE_BRANCH + '/update/';
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), 10000);
-  let rel;
+  let man;
   try {
-    const res = await fetch('https://api.github.com/repos/' + repo + '/releases/latest', { signal: ctrl.signal, headers: { 'User-Agent': 'TM-Toolset', Accept: 'application/vnd.github+json' } });
+    const res = await fetch(base + 'latest.json?t=' + Date.now(), { signal: ctrl.signal, headers: { 'User-Agent': 'TM-Toolset', 'Cache-Control': 'no-cache' } });
     clearTimeout(to);
-    if (res.status === 404) throw new Error('No published releases yet.');
-    if (!res.ok) throw new Error('GitHub returned HTTP ' + res.status + '.');
-    rel = await res.json();
+    if (res.status === 404) throw new Error('No update manifest published yet.');
+    if (!res.ok) throw new Error('Update server returned HTTP ' + res.status + '.');
+    man = await res.json();
   } catch (e) { clearTimeout(to); throw e; }
-  const latest = rel.tag_name || '';
+  const latest = man.version || '';
   const current = app.getVersion();
-  const assets = Array.isArray(rel.assets) ? rel.assets : [];
-  const asset = assets.find((a) => /update.*\.zip$/i.test(a.name))
-    || assets.find((a) => /\.zip$/i.test(a.name) && !/portable/i.test(a.name))
-    || assets.find((a) => /\.zip$/i.test(a.name));
-  return { current, latest, newer: cmpVer(latest, current) > 0, notes: String(rel.body || '').slice(0, 4000), assetUrl: asset ? asset.browser_download_url : '', assetName: asset ? asset.name : '', pageUrl: rel.html_url || ('https://github.com/' + repo + '/releases') };
+  let assetUrl = man.zip || '';
+  if (assetUrl && !/^https?:\/\//i.test(assetUrl)) assetUrl = base + assetUrl.replace(/^\.?\//, '');
+  return { current, latest, newer: cmpVer(latest, current) > 0, notes: String(man.notes || '').slice(0, 4000), assetUrl, assetName: 'update', pageUrl: man.page || ('https://github.com/' + repo + '/commits/' + UPDATE_BRANCH) };
 }
 async function downloadTo(url, destPath, onProgress) {
   const res = await fetch(url, { headers: { 'User-Agent': 'TM-Toolset', Accept: 'application/octet-stream' } });

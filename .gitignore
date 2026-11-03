@@ -16,3 +16,5 @@ vendor/
 
 # Local archives / build output
 *.zip
+# ...but the self-update payload IS published through the repo
+!update/*.zip
