@@ -224,6 +224,19 @@ contextBridge.exposeInMainWorld('feedback', {
   openDir: () => ipcRenderer.invoke('feedback:openDir'),
 });
 
+contextBridge.exposeInMainWorld('power', {
+  selectPort: (id) => ipcRenderer.invoke('power:selectPort', { id }),
+  cancelPort: () => ipcRenderer.invoke('power:cancelPort'),
+  onPorts: (cb) => ipcRenderer.on('power:ports', (_e, list) => cb(list)),
+  listSigs: () => ipcRenderer.invoke('power:listSigs'),
+  getSig: (id) => ipcRenderer.invoke('power:getSig', { id }),
+  saveSig: (sig) => ipcRenderer.invoke('power:saveSig', { sig }),
+  deleteSig: (id) => ipcRenderer.invoke('power:deleteSig', { id }),
+  openDir: () => ipcRenderer.invoke('power:openDir'),
+  exportCsv: (name, rows) => ipcRenderer.invoke('power:exportCsv', { name, rows }),
+  importCsv: () => ipcRenderer.invoke('power:importCsv'),
+});
+
 contextBridge.exposeInMainWorld('board', {
   openBoardview: (path) => ipcRenderer.invoke('board:openBoardview', { path }),
   openPdf: (path) => ipcRenderer.invoke('board:openPdf', { path }),

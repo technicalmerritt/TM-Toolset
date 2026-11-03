@@ -841,6 +841,7 @@
         <button class="subtab" data-brsub="heat" type="button">Heat &amp; Tips</button>
         <button class="subtab" data-brsub="jobs" type="button">Repair Jobs</button>
         <button class="subtab" data-brsub="fault" type="button">Fault-Finding</button>
+        <button class="subtab" data-brsub="power" type="button">Power Signatures</button>
         <button class="subtab" data-brsub="lib" type="button">Viewers &amp; Library</button>
       </div>
 
@@ -1181,6 +1182,86 @@
             <li>If it reaches Windows then BSODs → use Crash Analysis; if events show WHEA/hardware errors → Diagnose → Recent Problems.</li>
           </ul>
         </div>
+      </section>
+
+      <!-- POWER SIGNATURES -->
+      <section id="br-power" class="bios-section" hidden>
+        <div class="pw-intro">
+          <h2>Power signatures</h2>
+          <p class="muted">Capture the voltage &amp; current trace from a PLD USB-C meter while a board boots, then read the signature to narrow the fault. Current draw is one of the clearest tells on a board: a dead short pulls high mA instantly, an open rail draws nothing, a stuck boot ramps then stalls. Record good and bad boards to build your own reference library.</p>
+        </div>
+
+        <section class="info-card pw-connect">
+          <div class="pw-connect__row">
+            <button id="pwConnect" class="btn btn--primary" type="button">Connect meter</button>
+            <button id="pwDisconnect" class="btn btn--ghost" type="button" hidden>Disconnect</button>
+            <label class="pw-baud">Baud
+              <select id="pwBaud">
+                <option value="9600" selected>9600 (PLD default)</option>
+                <option value="115200">115200</option>
+                <option value="57600">57600</option>
+                <option value="38400">38400</option>
+                <option value="19200">19200</option>
+              </select>
+            </label>
+            <span id="pwStatus" class="pw-status muted">Not connected.</span>
+          </div>
+          <p class="muted settings-hint">First time: click Connect and pick the meter's serial port (often a USB-serial device). If the live numbers stay blank but the raw monitor shows bytes, the frame format just needs calibrating — turn on the raw monitor, capture a few seconds, and send it over so the parser can be locked to your meter.</p>
+        </section>
+
+        <div class="pw-live">
+          <div class="pw-read pw-read--v"><span id="pwVolts" class="pw-read__val">—</span><span class="pw-read__u">V</span></div>
+          <div class="pw-read pw-read--a"><span id="pwAmps" class="pw-read__val">—</span><span class="pw-read__u">A</span></div>
+          <div class="pw-read pw-read--w"><span id="pwWatts" class="pw-read__val">—</span><span class="pw-read__u">W</span></div>
+          <label class="pw-rawtoggle"><input type="checkbox" id="pwRawToggle" /> Raw monitor</label>
+        </div>
+        <pre id="pwRaw" class="pw-raw" hidden></pre>
+
+        <section class="info-card pw-chartcard">
+          <canvas id="pwChart" class="pw-chart" width="1000" height="300"></canvas>
+          <div class="pw-ctrls">
+            <button id="pwRecord" class="btn btn--action" type="button">● Start recording</button>
+            <button id="pwMarker" class="btn btn--ghost" type="button" disabled>Add marker</button>
+            <button id="pwClear" class="btn btn--ghost" type="button">Clear</button>
+            <span id="pwRecInfo" class="muted"></span>
+            <span class="pw-spacer"></span>
+            <button id="pwAnalyse" class="btn btn--primary" type="button">Analyse signature</button>
+          </div>
+          <div id="pwVerdict" class="pw-verdict" hidden></div>
+        </section>
+
+        <section class="info-card">
+          <div class="pw-lib__head">
+            <h3 class="info-card__title">Signature library</h3>
+            <div class="pw-lib__actions">
+              <button id="pwSave" class="btn btn--primary btn--sm" type="button">Save current capture…</button>
+              <button id="pwMatch" class="btn btn--ghost btn--sm" type="button">Match current to library</button>
+              <button id="pwExport" class="btn btn--ghost btn--sm" type="button">Export CSV</button>
+              <button id="pwImport" class="btn btn--ghost btn--sm" type="button">Import CSV</button>
+              <button id="pwLibDir" class="btn btn--ghost btn--sm" type="button">Data folder</button>
+            </div>
+          </div>
+          <div id="pwMatchOut" class="pw-match" hidden></div>
+          <div id="pwLib" class="pw-lib"></div>
+          <p id="pwLibEmpty" class="muted" hidden>No saved signatures yet. Capture a board (good or faulty), then Save it with a label.</p>
+        </section>
+
+        <details class="info-card pw-guide">
+          <summary>Reading current signatures — quick reference</summary>
+          <div class="pw-guide__body">
+            <table class="pw-guide__tbl">
+              <tr><th>What you see</th><th>Likely meaning</th></tr>
+              <tr><td>0 mA, voltage present</td><td>Open circuit / no power path — blown fuse, broken rail, bad connector, or the board isn't drawing (not turning on at all).</td></tr>
+              <tr><td>High mA instantly, voltage sags, stays flat</td><td>Dead short to ground — shorted cap, FET, PMIC or rail. Classic "won't power, gets hot". Find the hot component / use the short-finder.</td></tr>
+              <tr><td>Normal rise, then drops to ~0</td><td>Protection trip / brown-out — draws, then a rail collapses and the PMIC shuts down (bad rail, short downstream, firmware halt).</td></tr>
+              <tr><td>Ramps up and stalls at a plateau, never completes</td><td>Stuck in boot — stops at a stage (e.g. no display, bootloop). Compare the plateau current to a known-good board.</td></tr>
+              <tr><td>Rhythmic pulsing of current</td><td>Boot-loop / reset loop — the board keeps restarting. Often a power-rail or storage fault.</td></tr>
+              <tr><td>Steady current climbing to a healthy peak then settling</td><td>Normal boot curve — inrush, OS/firmware load, then idle. Save this as your "good board" reference.</td></tr>
+              <tr><td>Negotiates 5 V only, won't go to 9/12/15/20 V</td><td>USB-C PD negotiation issue — CC lines, PD controller, or e-marker. Watch the voltage steps.</td></tr>
+            </table>
+            <p class="muted">These are starting points, not certainties — always confirm with the board's rails and the fault-finding playbooks. Build your library: the more good/bad boards you record for a given model, the sharper "Match to library" gets.</p>
+          </div>
+        </details>
       </section>
 
       <!-- VIEWERS & LIBRARY -->
@@ -1880,6 +1961,7 @@
     <script src="debloat-ui.js"></script>
     <script src="logs-ui.js"></script>
     <script src="board-ui.js"></script>
+    <script src="board-power-ui.js"></script>
     <script src="quickfind.js"></script>
     <script src="license-ui.js"></script>
     <script src="overview-ui.js"></script>

@@ -25,6 +25,7 @@ const biosdiff = require('./bios/diff');
 let mainWindow = null;
 let packChild = null;        // current aria2/7za child for the network-pack fetch
 let packCancelled = false;
+let serialSelectCb = null;   // pending Web Serial port-selection callback
 
 // On Windows, `net session` succeeds only when running elevated.
 function isElevated() {
@@ -617,7 +618,20 @@ function createWindow() {
   // deny everything else by default.
   try {
     mainWindow.webContents.session.setPermissionRequestHandler((_wc, permission, cb) => {
-      cb(permission === 'media' || permission === 'audioCapture');
+      cb(permission === 'media' || permission === 'audioCapture' || permission === 'serial');
+    });
+  } catch { /* ignore */ }
+
+  // Web Serial for the PLD USB-C power meter (Board Repair > Power Signatures).
+  try {
+    const ses = mainWindow.webContents.session;
+    ses.setPermissionCheckHandler((_wc, permission) => permission === 'serial' || permission === 'media');
+    ses.setDevicePermissionHandler((d) => d.deviceType === 'serial');
+    ses.on('select-serial-port', (event, portList, _wc, callback) => {
+      event.preventDefault();
+      serialSelectCb = callback;
+      const list = (portList || []).map((p) => ({ id: p.portId, name: p.portName || '', display: p.displayName || p.portName || ('Port ' + p.portId), vendorId: p.vendorId, productId: p.productId }));
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('power:ports', list);
     });
   } catch { /* ignore */ }
 }
@@ -1859,6 +1873,79 @@ function registerIpc() {
     delete cfg.license;
     await writeConfig(cfg);
     return { ok: true, status: await licenseStatus() };
+  });
+
+  // ---- Power Signatures (PLD USB-C meter): port selection + signature library ----
+  ipcMain.handle('power:selectPort', async (_evt, args) => {
+    const id = String((args && args.id) || '');
+    if (serialSelectCb) { try { serialSelectCb(id); } catch { /* ignore */ } serialSelectCb = null; }
+    return { ok: true };
+  });
+  ipcMain.handle('power:cancelPort', async () => {
+    if (serialSelectCb) { try { serialSelectCb(''); } catch { /* ignore */ } serialSelectCb = null; }
+    return { ok: true };
+  });
+  function sigDir() { const d = path.join(getDataDir(), 'power-signatures'); try { fs.mkdirSync(d, { recursive: true }); } catch { /* ignore */ } return d; }
+  ipcMain.handle('power:listSigs', async () => {
+    try {
+      const d = sigDir();
+      const files = (await fsp.readdir(d)).filter((f) => f.endsWith('.json'));
+      const out = [];
+      for (const f of files) {
+        try { const s = JSON.parse(await fsp.readFile(path.join(d, f), 'utf8')); out.push({ id: s.id, label: s.label, device: s.device, fault: s.fault, created: s.created, durationMs: s.durationMs, samples: Array.isArray(s.samples) ? s.samples.length : 0 }); } catch { /* skip */ }
+      }
+      out.sort((a, b) => String(b.created).localeCompare(String(a.created)));
+      return { ok: true, items: out };
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
+  ipcMain.handle('power:getSig', async (_evt, args) => {
+    try { const s = JSON.parse(await fsp.readFile(path.join(sigDir(), String(args.id) + '.json'), 'utf8')); return { ok: true, sig: s }; }
+    catch (e) { return { ok: false, error: e.message }; }
+  });
+  ipcMain.handle('power:saveSig', async (_evt, args) => {
+    try {
+      const s = (args && args.sig) || {};
+      s.id = s.id || ('sig' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+      s.created = s.created || new Date().toISOString();
+      await fsp.writeFile(path.join(sigDir(), s.id + '.json'), JSON.stringify(s));
+      tmLog('power', 'saved signature', 'ok', (s.device || '') + ' / ' + (s.fault || s.label || ''));
+      return { ok: true, id: s.id };
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
+  ipcMain.handle('power:deleteSig', async (_evt, args) => {
+    try { await fsp.unlink(path.join(sigDir(), String(args.id) + '.json')); return { ok: true }; }
+    catch (e) { return { ok: false, error: e.message }; }
+  });
+  ipcMain.handle('power:openDir', async () => { shell.openPath(sigDir()); return { ok: true }; });
+  ipcMain.handle('power:exportCsv', async (_evt, args) => {
+    try {
+      const name = ((args && args.name) || 'power-capture').replace(/[^\w.-]+/g, '_');
+      const r = await dialog.showSaveDialog(mainWindow, { title: 'Export capture as CSV', defaultPath: name + '.csv', filters: [{ name: 'CSV', extensions: ['csv'] }] });
+      if (r.canceled || !r.filePath) return { cancelled: true };
+      const rows = (args && args.rows) || [];
+      const n0 = (x) => (Number.isFinite(Number(x)) ? Number(x) : 0);
+      let csv = 'time_ms,volts,amps,marker\n';
+      for (const s of rows) csv += [n0(s.t), n0(s.v), n0(s.a), (s.marker ? '"' + String(s.marker).replace(/"/g, '""') + '"' : '')].join(',') + '\n';
+      await fsp.writeFile(r.filePath, csv, 'utf8');
+      return { ok: true, path: r.filePath };
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
+  ipcMain.handle('power:importCsv', async () => {
+    try {
+      const r = await dialog.showOpenDialog(mainWindow, { title: 'Import a capture CSV', properties: ['openFile'], filters: [{ name: 'CSV', extensions: ['csv'] }] });
+      if (r.canceled || !r.filePaths[0]) return { cancelled: true };
+      const txt = await fsp.readFile(r.filePaths[0], 'utf8');
+      const rows = [];
+      const lines = txt.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const ln = lines[i].trim(); if (!ln) continue;
+        const parts = ln.split(',');
+        const t = parseFloat(parts[0]); const v = parseFloat(parts[1]); const a = parseFloat(parts[2]);
+        if (!Number.isFinite(t) || !Number.isFinite(v) || !Number.isFinite(a)) continue; // skips header
+        rows.push({ t, v, a });
+      }
+      return { ok: true, rows, name: path.basename(r.filePaths[0]) };
+    } catch (e) { return { ok: false, error: e.message }; }
   });
 
   // ---- Self-update ----

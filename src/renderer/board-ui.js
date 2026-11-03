@@ -55,7 +55,7 @@
 
   function showSub(name) {
     for (const b of document.querySelectorAll('#panel-board .subtab')) b.classList.toggle('subtab--active', b.dataset.brsub === name);
-    const map = { guides: 'br-guides', circuits: 'br-circuits', testing: 'br-testing', heat: 'br-heat', jobs: 'br-jobs', fault: 'br-fault', lib: 'br-lib' };
+    const map = { guides: 'br-guides', circuits: 'br-circuits', testing: 'br-testing', heat: 'br-heat', jobs: 'br-jobs', fault: 'br-fault', power: 'br-power', lib: 'br-lib' };
     for (const k of Object.keys(map)) { const s = document.getElementById(map[k]); if (s) s.hidden = k !== name; }
     if (name === 'lib' && !els.libList.dataset.loaded) { els.libList.dataset.loaded = '1'; loadLib(); }
   }
