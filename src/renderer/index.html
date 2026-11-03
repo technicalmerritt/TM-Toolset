@@ -1206,7 +1206,12 @@
             </label>
             <span id="pwStatus" class="pw-status muted">Not connected.</span>
           </div>
-          <p class="muted settings-hint">First time: click Connect and pick the meter's serial port (often a USB-serial device). If the live numbers stay blank but the raw monitor shows bytes, the frame format just needs calibrating — turn on the raw monitor, capture a few seconds, and send it over so the parser can be locked to your meter.</p>
+          <p class="muted settings-hint">First time: click Connect and pick the meter's serial port (often a USB-serial device). After that it's remembered.</p>
+          <div class="pw-auto">
+            <label><input type="checkbox" id="pwAutoConnect" /> Auto-connect to this meter</label>
+            <label><input type="checkbox" id="pwAutoSwitch" /> Jump to this view when it connects</label>
+            <button id="pwForget" class="btn btn--ghost btn--xs" type="button" hidden>Forget meter</button>
+          </div>
         </section>
 
         <div class="pw-live">

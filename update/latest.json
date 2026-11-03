@@ -1,5 +1,5 @@
 {
-  "version": "0.69.6",
-  "notes": "Power Signatures, big upgrade: (1) reliable analysis - a steady load (e.g. a charge) now reads as a healthy steady draw instead of a false 'boot-loop'; surge detection only counts real current swings, not meter ripple, and voltage-sag can't be faked by PD steps. (2) New live stats: peak/avg power, min-V under load, ripple, and energy (mAh/Wh) so it doubles as a charge logger. (3) New Power-Delivery profile: live PD level + a negotiation timeline (5/9/12/15/20 V steps) with a drop-back-to-5V warning. (4) Crisp HiDPI graph - no more fuzzy lines/text when maximised.",
-  "zip": "tmtoolset-app-0.69.6.zip"
+  "version": "0.70.0",
+  "notes": "Power Signatures: the meter is now remembered after the first connect (no more picking the port each time), with two opt-in tick boxes - 'Auto-connect to this meter' (reconnects on launch and the moment you plug it in) and 'Jump to this view when it connects' (auto-switches to Board Repair > Power Signatures on plug-in). Plus a 'Forget meter' button, and it now cleanly shows 'Meter disconnected' when you unplug it.",
+  "zip": "tmtoolset-app-0.70.0.zip"
 }

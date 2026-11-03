@@ -10,6 +10,7 @@
   function copyText(text) { try { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok; } catch { return false; } }
 
   let port = null, reader = null, keepReading = false;
+  let autoConnect = false, autoSwitch = false, meterId = '';   // remembered meter + opt-in behaviour
   let rawBuf = [];            // recent raw bytes for the monitor
   let byteAcc = [];           // parser accumulation buffer
   let gotBytes = false, gotParse = false;
@@ -42,26 +43,64 @@
     if (!list || !list.length) pick.appendChild(el('p', 'muted', 'No serial ports found. Check the meter is plugged in (it shows up as a USB-serial device).'));
   }
 
-  async function connect() {
-    if (!('serial' in navigator)) { toast('Web Serial isn’t available in this build.', true); return; }
+  // Remember which physical device is "the meter" (by USB vendor/product id).
+  function portId(p) { try { const i = p.getInfo && p.getInfo(); if (i && i.usbVendorId != null) return i.usbVendorId + ':' + i.usbProductId; } catch { /* ignore */ } return ''; }
+  function rememberPort(p) { const id = portId(p); if (id) { meterId = id; try { localStorage.setItem('pwMeterId', id); } catch { /* ignore */ } if (els.forget) els.forget.hidden = false; } }
+  async function findGrantedMeter() {
+    try {
+      const ports = await navigator.serial.getPorts();
+      if (!ports.length) return null;
+      if (meterId) { for (const p of ports) if (portId(p) === meterId) return p; }
+      return ports.length === 1 ? ports[0] : null;
+    } catch { return null; }
+  }
+
+  async function openPort(p, silent) {
     const baud = parseInt(els.baud.value, 10) || 9600;
-    els.status.textContent = 'Choose the meter’s serial port…';
-    let p;
-    try { p = await navigator.serial.requestPort({ filters: [] }); }
-    catch (e) { els.status.textContent = 'No port selected.'; return; }
     try { await p.open({ baudRate: baud }); }
-    catch (e) { els.status.textContent = 'Could not open port: ' + (e.message || e); return; }
-    // Many CH340/FTDI devices stay silent until DTR/RTS are asserted.
+    catch (e) { if (!silent) els.status.textContent = 'Could not open port: ' + (e.message || e); return false; }
     try { await p.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch { /* some drivers don't support this */ }
     port = p; keepReading = true; gotBytes = false; gotParse = false; byteAcc = []; byteCount = 0;
     els.connect.hidden = true; els.disconnect.hidden = false;
     els.status.textContent = 'Connected at ' + baud + ' baud — waiting for data…';
-    // If nothing arrives in a few seconds, tell the tech what to try.
+    rememberPort(p);
     clearTimeout(noDataTimer);
     noDataTimer = setTimeout(() => {
       if (byteCount === 0 && port) els.status.textContent = 'Connected, but 0 bytes received. The meter usually only streams while it is measuring — plug the device under test into the meter’s USB-C port so there is voltage/current to report. If still nothing, try a different baud rate.';
     }, 4000);
     readLoop();
+    return true;
+  }
+
+  async function connect() {
+    if (!('serial' in navigator)) { toast('Web Serial isn’t available in this build.', true); return; }
+    els.status.textContent = 'Choose the meter’s serial port…';
+    let p;
+    try { p = await navigator.serial.requestPort({ filters: [] }); }
+    catch (e) { els.status.textContent = 'No port selected.'; return; }
+    await openPort(p, false);
+  }
+
+  // Auto-connect to the remembered meter (opt-in). doSwitch jumps to this view,
+  // used only on a live plug-in, not on app launch.
+  async function autoConnectTry(doSwitch) {
+    if (!autoConnect || port) return;
+    const p = await findGrantedMeter();
+    if (!p) return;
+    const ok = await openPort(p, true);
+    if (ok && doSwitch && autoSwitch) gotoPowerView();
+  }
+  function gotoPowerView() {
+    try {
+      const t = document.querySelector('.tab[data-tab="board"]'); if (t) t.click();
+      const sub = document.querySelector('#panel-board .subtab[data-brsub="power"]'); if (sub) sub.click();
+    } catch { /* ignore */ }
+  }
+  async function forgetMeter() {
+    try { const p = await findGrantedMeter(); if (p && p.forget) await p.forget(); } catch { /* ignore */ }
+    meterId = ''; try { localStorage.removeItem('pwMeterId'); } catch { /* ignore */ }
+    if (els.forget) els.forget.hidden = true;
+    toast('Meter forgotten — you’ll be asked to pick it next time.');
   }
 
   async function disconnect() {
@@ -72,6 +111,14 @@
     port = null; reader = null;
     els.connect.hidden = false; els.disconnect.hidden = true;
     els.status.textContent = 'Disconnected.';
+  }
+  // The meter was physically unplugged while open.
+  function handleLostPort() {
+    keepReading = false; clearTimeout(noDataTimer);
+    try { if (reader) reader.releaseLock(); } catch { /* ignore */ }
+    port = null; reader = null;
+    els.connect.hidden = false; els.disconnect.hidden = true;
+    els.status.textContent = 'Meter disconnected.';
   }
 
   async function readLoop() {
@@ -85,6 +132,7 @@
         }
       } catch { /* stream glitch / unplugged */ } finally { try { reader.releaseLock(); } catch { /* ignore */ } }
     }
+    if (keepReading) handleLostPort();   // loop ended unexpectedly => device gone
   }
 
   function onBytes(u8) {
@@ -521,7 +569,7 @@
     s += rel(peakShape(a), peakShape(b)) * 0.3;
     s += rel(a.sag, b.sag) * 0.2;
     s += rel(a.vNom, b.vNom) * 0.1;
-    s += rel(Math.min(a.peaks, 6), Math.min(b.peaks, 6)) * 0.1;
+    s += rel(Math.min(a.surges || 0, 6), Math.min(b.surges || 0, 6)) * 0.1;
     return Math.max(0, Math.min(1, s));
   }
 
@@ -550,11 +598,31 @@
     els.recInfo = $('#pwRecInfo'); els.analyse = $('#pwAnalyse'); els.verdict = $('#pwVerdict');
     els.lib = $('#pwLib'); els.libEmpty = $('#pwLibEmpty'); els.matchOut = $('#pwMatchOut');
     els.stats = $('#pwStats'); els.pd = $('#pwPd'); els.pdLevel = $('#pwPdLevel');
+    els.autoC = $('#pwAutoConnect'); els.autoS = $('#pwAutoSwitch'); els.forget = $('#pwForget');
     if (!els.chart) return;
 
     if (window.power && window.power.onPorts) window.power.onPorts(portPicker);
     els.connect.addEventListener('click', connect);
     els.disconnect.addEventListener('click', disconnect);
+
+    // Remember / auto-connect / auto-switch (opt-in, per install).
+    try {
+      autoConnect = localStorage.getItem('pwAutoConnect') === '1';
+      autoSwitch = localStorage.getItem('pwAutoSwitch') === '1';
+      meterId = localStorage.getItem('pwMeterId') || '';
+    } catch { /* ignore */ }
+    if (els.autoC) els.autoC.checked = autoConnect;
+    if (els.autoS) els.autoS.checked = autoSwitch;
+    if (els.forget && meterId) els.forget.hidden = false;
+    els.autoC && els.autoC.addEventListener('change', () => { autoConnect = els.autoC.checked; try { localStorage.setItem('pwAutoConnect', autoConnect ? '1' : '0'); } catch { /* ignore */ } if (autoConnect) autoConnectTry(false); });
+    els.autoS && els.autoS.addEventListener('change', () => { autoSwitch = els.autoS.checked; try { localStorage.setItem('pwAutoSwitch', autoSwitch ? '1' : '0'); } catch { /* ignore */ } });
+    els.forget && els.forget.addEventListener('click', forgetMeter);
+    if ('serial' in navigator) {
+      // Fires when a previously-granted meter is physically plugged in / removed.
+      navigator.serial.addEventListener('connect', () => autoConnectTry(true));
+      navigator.serial.addEventListener('disconnect', () => { if (port) handleLostPort(); });
+      setTimeout(() => autoConnectTry(false), 800);   // try on launch (no view switch)
+    }
     const copyBtn = $('#pwCopyRaw');
     els.rawToggle.addEventListener('change', () => { const on = els.rawToggle.checked; els.raw.hidden = !on; if (copyBtn) copyBtn.hidden = !on; if (on) renderRaw(); });
     copyBtn && copyBtn.addEventListener('click', () => { toast(copyText(els.raw.textContent || '') ? 'Raw capture copied — paste it to me.' : 'Could not copy.'); });
