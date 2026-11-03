@@ -123,12 +123,17 @@
     byteAcc = byteAcc.slice(start); // keep the trailing partial frame
     if (byteAcc.length > 4096) byteAcc = byteAcc.slice(byteAcc.length - 4096);
   }
+  // PLD frame = currentCounts(4 hex) + voltageCounts(4 hex), raw ADC counts.
+  // Scales calibrated against a known reading: 5.1 V / 0.112 A <-> vRaw 1653 / iRaw ~124.
+  const PLD_V_SCALE = 5.1 / 1653;   // volts per count
+  const PLD_A_SCALE = 0.112 / 124;  // amps per count
   function decodeLine(s) {
     if (!s) return;
     if (/^[0-9a-fA-F]{8}$/.test(s)) {           // PLD frame
-      const cur = parseInt(s.slice(0, 4), 16);  // mA
-      const volt = parseInt(s.slice(4, 8), 16); // mV
-      const A = cur / 1000, V = volt / 1000;
+      const iRaw = parseInt(s.slice(0, 4), 16); // current, ADC counts
+      const vRaw = parseInt(s.slice(4, 8), 16); // voltage, ADC counts
+      const V = vRaw * PLD_V_SCALE;
+      const A = iRaw * PLD_A_SCALE;
       if (V >= 0 && V < 60 && A >= 0 && A < 40) { gotParse = true; sample(V, A); }
       return;
     }
