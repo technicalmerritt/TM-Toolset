@@ -1876,6 +1876,20 @@ function registerIpc() {
   });
 
   // ---- Power Signatures (PLD USB-C meter): port selection + signature library ----
+  // Bring the window to the front when a device is plugged into the meter
+  // (opt-in). Respects a minimised window — just flashes the taskbar instead.
+  ipcMain.handle('power:focusApp', async () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return { ok: false };
+    try {
+      if (mainWindow.isMinimized()) { mainWindow.flashFrame(true); return { ok: true, minimized: true }; }
+      mainWindow.setAlwaysOnTop(true);
+      mainWindow.show();
+      mainWindow.focus();
+      if (mainWindow.moveTop) mainWindow.moveTop();
+      setTimeout(() => { try { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setAlwaysOnTop(false); } catch { /* ignore */ } }, 500);
+    } catch { /* ignore */ }
+    return { ok: true };
+  });
   ipcMain.handle('power:selectPort', async (_evt, args) => {
     const id = String((args && args.id) || '');
     if (serialSelectCb) { try { serialSelectCb(id); } catch { /* ignore */ } serialSelectCb = null; }

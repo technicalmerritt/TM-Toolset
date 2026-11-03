@@ -1,5 +1,5 @@
 {
-  "version": "0.70.1",
-  "notes": "Signature analysis re-architected around voltage health. A 'short' is now only diagnosed when the voltage is actually dragged down or held abnormally low - a healthy load (charging, steady OR fluctuating) at a normal/PD voltage reads as a healthy draw, never a short. Verified across steady/varying charges, shorts (sagging and held-low), open, normal boot, boot-loop and PD steps.",
-  "zip": "tmtoolset-app-0.70.1.zip"
+  "version": "0.70.2",
+  "notes": "Power Signatures: the 'pop to front' option now triggers when you plug a DEVICE INTO THE METER (voltage/current appears), not when the meter itself connects. On a device plug-in it jumps to the Power Signatures view and brings the app to the front (it won't steal focus if you've minimised it - it flashes the taskbar instead). Meter auto-connect still runs quietly in the background.",
+  "zip": "tmtoolset-app-0.70.2.zip"
 }

@@ -225,6 +225,7 @@ contextBridge.exposeInMainWorld('feedback', {
 });
 
 contextBridge.exposeInMainWorld('power', {
+  focusApp: () => ipcRenderer.invoke('power:focusApp'),
   selectPort: (id) => ipcRenderer.invoke('power:selectPort', { id }),
   cancelPort: () => ipcRenderer.invoke('power:cancelPort'),
   onPorts: (cb) => ipcRenderer.on('power:ports', (_e, list) => cb(list)),

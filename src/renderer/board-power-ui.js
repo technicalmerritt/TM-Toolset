@@ -81,14 +81,29 @@
     await openPort(p, false);
   }
 
-  // Auto-connect to the remembered meter (opt-in). doSwitch jumps to this view,
-  // used only on a live plug-in, not on app launch.
-  async function autoConnectTry(doSwitch) {
+  // Auto-connect (in the background) to the remembered meter (opt-in). This does
+  // NOT switch the view — that happens when a device is plugged into the meter.
+  async function autoConnectTry() {
     if (!autoConnect || port) return;
     const p = await findGrantedMeter();
     if (!p) return;
-    const ok = await openPort(p, true);
-    if (ok && doSwitch && autoSwitch) gotoPowerView();
+    await openPort(p, true);
+  }
+  // Detect a device being plugged into the meter's USB-C port (voltage/current
+  // appears after idle). On that rising edge, jump to this view and bring the
+  // app to the front (opt-in). Debounced so noise can't trigger it.
+  let loadPresent = false, loadRising = 0;
+  function onLoadSample(v, a) {
+    const present = v > 1.0 || a > 0.02;
+    if (present) {
+      if (!loadPresent) { loadRising++; if (loadRising >= 4) { loadPresent = true; loadRising = 0; onDevicePluggedIn(); } }
+      else loadRising = 0;
+    } else { loadPresent = false; loadRising = 0; }
+  }
+  function onDevicePluggedIn() {
+    if (!autoSwitch) return;   // opt-in: "bring to front when a device is plugged in"
+    gotoPowerView();
+    try { if (window.power && window.power.focusApp) window.power.focusApp(); } catch { /* ignore */ }
   }
   function gotoPowerView() {
     try {
@@ -201,6 +216,7 @@
   // ---------------- sampling ----------------
   function sample(v, a) {
     lastV = v; lastA = a;
+    onLoadSample(v, a);
     els.volts.textContent = v.toFixed(3);
     els.amps.textContent = a.toFixed(3);
     els.watts.textContent = (v * a).toFixed(2);
@@ -613,14 +629,14 @@
     if (els.autoC) els.autoC.checked = autoConnect;
     if (els.autoS) els.autoS.checked = autoSwitch;
     if (els.forget && meterId) els.forget.hidden = false;
-    els.autoC && els.autoC.addEventListener('change', () => { autoConnect = els.autoC.checked; try { localStorage.setItem('pwAutoConnect', autoConnect ? '1' : '0'); } catch { /* ignore */ } if (autoConnect) autoConnectTry(false); });
+    els.autoC && els.autoC.addEventListener('change', () => { autoConnect = els.autoC.checked; try { localStorage.setItem('pwAutoConnect', autoConnect ? '1' : '0'); } catch { /* ignore */ } if (autoConnect) autoConnectTry(); });
     els.autoS && els.autoS.addEventListener('change', () => { autoSwitch = els.autoS.checked; try { localStorage.setItem('pwAutoSwitch', autoSwitch ? '1' : '0'); } catch { /* ignore */ } });
     els.forget && els.forget.addEventListener('click', forgetMeter);
     if ('serial' in navigator) {
-      // Fires when a previously-granted meter is physically plugged in / removed.
-      navigator.serial.addEventListener('connect', () => autoConnectTry(true));
+      // Reconnect to the meter itself when it's plugged in / on launch (background).
+      navigator.serial.addEventListener('connect', () => autoConnectTry());
       navigator.serial.addEventListener('disconnect', () => { if (port) handleLostPort(); });
-      setTimeout(() => autoConnectTry(false), 800);   // try on launch (no view switch)
+      setTimeout(() => autoConnectTry(), 800);
     }
     const copyBtn = $('#pwCopyRaw');
     els.rawToggle.addEventListener('change', () => { const on = els.rawToggle.checked; els.raw.hidden = !on; if (copyBtn) copyBtn.hidden = !on; if (on) renderRaw(); });
