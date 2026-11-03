@@ -1,5 +1,5 @@
 {
-  "version": "0.69.1",
-  "notes": "Power Signatures now decodes the PLD USB-C meter correctly (ASCII-hex frames: current mA + voltage mV, separated by 0x1C/newline) - live volts/amps and the graph now populate. Also: DTR/RTS are asserted on connect, a live byte counter shows whether data is flowing, and a 'Copy raw' button lets you grab a capture. Plug a device drawing power into the meter's USB-C port and check the readings look right.",
-  "zip": "tmtoolset-app-0.69.1.zip"
+  "version": "0.69.2",
+  "notes": "Power Signatures: the graph is now live the moment data arrives (rolling 30 s view) instead of only while recording. Note: the PLD meter's voltage/current scaling is still being calibrated against a known reading - live numbers may be off until that lands.",
+  "zip": "tmtoolset-app-0.69.2.zip"
 }

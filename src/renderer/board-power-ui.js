@@ -15,6 +15,7 @@
   let gotBytes = false, gotParse = false;
   let byteCount = 0, noDataTimer = null, lastStatusAt = 0;
   let samples = [];           // { t, v, a } since recording started (or imported)
+  let liveBuf = [];           // rolling last ~30 s, always shown so the graph is live
   const markers = [];         // { t, label }
   let recording = false, startT = 0;
   let lastV = null, lastA = null;
@@ -148,8 +149,11 @@
     els.volts.textContent = v.toFixed(3);
     els.amps.textContent = a.toFixed(3);
     els.watts.textContent = (v * a).toFixed(2);
+    const now = performance.now();
+    liveBuf.push({ t: now, v, a });
+    const cutoff = now - 30000; while (liveBuf.length && liveBuf[0].t < cutoff) liveBuf.shift();
     if (recording) {
-      const t = performance.now() - startT;
+      const t = now - startT;
       samples.push({ t, v, a });
       els.recInfo.textContent = (t / 1000).toFixed(1) + ' s · ' + samples.length + ' samples';
     }
@@ -167,7 +171,9 @@
     const grid = (cs.getPropertyValue('--border') || '#334').trim();
     const txt = (cs.getPropertyValue('--text-dim') || '#99a').trim();
     ctx.strokeStyle = grid; ctx.fillStyle = txt; ctx.lineWidth = 1; ctx.font = '11px system-ui, sans-serif';
-    const data = samples.length ? samples : (lastV != null ? [{ t: 0, v: lastV, a: lastA }] : []);
+    const data = (recording && samples.length) ? samples
+      : (liveBuf.length ? liveBuf.map((s) => ({ t: s.t - liveBuf[0].t, v: s.v, a: s.a }))
+        : (lastV != null ? [{ t: 0, v: lastV, a: lastA }] : []));
     if (!data.length) { ctx.fillText('No data yet — connect a meter or import a CSV.', padL, H / 2); return; }
     const maxT = Math.max(1, data[data.length - 1].t);
     let maxV = 0, maxA = 0;
