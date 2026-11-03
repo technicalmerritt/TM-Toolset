@@ -14,8 +14,10 @@ $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 $out = [ordered]@{ disk = $Disk; isAdmin = [bool]$admin }
 if (-not $admin) { $out.error = 'admin'; ($out | ConvertTo-Json -Compress); exit 0 }
 
-$disk = Get-Disk -Number $Disk -ErrorAction SilentlyContinue
-$size = if ($disk) { [int64]$disk.Size } else { 0 }
+# NB: case-insensitive variable names - do NOT name this $disk, or it overwrites
+# the [int]$Disk parameter with the disk object and corrupts "\\.\PhysicalDrive$Disk".
+$diskObj = Get-Disk -Number $Disk -ErrorAction SilentlyContinue
+$size = if ($diskObj) { [int64]$diskObj.Size } else { 0 }
 if ($size -le 0) { $out.error = 'size'; ($out | ConvertTo-Json -Compress); exit 0 }
 $out.sizeBytes = $size
 

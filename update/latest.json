@@ -1,5 +1,5 @@
 {
-  "version": "0.66.3",
-  "notes": "Activity indicator now also tracks driver-pack downloads and backup/imaging jobs, so long downloads and captures show in the top bar from any tab. Also includes the config-corruption fix from v0.66.2.",
-  "zip": "tmtoolset-app-0.66.3.zip"
+  "version": "0.66.4",
+  "notes": "Fix: per-drive Speed test and Surface test failed with 'Cannot convert MSFT_Disk to Int32' (and surface tests failing to open the disk). A local variable was colliding with the $Disk parameter because PowerShell variable names are case-insensitive.",
+  "zip": "tmtoolset-app-0.66.4.zip"
 }

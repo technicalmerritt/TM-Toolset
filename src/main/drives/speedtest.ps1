@@ -14,8 +14,11 @@ $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 $out = [ordered]@{ disk = $Disk; isAdmin = [bool]$admin }
 if (-not $admin) { $out.error = 'admin'; ($out | ConvertTo-Json -Compress); exit 0 }
 
-$disk = Get-Disk -Number $Disk -ErrorAction SilentlyContinue
-$size = if ($disk) { [int64]$disk.Size } else { 0 }
+# NB: PowerShell variables are case-insensitive, so this local must NOT be named
+# $disk - that would overwrite the [int]$Disk parameter with the disk object and
+# break every later use of $Disk (e.g. Get-Partition -DiskNumber $Disk).
+$diskObj = Get-Disk -Number $Disk -ErrorAction SilentlyContinue
+$size = if ($diskObj) { [int64]$diskObj.Size } else { 0 }
 if ($size -le 0) { $out.error = 'size'; ($out | ConvertTo-Json -Compress); exit 0 }
 
 $block = 1MB
