@@ -6,6 +6,8 @@
   let loading = false;
   let lastDrives = [];
   const progressNodes = {}; // `${disk}:${kind}` -> text node for live test progress
+  const surfaceByDisk = {}; // disk number -> last surface-scan summary, feeds the health verdict
+  const cardRefreshers = {}; // disk number -> () => re-evaluate that card's health ring
 
   function $(s) { return document.querySelector(s); }
   function arr(v) { return Array.isArray(v) ? v : v == null ? [] : [v]; }
@@ -103,6 +105,68 @@
       if (a && a.value != null && a.threshold != null && a.threshold > 0 && a.value - a.threshold <= 20) p -= 8;
     }
     return Math.max(1, Math.min(100, Math.round(p)));
+  }
+
+  // Does this drive actually report SMART we can trust? USB enclosures usually
+  // don't, so we must NOT present a confident "100%" built on nothing.
+  function smartIsKnown(dr) {
+    if (dr.nvme) return true;
+    if (arr(dr.smartAttributes).length > 0) return true;
+    const src = (dr.smartSource || '').toLowerCase();
+    if (src === 'nvme-log' || src === 'ata-passthrough') return true;
+    if (src === 'reliability-counter' && (dr.temperatureC != null || dr.powerOnHours != null || dr.wearPct != null)) return true;
+    return false;
+  }
+  function summariseSurface(d) {
+    return {
+      readErrors: num(d.readErrors),
+      slow: arr(d.slowRegions).length,
+      maxMs: num(d.maxMsPerBlock),
+      avgMs: num(d.avgMsPerBlock),
+      tested: num(d.regionsTested),
+    };
+  }
+  // The single source of truth for a drive's health. Combines SMART (when the
+  // drive actually reports it) with any surface scan that's been run, so slow or
+  // unreadable regions can't sit behind a green "100%".
+  function assess(dr, m) {
+    const surf = surfaceByDisk[dr.number];
+    const known = smartIsKnown(dr);
+    let pct = known ? healthPct(dr, m) : null;
+    let basis = known ? 'SMART' : 'no SMART data';
+    const reasons = [];
+
+    if (surf) {
+      basis = known ? 'SMART + surface scan' : 'surface scan';
+      const base = known ? pct : 100;
+      if (surf.readErrors > 0) {
+        pct = Math.min(base, 10);
+        reasons.push(surf.readErrors + ' unreadable region(s) in the surface scan — the drive is failing.');
+      } else if (surf.maxMs >= 1200 || surf.slow >= 10) {
+        pct = Math.min(base, 42);
+        reasons.push('Slow/failing regions in the surface scan (slowest ' + Math.round(surf.maxMs) + ' ms, ' + surf.slow + ' slow spot' + (surf.slow === 1 ? '' : 's') + ') — a classic sign of a weak or dying drive.');
+      } else if (surf.maxMs >= 600 || surf.slow >= 3) {
+        pct = Math.min(base, 66);
+        reasons.push(surf.slow + ' slow region' + (surf.slow === 1 ? '' : 's') + ' in the surface scan (slowest ' + Math.round(surf.maxMs) + ' ms) — worth watching / backing up.');
+      } else if (surf.slow >= 1) {
+        pct = Math.min(base, 82);
+        reasons.push('A couple of mildly slow spots in the surface scan (slowest ' + Math.round(surf.maxMs) + ' ms) — minor, keep an eye on it.');
+      } else {
+        if (!known) pct = 90;
+        reasons.push('Surface scan found no read errors or slow regions.');
+      }
+    }
+
+    if (pct == null) {
+      return {
+        pct: null, cls: 'warn', label: 'Unknown', basis,
+        reasons: ['This drive doesn’t report SMART data (common for USB enclosures and some adapters), so its condition can’t be read electronically. Run a Surface test below to actually check the media.'],
+      };
+    }
+    pct = Math.max(1, Math.min(100, Math.round(pct)));
+    const label = pct >= 85 ? 'Healthy' : pct >= 55 ? 'Caution' : 'Failing';
+    if (known && !surf) reasons.push('Based on SMART only. Run a Surface test to confirm the physical media is actually reading well.');
+    return { pct, cls: healthClass(pct), label, basis, reasons };
   }
 
   function fmtHours(h) {
@@ -289,7 +353,14 @@
       if (d.error === 'admin') { box.appendChild(el('p', 'test-err', 'This test needs administrator rights. Use “Run as administrator”, then try again.')); return; }
       if (d.error === 'size') { box.appendChild(el('p', 'test-err', 'Could not read this disk’s size.')); return; }
       if (d.error === 'open') { box.appendChild(el('p', 'test-err', 'Could not open the disk for testing (' + (d.detail || '') + ').')); return; }
-      if (kind === 'surface') renderSurface(box, d); else renderSpeed(box, d);
+      if (kind === 'surface') {
+        renderSurface(box, d);
+        // Feed the result back into the health verdict so slow/unreadable
+        // regions can't sit behind a green percentage.
+        surfaceByDisk[dr.number] = summariseSurface(d);
+        if (cardRefreshers[dr.number]) cardRefreshers[dr.number]();
+        box.appendChild(el('p', 'muted test-note', 'Health re-evaluated using this scan — see the Health ring above.'));
+      } else renderSpeed(box, d);
     }).catch((e) => {
       delete progressNodes[key];
       box.innerHTML = '';
@@ -454,7 +525,6 @@
   function driveCard(dr) {
     const m = attrMap(dr);
     const card = el('section', 'drive-card');
-    const h = healthPct(dr, m);
     const perf = performancePct(dr, m);
 
     // Header
@@ -467,18 +537,23 @@
     title.appendChild(sub);
     head.appendChild(title);
 
-    const ring = el('div', 'drive-health drive-health--' + healthClass(h));
-    ring.style.setProperty('--pct', h);
+    const ring = el('div', 'drive-health');
     const ringInner = el('div', 'drive-health__inner');
-    ringInner.append(el('span', 'drive-health__pct', h + '%'), el('small', null, 'Health'));
+    const pctEl = el('span', 'drive-health__pct', '');
+    const labelEl = el('small', null, 'Health');
+    ringInner.append(pctEl, labelEl);
     ring.appendChild(ringInner);
     head.appendChild(ring);
     card.appendChild(head);
 
     // Metric strip (HD Sentinel-style)
     const strip = el('div', 'metric-strip');
-    strip.appendChild(metric('Health', h + '%', healthClass(h)));
-    strip.appendChild(metric('Performance', perf + '%', healthClass(perf)));
+    const healthMetric = metric('Health', '', 'warn');
+    const healthMetricVal = healthMetric.querySelector('.metric__val');
+    strip.appendChild(healthMetric);
+    const perfMetric = metric('Performance', perf + '%', healthClass(perf));
+    const perfMetricVal = perfMetric.querySelector('.metric__val');
+    strip.appendChild(perfMetric);
     const poh = fmtHours(dr.powerOnHours);
     if (poh) strip.appendChild(metric('Power-on time', poh));
     const rem = remainingLife(dr, m);
@@ -487,6 +562,39 @@
     if (tbw) strip.appendChild(metric('Lifetime writes', tbw));
     if (dr.powerCycles != null) strip.appendChild(metric('Power cycles', String(num(dr.powerCycles))));
     card.appendChild(strip);
+
+    // Combined health verdict (SMART + any surface scan), re-evaluated on demand.
+    const verdict = el('div', 'drive-verdict');
+    card.appendChild(verdict);
+    function applyAssess() {
+      const a = assess(dr, m);
+      ring.className = 'drive-health drive-health--' + a.cls;
+      ring.style.setProperty('--pct', a.pct == null ? 0 : a.pct);
+      pctEl.textContent = a.pct == null ? '?' : (a.pct + '%');
+      labelEl.textContent = a.pct == null ? 'Unknown' : 'Health';
+      healthMetric.className = 'metric metric--' + a.cls;
+      healthMetricVal.textContent = a.pct == null ? 'Unknown' : (a.pct + '%');
+      // Slow regions also drag performance down, so it can't read 100% next to a failing drive.
+      const surf = surfaceByDisk[dr.number];
+      let pf = perf;
+      if (surf) {
+        if (surf.maxMs >= 1200 || surf.slow >= 10) pf = Math.min(pf, 40);
+        else if (surf.maxMs >= 600 || surf.slow >= 3) pf = Math.min(pf, 65);
+        else if (surf.slow >= 1) pf = Math.min(pf, 85);
+      }
+      pf = Math.max(1, Math.round(pf));
+      perfMetric.className = 'metric metric--' + healthClass(pf);
+      perfMetricVal.textContent = pf + '%';
+      verdict.className = 'drive-verdict drive-verdict--' + a.cls;
+      verdict.innerHTML = '';
+      const line = el('div', 'drive-verdict__line');
+      line.append(el('strong', null, a.label), el('span', 'muted', '  ·  based on ' + a.basis));
+      verdict.appendChild(line);
+      for (const r of a.reasons) verdict.appendChild(el('p', 'drive-verdict__reason', r));
+    }
+    cardRefreshers[dr.number] = applyAssess;
+    applyAssess();
+
     if (rem && rem.note) {
       const n = el('p', 'muted drive-estnote', '“Est. remaining life” is a ' + rem.note + '.');
       card.appendChild(n);

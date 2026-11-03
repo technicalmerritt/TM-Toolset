@@ -1,5 +1,5 @@
 {
-  "version": "0.68.0",
-  "notes": "Navigation tidy-up: Drive Health, Disk Tools and Backup are now one 'Storage' hub with sub-tabs (and the duplicate speed test is gone - it lives once under Disk Tools > Speed). Sidebar regrouped into Diagnose / Storage / System & setup / Advanced / More, with Drivers moved to System.",
-  "zip": "tmtoolset-app-0.68.0.zip"
+  "version": "0.68.1",
+  "notes": "Drive Health now tells the truth. If a drive doesn't report SMART (common for USB docks/enclosures) it shows 'Unknown' and asks you to run a Surface test, instead of a misleading 100%. Surface-scan results (slow or unreadable regions) now feed straight into the Health and Performance verdict, with a plain-English explanation - so a drive with 1400 ms slow spots reads as Failing, not Healthy.",
+  "zip": "tmtoolset-app-0.68.1.zip"
 }

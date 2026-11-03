@@ -2119,3 +2119,15 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .storage-subtabs .nav-ico { font-size: 15px; }
 /* the sub-panel under the bar shouldn't re-pad the top as heavily */
 #panel-storage + #panel-drives, #panel-storage ~ #panel-disktools, #panel-storage ~ #panel-backup { }
+
+/* ========== Drive health verdict (SMART + surface) ========== */
+.drive-verdict { margin: 12px 0 2px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-elev); }
+.drive-verdict__line { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.drive-verdict__line strong { font-size: 14.5px; }
+.drive-verdict__reason { margin: 7px 0 0; font-size: 12.8px; line-height: 1.5; color: var(--text); }
+.drive-verdict--good { border-color: rgba(62,192,122,0.40); }
+.drive-verdict--good .drive-verdict__line strong { color: #3ec07a; }
+.drive-verdict--warn { border-color: rgba(243,178,60,0.50); background: rgba(243,178,60,0.06); }
+.drive-verdict--warn .drive-verdict__line strong { color: #f3b23c; }
+.drive-verdict--bad { border-color: rgba(255,92,108,0.55); background: rgba(255,92,108,0.08); }
+.drive-verdict--bad .drive-verdict__line strong { color: #ff7a88; }
