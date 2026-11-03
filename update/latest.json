@@ -1,5 +1,5 @@
 {
-  "version": "0.69.0",
-  "notes": "New: Board Repair > Power Signatures. Connect a PLD USB-C power meter, graph volts/amps over time while a board boots, and get a plain-English fault read from the current signature (dead short, open rail, protection trip, boot-loop, stuck boot, normal boot). Save good/bad boards to a labelled library and match new captures against it. First connect: pick the meter's serial port; if the live numbers stay blank, turn on the Raw monitor and send me a capture so the decoder can be locked to your exact meter.",
-  "zip": "tmtoolset-app-0.69.0.zip"
+  "version": "0.69.1",
+  "notes": "Power Signatures now decodes the PLD USB-C meter correctly (ASCII-hex frames: current mA + voltage mV, separated by 0x1C/newline) - live volts/amps and the graph now populate. Also: DTR/RTS are asserted on connect, a live byte counter shows whether data is flowing, and a 'Copy raw' button lets you grab a capture. Plug a device drawing power into the meter's USB-C port and check the readings look right.",
+  "zip": "tmtoolset-app-0.69.1.zip"
 }

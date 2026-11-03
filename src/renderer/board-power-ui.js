@@ -7,11 +7,13 @@
   const $ = (s) => document.querySelector(s);
   function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
   function toast(msg, err) { const t = $('#toast'); if (!t) return; t.textContent = msg; t.className = 'toast toast--show' + (err ? ' toast--error' : ''); clearTimeout(toast._t); toast._t = setTimeout(() => (t.className = 'toast'), 3600); }
+  function copyText(text) { try { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok; } catch { return false; } }
 
   let port = null, reader = null, keepReading = false;
   let rawBuf = [];            // recent raw bytes for the monitor
   let byteAcc = [];           // parser accumulation buffer
   let gotBytes = false, gotParse = false;
+  let byteCount = 0, noDataTimer = null, lastStatusAt = 0;
   let samples = [];           // { t, v, a } since recording started (or imported)
   const markers = [];         // { t, label }
   let recording = false, startT = 0;
@@ -48,14 +50,22 @@
     catch (e) { els.status.textContent = 'No port selected.'; return; }
     try { await p.open({ baudRate: baud }); }
     catch (e) { els.status.textContent = 'Could not open port: ' + (e.message || e); return; }
-    port = p; keepReading = true; gotBytes = false; gotParse = false; byteAcc = [];
+    // Many CH340/FTDI devices stay silent until DTR/RTS are asserted.
+    try { await p.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch { /* some drivers don't support this */ }
+    port = p; keepReading = true; gotBytes = false; gotParse = false; byteAcc = []; byteCount = 0;
     els.connect.hidden = true; els.disconnect.hidden = false;
     els.status.textContent = 'Connected at ' + baud + ' baud — waiting for data…';
+    // If nothing arrives in a few seconds, tell the tech what to try.
+    clearTimeout(noDataTimer);
+    noDataTimer = setTimeout(() => {
+      if (byteCount === 0 && port) els.status.textContent = 'Connected, but 0 bytes received. The meter usually only streams while it is measuring — plug the device under test into the meter’s USB-C port so there is voltage/current to report. If still nothing, try a different baud rate.';
+    }, 4000);
     readLoop();
   }
 
   async function disconnect() {
     keepReading = false;
+    clearTimeout(noDataTimer);
     try { if (reader) await reader.cancel(); } catch { /* ignore */ }
     try { if (port) await port.close(); } catch { /* ignore */ }
     port = null; reader = null;
@@ -77,7 +87,8 @@
   }
 
   function onBytes(u8) {
-    gotBytes = true;
+    gotBytes = true; byteCount += u8.length;
+    clearTimeout(noDataTimer);
     // raw monitor buffer (keep last ~256 bytes)
     for (let i = 0; i < u8.length; i++) rawBuf.push(u8[i]);
     if (rawBuf.length > 256) rawBuf = rawBuf.slice(rawBuf.length - 256);
@@ -86,39 +97,49 @@
     for (let i = 0; i < u8.length; i++) byteAcc.push(u8[i]);
     if (byteAcc.length > 512) byteAcc = byteAcc.slice(byteAcc.length - 512);
     parseAcc();
-    if (gotBytes && !gotParse) els.status.textContent = 'Receiving data, but the frame format needs calibrating — turn on Raw monitor and send me a capture.';
+    const now = performance.now();
+    if (now - lastStatusAt > 350) {
+      lastStatusAt = now;
+      els.status.textContent = gotParse
+        ? ('Connected — reading the meter (' + byteCount + ' bytes).')
+        : ('Receiving data (' + byteCount + ' bytes) but I can’t decode the frames yet — tick Raw monitor, let it fill, and send me that capture so I can lock the parser to your meter.');
+    }
   }
 
-  // Best-effort parser. The PLD meter is a custom binary frame at 9600 baud; this
-  // handles the common ASCII-ish cases, and the raw monitor exposes the real
-  // format so the decode can be locked to your meter.
+  // PLD USB-C meter frame: 8 ASCII hex chars, then 0x1C (field separator) and
+  // 0x0A (newline). First 4 hex = current in mA, last 4 hex = voltage in mV.
+  // (A generic two-floats fallback is kept for other/ASCII meters.)
   function parseAcc() {
-    // Interpret the buffer as text and look for "<float> ... V ... <float> ... A",
-    // or two comma/space separated floats per line.
-    let txt = '';
-    for (const b of byteAcc) txt += (b >= 9 && b < 127) ? String.fromCharCode(b) : '\n';
-    const lines = txt.split(/[\r\n]+/);
-    for (let i = 0; i < lines.length - 1; i++) {   // leave the last (possibly partial) line
-      const ln = lines[i].trim(); if (!ln) continue;
-      let v = null, a = null;
-      let mm = ln.match(/(-?\d+(?:\.\d+)?)\s*V[^0-9-]*(-?\d+(?:\.\d+)?)\s*A/i);
-      if (mm) { v = parseFloat(mm[1]); a = parseFloat(mm[2]); }
-      else {
-        const nums = ln.match(/-?\d+(?:\.\d+)?/g);
-        if (nums && nums.length >= 2) { v = parseFloat(nums[0]); a = parseFloat(nums[1]); }
-      }
-      if (v != null && a != null && Number.isFinite(v) && Number.isFinite(a) && v >= 0 && v < 60 && a >= 0 && a < 30) {
-        gotParse = true;
-        sample(v, a);
+    let start = 0;
+    for (let i = 0; i < byteAcc.length; i++) {
+      if (byteAcc[i] === 0x0A) {
+        let s = '';
+        for (let j = start; j < i; j++) { const b = byteAcc[j]; if (b === 0x1C || b === 0x0D || b === 0x20 || b === 0x09) continue; if (b >= 33 && b < 127) s += String.fromCharCode(b); }
+        decodeLine(s);
+        start = i + 1;
       }
     }
-    byteAcc = []; // consumed
+    byteAcc = byteAcc.slice(start); // keep the trailing partial frame
+    if (byteAcc.length > 4096) byteAcc = byteAcc.slice(byteAcc.length - 4096);
+  }
+  function decodeLine(s) {
+    if (!s) return;
+    if (/^[0-9a-fA-F]{8}$/.test(s)) {           // PLD frame
+      const cur = parseInt(s.slice(0, 4), 16);  // mA
+      const volt = parseInt(s.slice(4, 8), 16); // mV
+      const A = cur / 1000, V = volt / 1000;
+      if (V >= 0 && V < 60 && A >= 0 && A < 40) { gotParse = true; sample(V, A); }
+      return;
+    }
+    const mm = s.match(/(-?\d+(?:\.\d+)?)\D+(-?\d+(?:\.\d+)?)/);   // ASCII fallback
+    if (mm) { const v = parseFloat(mm[1]), a = parseFloat(mm[2]); if (Number.isFinite(v) && Number.isFinite(a) && v < 60 && a < 40) { gotParse = true; sample(v, a); } }
   }
 
   function renderRaw() {
+    if (!rawBuf.length) { els.raw.textContent = 'No bytes received yet (' + byteCount + ' total). If this stays empty, the meter isn’t sending — make sure a device under test is plugged into the meter’s USB-C port so it has something to measure.'; return; }
     const hex = rawBuf.map((b) => b.toString(16).padStart(2, '0')).join(' ');
     const asc = rawBuf.map((b) => (b >= 32 && b < 127) ? String.fromCharCode(b) : '.').join('');
-    els.raw.textContent = 'HEX  ' + hex + '\n\nASCII ' + asc;
+    els.raw.textContent = byteCount + ' bytes received (last ' + rawBuf.length + ' shown)\n\nHEX\n' + hex + '\n\nASCII\n' + asc;
   }
 
   // ---------------- sampling ----------------
@@ -422,7 +443,9 @@
     if (window.power && window.power.onPorts) window.power.onPorts(portPicker);
     els.connect.addEventListener('click', connect);
     els.disconnect.addEventListener('click', disconnect);
-    els.rawToggle.addEventListener('change', () => { els.raw.hidden = !els.rawToggle.checked; if (els.rawToggle.checked) renderRaw(); });
+    const copyBtn = $('#pwCopyRaw');
+    els.rawToggle.addEventListener('change', () => { const on = els.rawToggle.checked; els.raw.hidden = !on; if (copyBtn) copyBtn.hidden = !on; if (on) renderRaw(); });
+    copyBtn && copyBtn.addEventListener('click', () => { toast(copyText(els.raw.textContent || '') ? 'Raw capture copied — paste it to me.' : 'Could not copy.'); });
     els.record.addEventListener('click', toggleRecord);
     els.marker.addEventListener('click', addMarker);
     els.clear.addEventListener('click', clearCapture);
