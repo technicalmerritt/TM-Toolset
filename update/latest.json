@@ -1,5 +1,5 @@
 {
-  "version": "0.70.0",
-  "notes": "Power Signatures: the meter is now remembered after the first connect (no more picking the port each time), with two opt-in tick boxes - 'Auto-connect to this meter' (reconnects on launch and the moment you plug it in) and 'Jump to this view when it connects' (auto-switches to Board Repair > Power Signatures on plug-in). Plus a 'Forget meter' button, and it now cleanly shows 'Meter disconnected' when you unplug it.",
-  "zip": "tmtoolset-app-0.70.0.zip"
+  "version": "0.70.1",
+  "notes": "Signature analysis re-architected around voltage health. A 'short' is now only diagnosed when the voltage is actually dragged down or held abnormally low - a healthy load (charging, steady OR fluctuating) at a normal/PD voltage reads as a healthy draw, never a short. Verified across steady/varying charges, shorts (sagging and held-low), open, normal boot, boot-loop and PD steps.",
+  "zip": "tmtoolset-app-0.70.1.zip"
 }

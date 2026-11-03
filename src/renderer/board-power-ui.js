@@ -347,43 +347,42 @@
       let armed = false;
       for (let i = 0; i < n; i++) { if (as[i] <= loT) armed = true; else if (as[i] >= hiT && armed) { surges++; armed = false; } }
     }
+    const vMean = vs.reduce((a, b) => a + b, 0) / n;
+    const vStd = Math.sqrt(vs.reduce((a, b) => a + (b - vMean) * (b - vMean), 0) / n);
     const durMs = data[n - 1].t - data[0].t;
-    return { n, aMax, aMin, aMed, aStart, aEnd, vNom, vUnderLoad, sag, vRef, swing, swingRel, cov, surges, durMs };
+    return { n, aMax, aMin, aMed, aStart, aEnd, vNom, vUnderLoad, vMean, vStd, sag, vRef, swing, swingRel, cov, surges, durMs };
   }
   function analyse(data) {
     const f = features(data);
     if (!f) return { items: [{ label: 'Not enough data', conf: 0, why: 'Record a second or two of the board doing something (ideally the power-on).' }], f: null };
     const out = [];
     const mA = (x) => Math.round(x * 1000) + ' mA';
-    const steady = f.swingRel < 0.2 && f.cov < 0.15;   // current barely moves the whole time
+    // A short is defined by the VOLTAGE being dragged down — not by current shape.
+    // A healthy load (e.g. charging) can pull high, steady current at a perfectly
+    // normal voltage, and that must NOT read as a short.
+    const atPd = pdBucket(f.vMean) !== null;                 // sitting at a standard PD level
+    const hiCurrent = f.aMed > 0.05;
+    const dynamic = f.swingRel >= 0.3 || f.cov >= 0.2;       // the CURRENT genuinely moves
 
     if (f.aMax < 0.004) {
-      out.push({ label: 'Open circuit / no current draw', conf: 0.85, why: 'Peak draw is essentially zero (' + mA(f.aMax) + ') with ' + f.vNom.toFixed(1) + ' V present — nothing is pulling power. Suspect a blown fuse, broken rail, bad connector, or a board not attempting to turn on.' });
-    } else if (steady) {
-      // A rock-steady current is NOT a boot. Either a healthy constant load, or a
-      // hard short if the voltage is being dragged down.
-      if (f.sag > 0.10) {
-        out.push({ label: 'Hard short / heavily loaded rail', conf: 0.75, why: 'Current sits flat at ' + mA(f.aMed) + ' and drags the voltage down ' + Math.round(f.sag * 100) + '% — a short or a rail being pulled hard. Find the hot component or use the short-finder.' });
-      } else {
-        out.push({ label: 'Steady, stable draw — no fault signature', conf: 0.85, why: 'Current holds steady at ' + mA(f.aMed) + ' on a solid ' + f.vNom.toFixed(2) + ' V with no sag and no surges — a healthy constant load (e.g. charging or idling), not a boot transient. Record the actual power-on to analyse a boot.' });
-      }
+      out.push({ label: 'Open circuit / no current draw', conf: 0.85, why: 'Peak draw is essentially zero (' + mA(f.aMax) + ') with ' + f.vMean.toFixed(1) + ' V present — nothing is pulling power. Suspect a blown fuse, broken rail, bad connector, or a board not attempting to turn on.' });
+    } else if (f.vRef && f.sag > 0.10 && f.aEnd > f.aMax * 0.5) {
+      out.push({ label: 'Short / rail dragged down', conf: 0.8, why: 'Current of ' + mA(f.aMed) + ' is dragging the voltage down ' + Math.round(f.sag * 100) + '% under load — the rail is being pulled low. Classic short / overloaded rail: find the hot component or use the short-finder.' });
+    } else if (hiCurrent && f.vMean < 4.3 && !atPd) {
+      out.push({ label: 'Short / rail held low', conf: 0.6, why: 'Current of ' + mA(f.aMed) + ' is flowing but the voltage is only ' + f.vMean.toFixed(2) + ' V (a USB-C line should sit at 5 V or a negotiated PD level) — the rail is being held down. Suspect a short or a heavily loaded rail.' });
     } else {
-      // Dynamic trace — now fault patterns are meaningful.
-      if (f.surges >= 3 && f.durMs > 1500) {
+      // Voltage is healthy (≥ ~4.3 V or a valid PD level). Any fault is a boot
+      // pattern in the current, not a short.
+      if (dynamic && f.surges >= 3 && f.durMs > 1500) {
         out.push({ label: 'Boot-loop / reset loop', conf: 0.6, why: f.surges + ' full current surges over ' + (f.durMs / 1000).toFixed(0) + ' s (swinging ' + mA(f.aMin) + '↔' + mA(f.aMax) + ') — the board keeps restarting. Often a power-rail or storage/firmware fault.' });
-      }
-      if (f.aStart >= f.aMax * 0.6 && f.aEnd >= f.aMax * 0.7 && f.surges < 3) {
-        const conf = f.sag > 0.06 ? 0.8 : 0.5;
-        out.push({ label: 'Dead short to ground', conf, why: 'Current is high from the instant it powers (' + mA(f.aMax) + ') and stays flat — no inrush-then-settle curve' + (f.sag > 0.06 ? (', and the voltage sags ' + Math.round(f.sag * 100) + '% under load') : '') + '. Classic short.' });
-      }
-      if (f.aEnd < f.aMax * 0.25 && f.aStart < f.aMax * 0.8) {
+      } else if (dynamic && f.aEnd < f.aMax * 0.25 && f.aStart < f.aMax * 0.8) {
         out.push({ label: 'Protection trip / brown-out', conf: 0.55, why: 'Current rises to ' + mA(f.aMax) + ' then collapses to ' + mA(f.aEnd) + ' — a rail coming up then shutting down (short downstream, bad rail, or the PMIC cutting out).' });
-      }
-      if (f.aEnd > f.aMax * 0.5 && f.aEnd < f.aMax * 0.85 && f.sag < 0.05 && f.surges < 2 && f.aStart < f.aMax * 0.6) {
-        out.push({ label: 'Possibly stuck mid-boot', conf: 0.4, why: 'Current climbs then holds at a plateau (' + mA(f.aEnd) + ') without settling — may be stalling at a boot stage. Compare the plateau to a known-good board.' });
-      }
-      if (f.aStart < f.aMax * 0.6 && f.aEnd < f.aMax * 0.7 && f.sag < 0.04 && f.surges < 2) {
+      } else if (dynamic && f.aStart < f.aMax * 0.6 && f.aEnd < f.aMax * 0.7 && f.surges < 2) {
         out.push({ label: 'Looks like a normal boot curve', conf: 0.55, why: 'Inrush to ' + mA(f.aMax) + ' then settling to ' + mA(f.aEnd) + ' on a stable voltage. Save this as a known-good reference for this model.' });
+      } else if (dynamic && f.aStart < f.aMax * 0.6 && f.aEnd > f.aMax * 0.5 && f.aEnd < f.aMax * 0.85 && f.surges < 2) {
+        out.push({ label: 'Possibly stuck mid-boot', conf: 0.4, why: 'Current climbs then holds at a plateau (' + mA(f.aEnd) + ') without settling — may be stalling at a boot stage. Compare the plateau to a known-good board.' });
+      } else {
+        out.push({ label: 'Steady, healthy draw — no fault signature', conf: 0.85, why: 'Current ' + (dynamic ? 'varies around ' : 'holds steady at ') + mA(f.aMed) + ' on a stable ' + f.vMean.toFixed(2) + ' V' + (atPd ? (' (' + pdBucket(f.vMean) + ' V PD)') : '') + ' with no voltage sag — a healthy load (charging / idling), not a boot or a fault. Record the actual power-on to analyse a boot curve.' });
       }
     }
     if (!out.length) out.push({ label: 'No clear signature', conf: 0.2, why: 'Nothing definitive. Capture the full power-on, and compare against a known-good board in your library.' });
