@@ -2148,7 +2148,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .pw-read__u { font-size: 15px; color: var(--text-dim); }
 .pw-rawtoggle { margin-left: auto; font-size: 12.5px; color: var(--text-dim); display: inline-flex; gap: 6px; align-items: center; }
 .pw-raw { background: #05070d; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: #8fe08f; white-space: pre-wrap; word-break: break-all; max-height: 150px; overflow: auto; }
-.pw-chart { width: 100%; height: auto; background: #0a0f1c; border: 1px solid var(--border); border-radius: 10px; display: block; }
+.pw-chart { width: 100%; height: 320px; background: #0a0f1c; border: 1px solid var(--border); border-radius: 10px; display: block; }
 .pw-ctrls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .pw-spacer { flex: 1; }
 .pw-rec-on { background: rgba(229,72,72,0.2) !important; border-color: rgba(229,72,72,0.6) !important; color: #ff8a8a !important; }
@@ -2179,3 +2179,19 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .pw-prompt__box { background: var(--bg-elev); border: 1px solid var(--accent); border-radius: 12px; padding: 18px; width: min(420px, 92vw); box-shadow: var(--shadow); }
 .pw-prompt__box p { margin: 0 0 10px; }
 .pw-prompt__btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+
+/* Power Signatures: live stats + PD profile */
+.pw-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 12px; }
+.pw-stat { background: var(--bg-elev-2); border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; }
+.pw-stat__v { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pw-stat__k { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.pw-pdcard .info-card__title { margin-bottom: 4px; }
+.pw-pdnow { margin: 8px 0; font-size: 13px; color: var(--text-dim); }
+.pw-pdlevel { font-size: 18px; font-weight: 800; color: #8fc0ff; margin-left: 4px; }
+.pw-pd { margin-top: 6px; }
+.pw-steps { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.pw-step { background: rgba(80,150,245,0.14); border: 1px solid rgba(80,150,245,0.4); border-radius: 8px; padding: 6px 11px; text-align: center; }
+.pw-step__v { display: block; font-weight: 700; color: #9fc6ff; }
+.pw-step__t { display: block; font-size: 11px; color: var(--text-dim); }
+.pw-step__arrow { color: var(--text-dim); font-size: 16px; }
+.pw-pdflag { margin-top: 10px; font-size: 12.5px; color: #f3c874; }

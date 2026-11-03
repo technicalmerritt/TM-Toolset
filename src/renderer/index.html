@@ -1228,7 +1228,15 @@
             <span class="pw-spacer"></span>
             <button id="pwAnalyse" class="btn btn--primary" type="button">Analyse signature</button>
           </div>
+          <div id="pwStats" class="pw-stats"></div>
           <div id="pwVerdict" class="pw-verdict" hidden></div>
+        </section>
+
+        <section class="info-card pw-pdcard">
+          <h3 class="info-card__title">Power-Delivery profile</h3>
+          <p class="muted">The live voltage, read as its nearest USB-PD level, plus the negotiation steps seen during a recording. Inferred from the measured voltage (the meter reports V/A, not the raw PD messages).</p>
+          <div class="pw-pdnow">Now: <span id="pwPdLevel" class="pw-pdlevel">—</span></div>
+          <div id="pwPd" class="pw-pd"></div>
         </section>
 
         <section class="info-card">

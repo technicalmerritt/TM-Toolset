@@ -1,5 +1,5 @@
 {
-  "version": "0.69.5",
-  "notes": "Power Signatures now reads the PLD meter EXACTLY. Reverse-engineered the meter app's own conversion constants from its binary: voltage = counts/320, current = counts/5000. Verified against a real capture (8.650 V / 2.141 A - spot on). Volts, amps and watts are now accurate across the whole range.",
-  "zip": "tmtoolset-app-0.69.5.zip"
+  "version": "0.69.6",
+  "notes": "Power Signatures, big upgrade: (1) reliable analysis - a steady load (e.g. a charge) now reads as a healthy steady draw instead of a false 'boot-loop'; surge detection only counts real current swings, not meter ripple, and voltage-sag can't be faked by PD steps. (2) New live stats: peak/avg power, min-V under load, ripple, and energy (mAh/Wh) so it doubles as a charge logger. (3) New Power-Delivery profile: live PD level + a negotiation timeline (5/9/12/15/20 V steps) with a drop-back-to-5V warning. (4) Crisp HiDPI graph - no more fuzzy lines/text when maximised.",
+  "zip": "tmtoolset-app-0.69.6.zip"
 }

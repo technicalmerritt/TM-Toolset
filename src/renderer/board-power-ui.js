@@ -165,22 +165,31 @@
       els.recInfo.textContent = (t / 1000).toFixed(1) + ' s · ' + samples.length + ' samples';
     }
     scheduleDraw();
+    updatePanels();
   }
 
   // ---------------- chart ----------------
   function scheduleDraw() { if (rafPending) return; rafPending = true; requestAnimationFrame(() => { rafPending = false; draw(); }); }
   function draw() {
     const c = els.chart; if (!c) return;
+    // HiDPI: size the backing store to the real displayed pixels so it stays
+    // crisp when maximised / on a 2x display.
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = c.clientWidth || 1000, cssH = c.clientHeight || 320;
+    const bw = Math.round(cssW * dpr), bh = Math.round(cssH * dpr);
+    if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
     const ctx = c.getContext('2d');
-    const W = c.width, H = c.height, padL = 54, padR = 54, padT = 14, padB = 26;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);   // draw in CSS pixels, rendered at device resolution
+    const W = cssW, H = cssH, padL = 54, padR = 54, padT = 14, padB = 26;
     ctx.clearRect(0, 0, W, H);
     const cs = getComputedStyle(document.documentElement);
     const grid = (cs.getPropertyValue('--border') || '#334').trim();
     const txt = (cs.getPropertyValue('--text-dim') || '#99a').trim();
     ctx.strokeStyle = grid; ctx.fillStyle = txt; ctx.lineWidth = 1; ctx.font = '11px system-ui, sans-serif';
-    const data = (recording && samples.length) ? samples
-      : (liveBuf.length ? liveBuf.map((s) => ({ t: s.t - liveBuf[0].t, v: s.v, a: s.a }))
-        : (lastV != null ? [{ t: 0, v: lastV, a: lastA }] : []));
+    const data = recording ? samples
+      : (samples.length ? samples
+        : (liveBuf.length ? liveBuf.map((s) => ({ t: s.t - liveBuf[0].t, v: s.v, a: s.a }))
+          : (lastV != null ? [{ t: 0, v: lastV, a: lastA }] : [])));
     if (!data.length) { ctx.fillText('No data yet — connect a meter or import a CSV.', padL, H / 2); return; }
     const maxT = Math.max(1, data[data.length - 1].t);
     let maxV = 0, maxA = 0;
@@ -252,68 +261,84 @@
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') done(input.value); else if (e.key === 'Escape') done(null); });
   }
 
-  function clearCapture() { samples = []; markers.length = 0; els.recInfo.textContent = ''; els.verdict.hidden = true; draw(); }
+  function clearCapture() { samples = []; markers.length = 0; els.recInfo.textContent = ''; els.verdict.hidden = true; draw(); updatePanels(true); }
 
   // ---------------- analysis ----------------
   function median(a) { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; }
+  function percentile(arr, p) { if (!arr.length) return 0; const s = arr.slice().sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.max(0, Math.floor(p * s.length)))]; }
   function features(data) {
-    if (data.length < 3) return null;
+    if (data.length < 5) return null;
     const vs = data.map((s) => s.v), as = data.map((s) => s.a);
     const n = data.length;
     const aMax = Math.max.apply(null, as);
-    // Nominal voltage is the UNLOADED rail: measure it when current is low, so a
-    // drive that spends most of the trace under load doesn't hide the sag.
+    const aMin = percentile(as, 0.05);   // robust low (ignores a single noisy dip)
+    const aMed = median(as);
+    // Nominal (unloaded) voltage from the low-current moments, else the peak.
     const lowV = data.filter((s) => s.a < aMax * 0.3).map((s) => s.v).filter((v) => v > 1);
     const vNom = lowV.length >= 3 ? median(lowV) : (vs.length ? Math.max.apply(null, vs) : 0);
     const headN = Math.max(2, Math.floor(n * 0.08)), tailN = Math.max(2, Math.floor(n * 0.12));
     const aStart = median(as.slice(0, headN));
     const aEnd = median(as.slice(n - tailN));
-    const aMed = median(as);
-    // voltage sag while current is high
-    let vUnderLoad = vNom, hiThresh = aMax * 0.6;
-    const loadVs = data.filter((s) => s.a >= hiThresh).map((s) => s.v);
-    if (loadVs.length) vUnderLoad = median(loadVs);
-    const sag = vNom > 0 ? (vNom - vUnderLoad) / vNom : 0;
-    // oscillation: count significant peaks in current
-    let peaks = 0; const thr = aMax * 0.5;
-    for (let i = 1; i < n - 1; i++) { if (as[i] > thr && as[i] >= as[i - 1] && as[i] > as[i + 1]) peaks++; }
+    const vRef = lowV.length >= 3;   // we actually saw an unloaded voltage to compare against
+    const loadVs = data.filter((s) => s.a >= aMax * 0.6).map((s) => s.v);
+    const vUnderLoad = loadVs.length ? median(loadVs) : vNom;
+    // Sag is only meaningful if we have a no-load reference; otherwise a changing
+    // PD voltage would masquerade as a drop.
+    const sag = (vRef && vNom > 0) ? Math.max(0, (vNom - vUnderLoad) / vNom) : 0;
+    // How much the current actually MOVES. Noise alone must not look like activity.
+    const swing = aMax - aMin;
+    const swingRel = aMax > 0 ? swing / aMax : 0;
+    const mean = as.reduce((a, b) => a + b, 0) / n;
+    const variance = as.reduce((a, b) => a + (b - mean) * (b - mean), 0) / n;
+    const cov = mean > 1e-4 ? Math.sqrt(variance) / mean : 0;   // coefficient of variation
+    // Real surges = full low->high->low cycles, only counted when the swing is
+    // genuinely large (so a steady load's ripple can never register).
+    let surges = 0;
+    if (swing > 0.05 && swingRel > 0.5) {
+      const hiT = aMin + swing * 0.66, loT = aMin + swing * 0.33;
+      let armed = false;
+      for (let i = 0; i < n; i++) { if (as[i] <= loT) armed = true; else if (as[i] >= hiT && armed) { surges++; armed = false; } }
+    }
     const durMs = data[n - 1].t - data[0].t;
-    return { n, aMax, aMed, aStart, aEnd, vNom, vUnderLoad, sag, peaks, durMs };
+    return { n, aMax, aMin, aMed, aStart, aEnd, vNom, vUnderLoad, sag, vRef, swing, swingRel, cov, surges, durMs };
   }
   function analyse(data) {
     const f = features(data);
-    if (!f) return { items: [{ label: 'Not enough data', conf: 0, why: 'Record at least a second or two of a board powering on.' }], f: null };
+    if (!f) return { items: [{ label: 'Not enough data', conf: 0, why: 'Record a second or two of the board doing something (ideally the power-on).' }], f: null };
     const out = [];
     const mA = (x) => Math.round(x * 1000) + ' mA';
+    const steady = f.swingRel < 0.2 && f.cov < 0.15;   // current barely moves the whole time
+
     if (f.aMax < 0.004) {
-      out.push({ label: 'Open circuit / no current draw', conf: 0.85, why: 'Peak draw is essentially zero (' + mA(f.aMax) + ') with ' + f.vNom.toFixed(1) + ' V present — the board isn’t pulling power. Suspect a blown fuse, broken rail, bad connector, or the board isn’t attempting to turn on.' });
+      out.push({ label: 'Open circuit / no current draw', conf: 0.85, why: 'Peak draw is essentially zero (' + mA(f.aMax) + ') with ' + f.vNom.toFixed(1) + ' V present — nothing is pulling power. Suspect a blown fuse, broken rail, bad connector, or a board not attempting to turn on.' });
+    } else if (steady) {
+      // A rock-steady current is NOT a boot. Either a healthy constant load, or a
+      // hard short if the voltage is being dragged down.
+      if (f.sag > 0.10) {
+        out.push({ label: 'Hard short / heavily loaded rail', conf: 0.75, why: 'Current sits flat at ' + mA(f.aMed) + ' and drags the voltage down ' + Math.round(f.sag * 100) + '% — a short or a rail being pulled hard. Find the hot component or use the short-finder.' });
+      } else {
+        out.push({ label: 'Steady, stable draw — no fault signature', conf: 0.85, why: 'Current holds steady at ' + mA(f.aMed) + ' on a solid ' + f.vNom.toFixed(2) + ' V with no sag and no surges — a healthy constant load (e.g. charging or idling), not a boot transient. Record the actual power-on to analyse a boot.' });
+      }
     } else {
-      // short: high current from the moment it powers, staying flat with no boot
-      // curve. Voltage sag (when measurable) raises confidence.
-      if (f.aMax > 0.03 && f.aStart >= f.aMax * 0.55 && f.aEnd >= f.aMax * 0.7 && f.peaks < 3) {
-        const conf = f.sag > 0.06 ? 0.85 : 0.6;
-        out.push({ label: 'Dead short to ground', conf, why: 'Current is high from the instant it powers (' + mA(f.aMax) + ') and stays flat — no inrush-then-settle boot curve' + (f.sag > 0.06 ? (', and the voltage sags ' + Math.round(f.sag * 100) + '% under load') : '') + '. Classic short: find the hot component (cap/FET/PMIC) or use the short-finder.' });
-      } else if (f.sag > 0.05 && f.aMax > f.aMed * 2.5 && f.aEnd > f.aMax * 0.7) {
-        out.push({ label: 'Partial short / heavy rail load', conf: 0.55, why: 'Sustained high current (' + mA(f.aMax) + ') with some voltage sag. Something downstream is pulling hard — a leaky rail or a partially shorted component.' });
+      // Dynamic trace — now fault patterns are meaningful.
+      if (f.surges >= 3 && f.durMs > 1500) {
+        out.push({ label: 'Boot-loop / reset loop', conf: 0.6, why: f.surges + ' full current surges over ' + (f.durMs / 1000).toFixed(0) + ' s (swinging ' + mA(f.aMin) + '↔' + mA(f.aMax) + ') — the board keeps restarting. Often a power-rail or storage/firmware fault.' });
       }
-      // protection trip / brown-out: rises then collapses
-      if (f.aEnd < f.aMax * 0.25 && f.aMax > 0.03 && f.aStart < f.aMax * 0.8) {
-        out.push({ label: 'Protection trip / brown-out', conf: 0.6, why: 'Current rises to ' + mA(f.aMax) + ' then collapses to ' + mA(f.aEnd) + ' — a rail is coming up and then shutting down (short downstream, bad rail, or the PMIC cutting out).' });
+      if (f.aStart >= f.aMax * 0.6 && f.aEnd >= f.aMax * 0.7 && f.surges < 3) {
+        const conf = f.sag > 0.06 ? 0.8 : 0.5;
+        out.push({ label: 'Dead short to ground', conf, why: 'Current is high from the instant it powers (' + mA(f.aMax) + ') and stays flat — no inrush-then-settle curve' + (f.sag > 0.06 ? (', and the voltage sags ' + Math.round(f.sag * 100) + '% under load') : '') + '. Classic short.' });
       }
-      // boot-loop: repeated peaks
-      if (f.peaks >= 3 && f.durMs > 1500) {
-        out.push({ label: 'Boot-loop / reset loop', conf: 0.55, why: f.peaks + ' current surges over ' + (f.durMs / 1000).toFixed(0) + ' s — the board keeps restarting. Often a power-rail or storage/firmware fault.' });
+      if (f.aEnd < f.aMax * 0.25 && f.aStart < f.aMax * 0.8) {
+        out.push({ label: 'Protection trip / brown-out', conf: 0.55, why: 'Current rises to ' + mA(f.aMax) + ' then collapses to ' + mA(f.aEnd) + ' — a rail coming up then shutting down (short downstream, bad rail, or the PMIC cutting out).' });
       }
-      // stuck boot: ramps to a plateau and holds, no completion
-      if (f.aEnd > f.aMax * 0.5 && f.aEnd < f.aMax * 0.85 && f.sag < 0.05 && f.peaks < 3) {
-        out.push({ label: 'Possibly stuck mid-boot', conf: 0.4, why: 'Current climbs and then holds at a plateau (' + mA(f.aEnd) + ') without settling — may be stalling at a boot stage. Compare the plateau to a known-good board.' });
+      if (f.aEnd > f.aMax * 0.5 && f.aEnd < f.aMax * 0.85 && f.sag < 0.05 && f.surges < 2 && f.aStart < f.aMax * 0.6) {
+        out.push({ label: 'Possibly stuck mid-boot', conf: 0.4, why: 'Current climbs then holds at a plateau (' + mA(f.aEnd) + ') without settling — may be stalling at a boot stage. Compare the plateau to a known-good board.' });
       }
-      // normal: inrush then settles lower, no sag
-      if (f.aEnd < f.aMax * 0.7 && f.sag < 0.04 && f.peaks < 3 && f.aMax > 0.02) {
-        out.push({ label: 'Looks like a normal boot curve', conf: 0.5, why: 'Inrush to ' + mA(f.aMax) + ' then settling to ' + mA(f.aEnd) + ' with a stable voltage. Save this as a known-good reference for this model.' });
+      if (f.aStart < f.aMax * 0.6 && f.aEnd < f.aMax * 0.7 && f.sag < 0.04 && f.surges < 2) {
+        out.push({ label: 'Looks like a normal boot curve', conf: 0.55, why: 'Inrush to ' + mA(f.aMax) + ' then settling to ' + mA(f.aEnd) + ' on a stable voltage. Save this as a known-good reference for this model.' });
       }
     }
-    if (!out.length) out.push({ label: 'No clear signature', conf: 0.2, why: 'Nothing stood out. Record a longer capture through the full power-on, and compare against a known-good board in your library.' });
+    if (!out.length) out.push({ label: 'No clear signature', conf: 0.2, why: 'Nothing definitive. Capture the full power-on, and compare against a known-good board in your library.' });
     out.sort((a, b) => b.conf - a.conf);
     return { items: out, f };
   }
@@ -332,8 +357,81 @@
     }
     if (res.f) {
       const f = res.f;
-      els.verdict.appendChild(el('p', 'muted pw-feat', 'Peak ' + Math.round(f.aMax * 1000) + ' mA · settled ' + Math.round(f.aEnd * 1000) + ' mA · ' + f.vNom.toFixed(1) + ' V (sag ' + Math.round(f.sag * 100) + '% under load) · ' + f.peaks + ' surge(s)'));
+      els.verdict.appendChild(el('p', 'muted pw-feat', 'Peak ' + Math.round(f.aMax * 1000) + ' mA · settled ' + Math.round(f.aEnd * 1000) + ' mA · ' + f.vNom.toFixed(1) + ' V (sag ' + Math.round(f.sag * 100) + '% under load) · ' + f.surges + ' surge(s)'));
     }
+  }
+
+  // ---------------- live stats + power-delivery profile ----------------
+  const PD_LEVELS = [5, 9, 12, 15, 20];
+  function pdBucket(v) { for (const L of PD_LEVELS) if (Math.abs(v - L) <= 0.6) return L; return null; }
+  function pdLabel(v) { if (v == null || v < 0.4) return '—'; const b = pdBucket(v); if (b) return b + ' V' + (b > 5 ? '  (PD)' : ''); return v.toFixed(2) + ' V  (PPS / non-standard)'; }
+  function pdSeg(v) { const b = pdBucket(v); return b ? (b + ' V') : (v < 0.4 ? '0 V' : 'PPS'); }
+
+  function computeStats(data) {
+    if (!data || data.length < 2) return null;
+    const aMax = Math.max.apply(null, data.map((s) => s.a));
+    let peakV = 0, peakA = 0, peakW = 0, sumW = 0, mAh = 0, Wh = 0, minVload = Infinity;
+    for (let i = 0; i < data.length; i++) {
+      const s = data[i], w = s.v * s.a;
+      if (s.v > peakV) peakV = s.v; if (s.a > peakA) peakA = s.a; if (w > peakW) peakW = w; sumW += w;
+      if (s.a >= aMax * 0.5 && s.v < minVload) minVload = s.v;
+      if (i > 0) { const dtH = Math.max(0, data[i].t - data[i - 1].t) / 3600000; mAh += s.a * 1000 * dtH; Wh += w * dtH; }
+    }
+    const vmean = data.reduce((a, s) => a + s.v, 0) / data.length;
+    const ripple = Math.sqrt(data.reduce((a, s) => a + (s.v - vmean) * (s.v - vmean), 0) / data.length);
+    return { peakV, peakA, peakW, avgW: sumW / data.length, minVload: isFinite(minVload) ? minVload : peakV, mAh, Wh, ripple };
+  }
+  function renderStats() {
+    if (!els.stats) return;
+    const data = (recording || samples.length) ? samples : liveBuf;
+    const st = computeStats(data);
+    els.stats.innerHTML = '';
+    if (!st) return;
+    const tiles = [
+      ['Peak power', st.peakW.toFixed(2) + ' W'], ['Peak V', st.peakV.toFixed(2) + ' V'], ['Peak A', st.peakA.toFixed(3) + ' A'],
+      ['Min V (load)', st.minVload.toFixed(2) + ' V'], ['Avg power', st.avgW.toFixed(2) + ' W'], ['Ripple', Math.round(st.ripple * 1000) + ' mV'],
+      ['Energy', st.mAh.toFixed(1) + ' mAh'], ['Energy', st.Wh.toFixed(3) + ' Wh'],
+    ];
+    for (const [k, v] of tiles) { const t = el('div', 'pw-stat'); t.append(el('div', 'pw-stat__v', v), el('div', 'pw-stat__k', k)); els.stats.appendChild(t); }
+  }
+  function pdSegments(data) {
+    const raw = []; let cur = null;
+    for (const s of data) { const lab = pdSeg(s.v); if (!cur || cur.label !== lab) { cur = { label: lab, t0: s.t, t1: s.t }; raw.push(cur); } else cur.t1 = s.t; }
+    const merged = [];
+    for (const seg of raw) {
+      const dur = seg.t1 - seg.t0;
+      if (merged.length && dur < 300) { merged[merged.length - 1].t1 = seg.t1; continue; } // ignore <0.3s blips
+      if (merged.length && merged[merged.length - 1].label === seg.label) merged[merged.length - 1].t1 = seg.t1;
+      else merged.push({ label: seg.label, t0: seg.t0, t1: seg.t1 });
+    }
+    return merged.length ? merged : raw;
+  }
+  function renderPd() {
+    if (els.pdLevel) els.pdLevel.textContent = pdLabel(lastV);
+    if (!els.pd) return;
+    const data = (recording || samples.length) ? samples : null;
+    els.pd.innerHTML = '';
+    if (!data || data.length < 5) return;
+    const segs = pdSegments(data);
+    if (segs.length <= 1) { els.pd.appendChild(el('p', 'muted', 'Held at ' + (segs[0] ? segs[0].label : '—') + ' for the whole capture — no voltage negotiation steps.')); return; }
+    const steps = el('div', 'pw-steps');
+    segs.forEach((sg, i) => {
+      const chip = el('div', 'pw-step');
+      chip.append(el('span', 'pw-step__v', sg.label), el('span', 'pw-step__t', ((sg.t1 - sg.t0) / 1000).toFixed(1) + ' s'));
+      steps.appendChild(chip);
+      if (i < segs.length - 1) steps.appendChild(el('span', 'pw-step__arrow', '→'));
+    });
+    els.pd.appendChild(steps);
+    let droppedBack = false;
+    for (let i = 1; i < segs.length; i++) { const prev = pdBucket(parseFloat(segs[i - 1].label)); if (segs[i].label === '5 V' && prev && prev > 5) droppedBack = true; }
+    if (droppedBack) els.pd.appendChild(el('p', 'pw-pdflag', '⚠ Dropped back to 5 V after reaching a higher level — possible failed PD negotiation or a safety / over-current trip. Suspect the cable, PD controller, or a downstream fault.'));
+  }
+  let panelThrottle = 0;
+  function updatePanels(force) {
+    const now = performance.now();
+    if (!force && now - panelThrottle < 400) return;
+    panelThrottle = now;
+    renderStats(); renderPd();
   }
 
   // ---------------- library ----------------
@@ -379,7 +477,7 @@
         info.append(el('div', 'muted pw-sig__meta', [it.fault, it.samples + ' pts', it.durationMs ? (it.durationMs / 1000).toFixed(1) + ' s' : '', (it.created || '').slice(0, 10)].filter(Boolean).join('  ·  ')));
         const acts = el('div', 'pw-sig__acts');
         const load = el('button', 'btn btn--ghost btn--xs', 'Load'); load.type = 'button';
-        load.addEventListener('click', () => window.power.getSig(it.id).then((r2) => { if (r2 && r2.ok) { samples = r2.sig.samples || []; markers.length = 0; (r2.sig.markers || []).forEach((m) => markers.push(m)); draw(); renderVerdict(analyse(samples)); toast('Loaded “' + (it.label || 'capture') + '”.'); } }));
+        load.addEventListener('click', () => window.power.getSig(it.id).then((r2) => { if (r2 && r2.ok) { samples = r2.sig.samples || []; markers.length = 0; (r2.sig.markers || []).forEach((m) => markers.push(m)); draw(); renderVerdict(analyse(samples)); updatePanels(true); toast('Loaded “' + (it.label || 'capture') + '”.'); } }));
         const del = el('button', 'btn btn--ghost btn--xs', 'Delete'); del.type = 'button';
         del.addEventListener('click', () => { if (window.confirm('Delete this saved signature?')) window.power.deleteSig(it.id).then(loadLib); });
         acts.append(load, del);
@@ -437,7 +535,7 @@
   function importCsv() {
     window.power.importCsv().then((r) => {
       if (r && r.cancelled) return;
-      if (r && r.ok) { samples = r.rows || []; markers.length = 0; draw(); renderVerdict(analyse(samples)); toast('Imported ' + samples.length + ' samples from ' + (r.name || 'CSV') + '.'); }
+      if (r && r.ok) { samples = r.rows || []; markers.length = 0; draw(); renderVerdict(analyse(samples)); updatePanels(true); toast('Imported ' + samples.length + ' samples from ' + (r.name || 'CSV') + '.'); }
       else toast('Could not import that file.', true);
     });
   }
@@ -451,6 +549,7 @@
     els.chart = $('#pwChart'); els.record = $('#pwRecord'); els.marker = $('#pwMarker'); els.clear = $('#pwClear');
     els.recInfo = $('#pwRecInfo'); els.analyse = $('#pwAnalyse'); els.verdict = $('#pwVerdict');
     els.lib = $('#pwLib'); els.libEmpty = $('#pwLibEmpty'); els.matchOut = $('#pwMatchOut');
+    els.stats = $('#pwStats'); els.pd = $('#pwPd'); els.pdLevel = $('#pwPdLevel');
     if (!els.chart) return;
 
     if (window.power && window.power.onPorts) window.power.onPorts(portPicker);
@@ -470,5 +569,9 @@
     $('#pwLibDir').addEventListener('click', () => window.power.openDir());
     draw();
     loadLib();
+    updatePanels(true);
+    // Keep the chart crisp when the window is resized / maximised or the tab is shown.
+    if (window.ResizeObserver) { try { new ResizeObserver(() => scheduleDraw()).observe(els.chart); } catch { /* ignore */ } }
+    window.addEventListener('resize', scheduleDraw);
   });
 })();
