@@ -1,11 +1,24 @@
-# TM Toolset — enumerate ALL startup items (read-only).
+# TM Toolset - enumerate ALL startup items (read-only).
 # Registry Run keys, Startup folders, and logon/boot scheduled tasks, each with
 # its enabled/disabled state and the identifiers needed to toggle it.
 
 $ErrorActionPreference = 'SilentlyContinue'
 $ProgressPreference    = 'SilentlyContinue'
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch { }
 function Safe { param([scriptblock]$b) try { & $b } catch { $null } }
 trap { try { [Console]::Error.WriteLine('@@FATAL@@' + $_.Exception.Message) } catch { }; exit 1 }
+
+# Pull the executable path out of a Run command / task action line.
+function Get-ExePath {
+  param([string]$cmd)
+  $c = "$cmd".Trim()
+  if ($c.Length -eq 0) { return '' }
+  if ($c.StartsWith('"')) { $e = $c.IndexOf('"', 1); if ($e -gt 1) { return $c.Substring(1, $e - 1) } }
+  $m = [regex]::Match($c, '^(.*?\.exe)(\s|$)', 'IgnoreCase')
+  if ($m.Success) { return $m.Groups[1].Value }
+  $sp = $c.IndexOf(' '); if ($sp -gt 0) { return $c.Substring(0, $sp) }
+  return $c
+}
 
 # Windows records enable/disable state (as Task Manager does) in StartupApproved.
 # First byte: even (2/6) = enabled, odd (3) = disabled. No entry = enabled.
@@ -92,5 +105,29 @@ $taskItems = Safe {
   })
 }
 foreach ($ti in @($taskItems)) { if ($ti) { $items += $ti } }
+
+# ---------- Enrich each item: exe path, signature, publisher ----------
+$enriched = @()
+foreach ($it in @($items)) {
+  if (-not $it) { continue }
+  $exe = Get-ExePath "$($it.command)"
+  $it.exePath = "$exe"
+  $it.signed = ''
+  $it.signer = ''
+  $it.publisher = ''
+  if ($exe -and (Test-Path -LiteralPath $exe -ErrorAction SilentlyContinue)) {
+    $sig = Safe { Get-AuthenticodeSignature -LiteralPath $exe -ErrorAction SilentlyContinue }
+    if ($sig) {
+      $st = "$($sig.Status)"
+      if ($st -eq 'Valid') { $it.signed = 'valid' } elseif ($st -eq 'NotSigned') { $it.signed = 'unsigned' } else { $it.signed = 'invalid' }
+      $subj = "$($sig.SignerCertificate.Subject)"
+      if ($subj -match 'CN=([^,]+)') { $it.signer = ($matches[1]).Trim() }
+    }
+    $vi = Safe { (Get-Item -LiteralPath $exe -ErrorAction SilentlyContinue).VersionInfo }
+    if ($vi) { $it.publisher = "$($vi.CompanyName)" }
+  }
+  $enriched += $it
+}
+$items = $enriched
 
 [ordered]@{ items = @($items) } | ConvertTo-Json -Depth 6 -Compress

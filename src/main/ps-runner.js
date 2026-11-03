@@ -22,13 +22,16 @@ function powershellPath() {
 }
 
 function runPowerShellScript(opts) {
-  const { scriptPath, onProgress, onChild, timeoutMs = 120000 } = opts || {};
+  const { scriptPath, onProgress, onChild, timeoutMs = 120000, scriptArgs } = opts || {};
   return new Promise((resolve, reject) => {
     if (!scriptPath || !fs.existsSync(scriptPath)) {
       reject(new Error('Script not found: ' + scriptPath));
       return;
     }
     const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', scriptPath];
+    if (Array.isArray(scriptArgs)) {
+      for (const a of scriptArgs) args.push(String(a));
+    }
 
     let child;
     try {
@@ -88,7 +91,14 @@ function runPowerShellScript(opts) {
       try {
         data = JSON.parse(out.slice(start, end + 1));
       } catch (e) {
-        settle(() => reject(new Error('Could not read data: ' + e.message)));
+        // Surface the exact region so a malformed value is diagnosable.
+        let extra = '';
+        const mp = /position (\d+)/.exec(e.message || '');
+        if (mp) {
+          const p = start + Number(mp[1]);
+          extra = '  ←near: ' + JSON.stringify(out.slice(Math.max(0, p - 70), p + 30));
+        }
+        settle(() => reject(new Error('Could not read data: ' + e.message + extra)));
         return;
       }
       settle(() => resolve(data));

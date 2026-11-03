@@ -244,6 +244,9 @@ function init() {
 
   window.launcher.onLaunchError((payload) => toast(payload.message, 'error'));
 
+  // Re-load the tool list when a tool is added from the recommended section.
+  window.addEventListener('tm-tools-changed', () => { refresh(); });
+
   refresh();
 }
 

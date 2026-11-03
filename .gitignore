@@ -4,3 +4,15 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Bundled third-party tool executables — shipped inside the release zips,
+# not committed here (keeps the repo to our own source and avoids
+# re-hosting other people's binaries).
+**/bin/
+
+# Licensing vendor kit — never publish. Holds the licence generator and
+# relates to the private signing key that must stay off GitHub entirely.
+vendor/
+
+# Local archives / build output
+*.zip

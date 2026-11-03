@@ -14,16 +14,9 @@
     <header class="topbar">
       <div class="brand">
         <img class="brand__logo" src="logo-dark.svg" alt="Technical Merritt Computer Services" />
+        <span id="appVersion" class="brand__ver" title="Build version"></span>
       </div>
-      <nav class="tabs">
-        <button class="tab tab--active" data-tab="information">Information</button>
-        <button class="tab" data-tab="scanner">Issue Scanner</button>
-        <button class="tab" data-tab="startup">Startup Items</button>
-        <button class="tab" data-tab="drives">Drive Health</button>
-        <button class="tab" data-tab="tools">Tools</button>
-        <button class="tab" data-tab="settings">Settings</button>
-      </nav>
-
+      <button id="quickFindBtn" class="qf-btn" type="button" title="Search / jump (Ctrl+K)"><span>🔍</span> Search<kbd>Ctrl K</kbd></button>
       <div class="ticket" id="ticketControl">
         <form id="ticketForm" class="ticket__form">
           <span class="ticket__hash">#</span>
@@ -39,13 +32,103 @@
       </div>
     </header>
 
+    <div class="layout">
+      <aside class="sidebar">
+        <nav class="tabs">
+          <button class="tab tab--active" data-tab="overview"><span class="nav-ico">🏠</span>Overview</button>
+          <button class="tab" data-tab="news"><span class="nav-ico">📰</span>Industry News</button>
+          <button class="tab" data-tab="m365"><span class="nav-ico">📅</span>Microsoft 365</button>
+          <div class="nav-label">Diagnostics</div>
+          <button class="tab" data-tab="scanner"><span class="nav-ico">🔍</span>Issue Scanner</button>
+          <button class="tab" data-tab="diagnose"><span class="nav-ico">🩺</span>Diagnose</button>
+          <button class="tab" data-tab="drives"><span class="nav-ico">💽</span>Drive Health</button>
+          <button class="tab" data-tab="battery"><span class="nav-ico">🔋</span>Battery</button>
+          <button class="tab" data-tab="devices"><span class="nav-ico">🔌</span>Devices</button>
+          <button class="tab" data-tab="crash"><span class="nav-ico">💥</span>Crash Analysis</button>
+          <button class="tab" data-tab="network"><span class="nav-ico">🌐</span>Networking</button>
+          <div class="nav-label">System</div>
+          <button class="tab" data-tab="information"><span class="nav-ico">🖥️</span>Information</button>
+          <button class="tab" data-tab="startup"><span class="nav-ico">🚀</span>Startup Items</button>
+          <button class="tab" data-tab="bios"><span class="nav-ico">🧬</span>BIOS / UEFI</button>
+          <div class="nav-label">Maintenance</div>
+          <button class="tab" data-tab="repairs"><span class="nav-ico">🛠️</span>Repairs</button>
+          <button class="tab" data-tab="disktools"><span class="nav-ico">🧹</span>Disk Tools</button>
+          <button class="tab" data-tab="debloat"><span class="nav-ico">🧼</span>Debloat</button>
+          <button class="tab" data-tab="board"><span class="nav-ico">🔧</span>Board Repair</button>
+          <button class="tab" data-tab="backup"><span class="nav-ico">💾</span>Backup &amp; Imaging</button>
+          <button class="tab" data-tab="drivers"><span class="nav-ico">🧩</span>Drivers</button>
+          <div class="nav-label">More</div>
+          <button class="tab" data-tab="report"><span class="nav-ico">📄</span>Customer Report</button>
+          <button class="tab" data-tab="feedback"><span class="nav-ico">💡</span>Feedback &amp; Fixes</button>
+          <button class="tab" data-tab="logs"><span class="nav-ico">📜</span>Activity Log</button>
+          <button class="tab" data-tab="tools"><span class="nav-ico">📦</span>Tools</button>
+          <button class="tab" data-tab="settings"><span class="nav-ico">⚙️</span>Settings</button>
+        </nav>
+      </aside>
+      <div class="content">
+
+    <div id="licBanner" class="lic-banner" hidden>
+      <span id="licBannerText"></span>
+      <button id="licBannerBtn" class="btn btn--sm btn--action" type="button">Activate</button>
+    </div>
+
+    <div id="updBanner" class="upd-banner" hidden>
+      <span id="updBannerText"></span>
+      <span class="upd-banner__btns">
+        <button id="updBannerNotes" class="btn btn--sm btn--ghost" type="button">What's new</button>
+        <button id="updBannerBtn" class="btn btn--sm btn--action" type="button">Update now</button>
+      </span>
+    </div>
+
     <div id="elevBanner" class="elev-banner" hidden>
       <span>Running <strong>without administrator rights</strong> — some checks (BitLocker, TPM, Secure Boot, full event log, SMART sectors, surface scan) are limited.</span>
       <button id="elevBtn" class="btn btn--sm btn--action" type="button">Run as administrator</button>
     </div>
 
+    <!-- ================= OVERVIEW ================= -->
+    <main id="panel-overview" class="panel">
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Overview</h1>
+          <p class="muted">A one-glance health check of this PC. Click a card to open the full tab.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="overviewStartBtn" class="btn btn--ghost" type="button">Where to start</button>
+          <button id="overviewPassport" class="btn btn--primary" type="button">Build Health Passport</button>
+          <button id="overviewRefresh" class="btn btn--ghost" type="button">Refresh</button>
+        </div>
+      </div>
+      <div id="overviewStart" class="ov-start" hidden></div>
+      <div id="overviewHeadline" class="ov-headline"></div>
+      <div id="overviewGrid" class="ov-grid"></div>
+    </main>
+
+    <!-- ================= INDUSTRY NEWS ================= -->
+    <main id="panel-news" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Industry News</h1>
+          <p class="muted">Current tech, IT and security headlines for technicians. Hit <strong>Not interested</strong> and it learns to show you fewer like that.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="newsFocus" class="btn btn--primary" type="button" title="Hide off-topic (entertainment) stories">Repair focus: On</button>
+          <button id="newsReset" class="btn btn--ghost" type="button" title="Forget what I've marked not interested">Reset learning</button>
+          <button id="newsRefresh" class="btn btn--ghost" type="button">Refresh</button>
+        </div>
+      </div>
+      <div id="newsStatus" class="scan-status" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted">Fetching the latest headlines…</p>
+      </div>
+      <div id="newsError" class="scan-error" hidden>
+        <h3>Couldn’t fetch news</h3>
+        <pre id="newsErrorDetail" class="finding__detail"></pre>
+      </div>
+      <div id="newsList" class="news-list" hidden></div>
+    </main>
+
     <!-- ================= INFORMATION ================= -->
-    <main id="panel-information" class="panel">
+    <main id="panel-information" class="panel" hidden>
       <div class="info-top">
         <div class="info-top__text">
           <h1>Information</h1>
@@ -132,6 +215,103 @@
       </div>
     </main>
 
+    <!-- ================= MICROSOFT 365 ================= -->
+    <main id="panel-m365" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Microsoft 365 &amp; training</h1>
+          <p class="muted">Plain-English TLDRs of what's changing in Microsoft 365, rated by how much it matters - plus free, current courses to level up. <span id="m365Updated" class="muted"></span></p>
+        </div>
+      </div>
+
+      <nav class="m365-tabs">
+        <button class="m365-tab m365-tab--active" data-m365="whatsnew" type="button">What's new</button>
+        <button class="m365-tab" data-m365="roadmap" type="button">Live roadmap</button>
+        <button class="m365-tab" data-m365="training" type="button">Training</button>
+        <button class="m365-tab" data-m365="resources" type="button">Official sources</button>
+      </nav>
+
+      <!-- What's new (curated, with impact) -->
+      <section id="m365-whatsnew" class="m365-section">
+        <div class="m365-legend">
+          <span class="muted">Impact:</span>
+          <span class="imp imp--high">High</span>
+          <span class="imp imp--medium">Medium</span>
+          <span class="imp imp--low">Low</span>
+          <span class="imp imp--heads">Heads-up</span>
+          <nav id="m365Cats" class="rec-cats m365-cats"></nav>
+        </div>
+        <div id="m365Updates" class="m365-updates"></div>
+        <p class="muted m365-note" id="m365Note"></p>
+      </section>
+
+      <!-- Live roadmap (straight from Microsoft) -->
+      <section id="m365-roadmap" class="m365-section" hidden>
+        <div class="m365-roadmap__head">
+          <p class="muted">Pulled live from Microsoft's public roadmap - their own wording, newest first. Needs an internet connection.</p>
+          <button id="m365RoadmapBtn" class="btn btn--primary btn--sm" type="button">Refresh from Microsoft</button>
+        </div>
+        <div id="m365RoadmapList" class="m365-updates"></div>
+        <p id="m365RoadmapMsg" class="muted"></p>
+      </section>
+
+      <!-- Training -->
+      <section id="m365-training" class="m365-section" hidden>
+        <p class="muted">Free courses, kept current. Links open Microsoft Learn's live catalogue, so they stay accurate even as lessons change. Training is free; certification exams usually aren't.</p>
+        <nav id="m365CourseCats" class="rec-cats m365-cats"></nav>
+        <div id="m365Courses" class="rec-grid"></div>
+      </section>
+
+      <!-- Official sources -->
+      <section id="m365-resources" class="m365-section" hidden>
+        <p class="muted">Go straight to the source when you need the very latest or a per-client heads-up.</p>
+        <div id="m365Resources" class="m365-res"></div>
+      </section>
+    </main>
+
+    <!-- ================= FEEDBACK & FIXES ================= -->
+    <main id="panel-feedback" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Feedback &amp; fixes</h1>
+          <p class="muted">Jot down bugs and ideas as you spot them - the app keeps the list so you can hand the whole batch over to be worked on later. Type it, or tap the mic and talk.</p>
+        </div>
+      </div>
+
+      <section class="info-card fb-compose">
+        <div class="fb-compose__row">
+          <div class="fb-type">
+            <label><input type="radio" name="fbType" value="bug" checked /> 🐛 Bug / fix needed</label>
+            <label><input type="radio" name="fbType" value="idea" /> 💡 Idea / suggestion</label>
+          </div>
+          <button id="fbMic" class="btn btn--ghost fb-mic" type="button" title="Tap to talk">🎤 Dictate</button>
+        </div>
+        <textarea id="fbText" class="fb-text" rows="4" placeholder="What did you notice? e.g. 'On the Drivers tab the scan button stays greyed out after a cancel' or 'Add a dark-mode toggle to the toolbar'."></textarea>
+        <div id="fbMicMsg" class="muted fb-mic-msg" hidden></div>
+        <div class="fb-compose__actions">
+          <button id="fbAdd" class="btn btn--primary" type="button">Add to list</button>
+          <span id="fbCount" class="muted"></span>
+        </div>
+      </section>
+
+      <section class="info-card">
+        <div class="fb-list__head">
+          <div class="fb-filter">
+            <button class="fb-f fb-f--active" data-fbf="open" type="button">Open</button>
+            <button class="fb-f" data-fbf="done" type="button">Done</button>
+            <button class="fb-f" data-fbf="all" type="button">All</button>
+          </div>
+          <div class="fb-list__actions">
+            <button id="fbCopy" class="btn btn--ghost btn--sm" type="button" title="Copy the open items to paste into a chat">Copy batch</button>
+            <button id="fbAskClaude" class="btn btn--action btn--sm" type="button" title="Open claude.ai and copy your notes to paste in">Ask Claude</button>
+            <button id="fbOpenDir" class="btn btn--ghost btn--sm" type="button" title="Where the list is stored">Data folder</button>
+          </div>
+        </div>
+        <div id="fbList" class="fb-list"></div>
+        <p id="fbEmpty" class="muted" hidden>Nothing here yet. Add your first note above.</p>
+      </section>
+    </main>
+
     <!-- ================= TOOLS (LAUNCHER) ================= -->
     <main id="panel-tools" class="panel" hidden>
       <div class="toolsbar">
@@ -147,6 +327,17 @@
         <h2>No tools yet</h2>
         <p>Click <strong>“+ Add tool”</strong> to point the launcher at an executable.</p>
       </div>
+
+      <section id="recommendedTools" class="rec-tools">
+        <div class="rec-tools__head">
+          <div>
+            <h2 class="rec-tools__h">Recommended industry tools</h2>
+            <p class="muted rec-tools__sub">A curated set of trusted tools technicians reach for. Each button opens the official download page in your browser.</p>
+          </div>
+        </div>
+        <nav id="recCats" class="rec-cats"></nav>
+        <div id="recGrid" class="rec-grid"></div>
+      </section>
     </main>
 
     <!-- ================= SETTINGS ================= -->
@@ -157,6 +348,36 @@
           <p class="muted">Connect TM Toolset to your Syncro account so you can post scan results to a ticket.</p>
         </div>
       </div>
+
+      <section class="info-card settings-card">
+        <h3 class="info-card__title">Licence</h3>
+        <p id="licStatusLine" class="info-line"></p>
+        <label class="field"><span>E-mail on your licence</span><input id="licSetEmail" type="email" placeholder="you@example.com" autocomplete="off" /></label>
+        <label class="field"><span>Licence key</span><textarea id="licSetKey" rows="3" placeholder="Paste a licence key to activate or change" autocomplete="off"></textarea></label>
+        <div class="settings-actions">
+          <button id="licSetActivate" class="btn btn--primary" type="button">Activate</button>
+          <button id="licSetDeactivate" class="btn btn--ghost" type="button">Deactivate</button>
+        </div>
+        <p class="muted settings-hint">One licence is tied to your e-mail and works on all the machines you work on. Support reference (this machine): <span id="licSetMid" class="bk-mono"></span></p>
+        <p id="licSetStatus" class="info-line"></p>
+      </section>
+
+      <section class="info-card settings-card">
+        <h3 class="info-card__title">Updates</h3>
+        <p class="info-line">Installed: <span id="updCurrent" class="bk-mono">—</span> &nbsp; Latest: <span id="updLatest" class="bk-mono">—</span></p>
+        <div class="settings-actions">
+          <button id="updCheck" class="btn btn--ghost" type="button">Check for updates</button>
+          <button id="updInstall" class="btn btn--primary" type="button" hidden>Download &amp; install</button>
+          <button id="updPage" class="btn btn--ghost" type="button" hidden>Open Releases page</button>
+        </div>
+        <div id="updProg" class="rec-prog" hidden>
+          <div id="updProgText" class="rec-prog__txt muted"></div>
+          <div class="rec-prog__track"><div id="updProgFill" class="rec-prog__fill"></div></div>
+        </div>
+        <p id="updStatus" class="info-line"></p>
+        <p id="updNotes" class="muted upd-notes" hidden></p>
+        <p class="muted settings-hint">Updates come straight from GitHub (<span id="updRepo" class="bk-mono"></span>) and only run while licensed or on trial. The app restarts itself when done. Your bundled tools and settings are left untouched.</p>
+      </section>
 
       <section class="info-card settings-card">
         <h3 class="info-card__title">Syncro integration</h3>
@@ -178,6 +399,58 @@
         </div>
         <p id="setStatus" class="info-line"></p>
       </section>
+
+      <section class="info-card settings-card">
+        <h3 class="info-card__title">Branding &amp; theme (white-label)</h3>
+        <label class="field"><span>Brand name</span><input id="brandName" type="text" placeholder="Your company name" autocomplete="off" /></label>
+        <div class="brand-row">
+          <label class="field"><span>Accent colour</span><input id="brandAccent" type="color" value="#ff6600" /></label>
+          <label class="field"><span>Background colour</span><input id="brandBg" type="color" value="#0e1b33" /></label>
+        </div>
+        <label class="field"><span>Logo</span>
+          <div class="field__row">
+            <button id="brandLogoPick" class="btn btn--ghost" type="button">Choose logo…</button>
+            <button id="brandLogoClear" class="btn btn--ghost" type="button">Clear</button>
+            <img id="brandLogoPreview" class="brand-logo-preview" alt="logo preview" hidden />
+          </div>
+        </label>
+        <p class="muted settings-hint">Changes apply live. Text colour auto-switches light/dark to stay readable against your background. Quick presets:</p>
+        <div id="brandPresets" class="brand-presets"></div>
+        <div class="settings-actions">
+          <button id="brandReset" class="btn btn--ghost" type="button">Reset to default</button>
+        </div>
+        <p id="brandStatus" class="info-line"></p>
+      </section>
+
+      <section class="info-card settings-card">
+        <h3 class="info-card__title">Recommended-tools feed</h3>
+        <label class="field">
+          <span>Feed URL (optional)</span>
+          <input id="setFeedUrl" type="text" placeholder="https://… a JSON feed of recommended tools" autocomplete="off" />
+        </label>
+        <p class="muted settings-hint">
+          Leave blank to use the built-in list. Point it at a hosted JSON feed (same format as the bundled one) and the Tools tab refreshes from it, flags genuinely new tools, and notifies you. It's cached so it still works offline.
+        </p>
+        <div class="settings-actions">
+          <button id="setFeedSave" class="btn btn--primary" type="button">Save feed URL</button>
+        </div>
+        <p id="setFeedStatus" class="info-line"></p>
+      </section>
+
+      <section class="info-card settings-card">
+        <h3 class="info-card__title">Microsoft 365 feed</h3>
+        <label class="field">
+          <span>Feed URL (optional)</span>
+          <input id="setM365FeedUrl" type="text" placeholder="https://… a JSON feed of 365 updates + courses" autocomplete="off" />
+        </label>
+        <p class="muted settings-hint">
+          Leave blank to use the built-in summaries. Point it at a hosted JSON feed (same format as the bundled one) to push fresh plain-English updates and courses to every copy of the app, flagged as new. Cached for offline use. The Live Roadmap tab always pulls straight from Microsoft regardless of this.
+        </p>
+        <div class="settings-actions">
+          <button id="setM365FeedSave" class="btn btn--primary" type="button">Save feed URL</button>
+        </div>
+        <p id="setM365FeedStatus" class="info-line"></p>
+      </section>
     </main>
 
     <!-- ================= DRIVE HEALTH ================= -->
@@ -188,6 +461,7 @@
           <p class="muted">SMART health, temperature, wear and power-on life for every attached drive. Run as administrator for the full SMART attribute set.</p>
         </div>
         <div class="info-top__actions">
+          <button id="drivesSyncro" class="btn btn--primary" type="button">Send to Syncro</button>
           <button id="drivesRefresh" class="btn btn--ghost" type="button">Refresh</button>
         </div>
       </div>
@@ -229,6 +503,1248 @@
 
       <div id="startupList" class="startup-list" hidden></div>
     </main>
+
+    <!-- ================= CRASH ANALYSIS ================= -->
+    <main id="panel-crash" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Crash Analysis</h1>
+          <p class="muted">Recent blue screens (BSODs) and unexpected restarts, decoded into plain English with likely causes and what to try. Reads crash dumps and the event log — makes no changes. Run as administrator for the fullest history.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="crashSyncro" class="btn btn--primary" type="button">Send to Syncro</button>
+          <button id="crashRefresh" class="btn btn--ghost" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div id="crashStatus" class="scan-status" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted">Reading crash history…</p>
+      </div>
+
+      <div id="crashError" class="scan-error" hidden>
+        <h3>Couldn’t read crash history</h3>
+        <pre id="crashErrorDetail" class="finding__detail"></pre>
+      </div>
+
+      <div id="crashContent" class="crash-content" hidden></div>
+    </main>
+
+    <!-- ================= BATTERY ================= -->
+    <main id="panel-battery" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Battery Health</h1>
+          <p class="muted">Design vs full-charge capacity, wear and cycle count for each battery — the true condition of a laptop pack. Read-only.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="batterySyncro" class="btn btn--primary" type="button">Send to Syncro</button>
+          <button id="batteryRefresh" class="btn btn--ghost" type="button">Refresh</button>
+        </div>
+      </div>
+      <div id="batteryStatus" class="scan-status" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted">Reading battery report…</p>
+      </div>
+      <div id="batteryError" class="scan-error" hidden>
+        <h3>Couldn’t read battery health</h3>
+        <pre id="batteryErrorDetail" class="finding__detail"></pre>
+      </div>
+      <div id="batteryContent" class="drives-list" hidden></div>
+    </main>
+
+    <!-- ================= DEVICES ================= -->
+    <main id="panel-devices" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Drivers &amp; Devices</h1>
+          <p class="muted">Hardware with a driver problem — missing drivers, failed or disabled devices, unknown hardware — explained in plain English. Read-only.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="devicesSyncro" class="btn btn--primary" type="button">Send to Syncro</button>
+          <button id="devicesRefresh" class="btn btn--ghost" type="button">Refresh</button>
+        </div>
+      </div>
+      <div id="devicesStatus" class="scan-status" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted">Scanning devices…</p>
+      </div>
+      <div id="devicesError" class="scan-error" hidden>
+        <h3>Couldn’t read devices</h3>
+        <pre id="devicesErrorDetail" class="finding__detail"></pre>
+      </div>
+      <div id="devicesContent" class="crash-content" hidden></div>
+    </main>
+
+    <!-- ================= REPAIRS ================= -->
+    <main id="panel-repairs" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Repairs</h1>
+          <p class="muted">Common one-click fixes. The system-changing ones create a restore point first and ask you to confirm. Run as administrator. Output is shown live as each runs.</p>
+        </div>
+      </div>
+
+      <div id="repairsGrid" class="repairs-grid"></div>
+
+      <div id="repairsRunner" class="repairs-runner" hidden>
+        <div class="repairs-runner__head">
+          <h3 id="repairsTitle">Running…</h3>
+          <span id="repairsState" class="repairs-state"></span>
+        </div>
+        <pre id="repairsLog" class="repairs-log"></pre>
+      </div>
+    </main>
+
+    <!-- ================= DISK TOOLS ================= -->
+    <main id="panel-disktools" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Disk Tools</h1>
+          <p class="muted">Clean up junk files to reclaim space, and see exactly where the space is going. Run as administrator to clean system-wide caches.</p>
+        </div>
+      </div>
+
+      <div class="subnav">
+        <button class="subtab subtab--active" data-sub="cleanup" type="button">Clean Up</button>
+        <button class="subtab" data-sub="usage" type="button">Disk Usage</button>
+        <button class="subtab" data-sub="speed" type="button">Drive Speed</button>
+      </div>
+
+      <section id="dt-cleanup" class="dt-section">
+        <div class="dt-actions">
+          <button id="cleanupScan" class="btn btn--primary" type="button">Scan for junk</button>
+          <button id="cleanupClean" class="btn btn--primary" type="button" hidden>Clean selected</button>
+          <span id="cleanupTotal" class="dt-total"></span>
+        </div>
+        <div id="cleanupStatus" class="scan-status" hidden>
+          <div class="spinner" aria-hidden="true"></div>
+          <p id="cleanupStatusText" class="muted">Measuring…</p>
+        </div>
+        <div id="cleanupList" class="dt-catlist" hidden></div>
+      </section>
+
+      <section id="dt-usage" class="dt-section" hidden>
+        <div class="dt-actions">
+          <select id="usageDrive" class="select"></select>
+          <button id="usageScan" class="btn btn--primary" type="button">Scan</button>
+          <button id="usageUp" class="btn btn--ghost" type="button" hidden>↑ Up</button>
+          <span id="usageCrumb" class="dt-crumb"></span>
+        </div>
+        <div id="usagePac" class="pac-banner" hidden>
+          <span class="pacman" aria-hidden="true"></span>
+          <span id="usagePacText" class="muted">Scanning...</span>
+        </div>
+        <div id="usageResults" hidden>
+          <h4 class="info-sub">Largest folders</h4>
+          <div id="usageFolders" class="dt-bars"></div>
+          <div id="usageFilesWrap" hidden>
+            <h4 class="info-sub">Largest files</h4>
+            <div id="usageFiles" class="dt-bars"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="dt-speed" class="dt-section" hidden>
+        <p class="muted">Measures real read/write speed on a drive by writing a temp file, reading it back, and doing 4K random reads — then deletes it. Best for checking USB sticks and SD cards, including slow counterfeits. Pick a size at least as big as the PC’s RAM for a read figure that isn’t flattered by caching.</p>
+        <div class="dt-actions">
+          <select id="speedDrive" class="select"></select>
+          <select id="speedSize" class="select">
+            <option value="256">256 MB (quick)</option>
+            <option value="512">512 MB</option>
+            <option value="1024">1 GB</option>
+            <option value="2048">2 GB (thorough)</option>
+          </select>
+          <button id="speedGo" class="btn btn--primary" type="button">Start test</button>
+          <button id="speedCancel" class="btn btn--ghost btn--danger" type="button" hidden>Cancel</button>
+        </div>
+        <div id="speedStatus" class="scan-status" hidden>
+          <div class="spinner" aria-hidden="true"></div>
+          <p id="speedStatusText" class="muted">Testing…</p>
+        </div>
+        <div id="speedResult" class="net-speed" hidden></div>
+      </section>
+    </main>
+
+    <!-- ================= BACKUP & IMAGING ================= -->
+    <main id="panel-backup" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Backup, Imaging &amp; Cloning</h1>
+          <p class="muted">Map every disk, create bootable system images or volume backups with Windows' own proven engines, mount images to pull files back, and manage partitions. Destructive actions are guarded and ask you to confirm. Run as administrator.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="bkRefresh" class="btn btn--ghost" type="button">Refresh disks</button>
+        </div>
+      </div>
+
+      <div class="subnav">
+        <button class="subtab subtab--active" data-bsub="map" type="button">Disk Map</button>
+        <button class="subtab" data-bsub="create" type="button">Create Image</button>
+        <button class="subtab" data-bsub="mount" type="button">Mount &amp; Browse</button>
+        <button class="subtab" data-bsub="restore" type="button">Restore &amp; Clone</button>
+      </div>
+
+      <!-- DISK MAP -->
+      <section id="bk-map" class="bk-section">
+        <div id="bkMapStatus" class="scan-status" hidden>
+          <div class="spinner" aria-hidden="true"></div>
+          <p class="muted">Reading disks and partitions…</p>
+        </div>
+        <div id="bkMapError" class="scan-error" hidden>
+          <h3>Couldn’t read disks</h3>
+          <pre id="bkMapErrorDetail" class="finding__detail"></pre>
+        </div>
+        <div id="bkDisks" class="bk-disks" hidden></div>
+      </section>
+
+      <!-- CREATE IMAGE -->
+      <section id="bk-create" class="bk-section" hidden>
+        <div class="bk-modes">
+          <label class="bk-mode">
+            <input type="radio" name="bkMode" value="systemimage" checked />
+            <div class="bk-mode__body">
+              <h3>Full system image <span class="bk-pill">bootable</span></h3>
+              <p class="muted">A complete, restorable image of Windows and every volume needed to boot, via Windows Backup (wbadmin). Best for a whole-PC safety net before a risky job. The PC keeps running; nothing on the source is changed.</p>
+            </div>
+          </label>
+          <label class="bk-mode">
+            <input type="radio" name="bkMode" value="capture" />
+            <div class="bk-mode__body">
+              <h3>Volume backup to a WIM file</h3>
+              <p class="muted">A compressed, file-based image of one volume (DISM). Ideal for data drives and for moving a drive’s contents elsewhere. For the Windows drive, use the full system image. The source is read only.</p>
+            </div>
+          </label>
+        </div>
+
+        <div class="bk-form">
+          <label class="field"><span>Source volume</span><select id="bkSrcVol" class="select"></select></label>
+          <label class="field"><span id="bkTargetLabel">Target drive (where the image is written)</span>
+            <div class="field__row">
+              <input id="bkTarget" type="text" placeholder="Click Choose…" readonly />
+              <button id="bkTargetPick" class="btn btn--ghost" type="button">Choose…</button>
+            </div>
+          </label>
+          <label class="field"><span>Image name (optional)</span><input id="bkName" type="text" placeholder="e.g. Smith laptop C drive" /></label>
+        </div>
+        <div class="bk-actions">
+          <button id="bkCreateStart" class="btn btn--primary" type="button">Start backup</button>
+          <span id="bkCreateHint" class="muted"></span>
+        </div>
+        <div id="bkCreateRunner" class="repairs-runner" hidden>
+          <div class="repairs-runner__head"><h3 id="bkCreateTitle">Working…</h3><span id="bkCreateState" class="repairs-state"></span></div>
+          <pre id="bkCreateLog" class="repairs-log"></pre>
+        </div>
+      </section>
+
+      <!-- MOUNT & BROWSE -->
+      <section id="bk-mount" class="bk-section" hidden>
+        <p class="muted">Open an image to browse its contents and copy individual files back out. Images are mounted <strong>read-only</strong>. Supports .wim, .vhdx, .vhd and .iso.</p>
+        <div class="bk-actions">
+          <input id="bkMountPath" class="bk-pathinput" type="text" placeholder="Choose an image file…" readonly />
+          <button id="bkMountPick" class="btn btn--ghost" type="button">Choose…</button>
+          <button id="bkMountGo" class="btn btn--primary" type="button" disabled>Mount</button>
+        </div>
+        <div id="bkMounts" class="bk-mounts"></div>
+      </section>
+
+      <!-- RESTORE & CLONE -->
+      <section id="bk-restore" class="bk-section" hidden>
+        <div class="bk-panel bk-panel--danger">
+          <h3>Restore a WIM image onto a volume</h3>
+          <p class="muted">Writes a captured <code>.wim</code> back onto a chosen volume with DISM. <strong>This overwrites everything on the destination.</strong> The Windows / system / boot volume is blocked as a destination, and you must type the destination letter to confirm.</p>
+          <div class="bk-form">
+            <label class="field"><span>Image file (.wim)</span>
+              <div class="field__row"><input id="bkApplyImg" type="text" placeholder="Choose a .wim…" readonly /><button id="bkApplyPick" class="btn btn--ghost" type="button">Choose…</button></div>
+            </label>
+            <label class="field"><span>Image index</span><input id="bkApplyIndex" type="number" value="1" min="1" /></label>
+            <label class="field"><span>Destination volume</span><select id="bkApplyDest" class="select"></select></label>
+          </div>
+          <div class="bk-actions"><button id="bkApplyStart" class="btn btn--primary btn--danger" type="button">Restore image…</button></div>
+          <div id="bkApplyRunner" class="repairs-runner" hidden>
+            <div class="repairs-runner__head"><h3 id="bkApplyTitle">Working…</h3><span id="bkApplyState" class="repairs-state"></span></div>
+            <pre id="bkApplyLog" class="repairs-log"></pre>
+          </div>
+        </div>
+
+        <div class="bk-panel">
+          <h3>Full system-image restore (bare metal)</h3>
+          <p class="muted">A full wbadmin system image is restored from the Windows Recovery Environment, not from inside Windows. Boot the PC into recovery, then choose <em>Troubleshoot → Advanced options → System Image Recovery</em> and point it at the <code>WindowsImageBackup</code> folder on your target drive.</p>
+          <div class="bk-actions"><button id="bkBootRecovery" class="btn btn--ghost" type="button">Reboot into recovery now…</button></div>
+        </div>
+
+        <div class="bk-panel">
+          <h3>Disk-to-disk clone</h3>
+          <p class="muted">For a true sector-level clone onto a new drive (migrating an old HDD to a new SSD), the safest route is a dedicated, proven cloning engine that handles bad sectors and alignment. TM Toolset launches one for you rather than risking a half-written clone. Trusted free options:</p>
+          <div class="bk-actions">
+            <button class="btn btn--ghost" type="button" data-openurl="https://clonezilla.org/">Clonezilla</button>
+            <button class="btn btn--ghost" type="button" data-openurl="https://www.macrium.com/reflectfree">Macrium Reflect Free</button>
+          </div>
+          <p class="muted bk-note">Tip: you can also clone with TM Toolset alone — <strong>capture</strong> the old drive to a <code>.wim</code>, then <strong>restore</strong> that <code>.wim</code> onto the new drive.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= ACTIVITY LOG ================= -->
+    <main id="panel-logs" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Activity Log</h1>
+          <p class="muted">A running record of what TM Toolset has done on this machine — clean-ups, repairs, imaging, partition changes, ME cleans, uninstalls — with results, newest first. Stored in the app’s data folder so it travels with your USB.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="logsRefresh" class="btn btn--ghost" type="button">Refresh</button>
+          <button id="logsOpen" class="btn btn--ghost" type="button">Open folder</button>
+          <button id="logsClear" class="btn btn--ghost btn--danger" type="button">Clear</button>
+        </div>
+      </div>
+      <p id="logsMeta" class="muted"></p>
+      <pre id="logsView" class="repairs-log" style="max-height:60vh"></pre>
+    </main>
+
+    <!-- ================= BOARD-LEVEL REPAIR ================= -->
+    <main id="panel-board" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Board-Level Repair &amp; Micro-Soldering</h1>
+          <p class="muted">Researched guides, symptom playbooks, and built-in boardview + PDF viewers with a reference library for your own schematics and datasheets.</p>
+        </div>
+      </div>
+      <div class="subnav">
+        <button class="subtab subtab--active" data-brsub="guides" type="button">Guides</button>
+        <button class="subtab" data-brsub="circuits" type="button">Circuit Explainers</button>
+        <button class="subtab" data-brsub="testing" type="button">Component Testing</button>
+        <button class="subtab" data-brsub="heat" type="button">Heat &amp; Tips</button>
+        <button class="subtab" data-brsub="jobs" type="button">Repair Jobs</button>
+        <button class="subtab" data-brsub="fault" type="button">Fault-Finding</button>
+        <button class="subtab" data-brsub="lib" type="button">Viewers &amp; Library</button>
+      </div>
+
+      <!-- GUIDES -->
+      <section id="br-guides" class="bios-section">
+        <div class="drv-panel">
+          <h3>Is this for you?</h3>
+          <p class="muted">Board-level repair means fixing the motherboard itself — components, traces, BGAs — not swapping parts. It needs a proper bench, a steady hand under a microscope, and a methodical approach. Start on scrap boards, learn to read schematics + boardviews, and build up slowly.</p>
+        </div>
+        <div class="drv-panel">
+          <h3>iFixit repair guides</h3>
+          <p class="muted">Step-by-step teardowns and repair guides for almost any device. Type a model to jump straight to its guides.</p>
+          <div class="bk-actions">
+            <input id="brIfixitQ" class="bk-pathinput" type="text" placeholder="e.g. iPhone 12, PS5, Dell XPS 15, MacBook Pro A1708" />
+            <button id="brIfixitGo" class="btn btn--primary" type="button">Search iFixit guides</button>
+            <button class="btn btn--ghost" type="button" data-openurl="https://www.ifixit.com/Guide">Browse all</button>
+          </div>
+        </div>
+        <div class="drv-panel">
+          <h3>The bench — what to buy, in order</h3>
+          <p class="muted"><strong>Buy first (can’t work without):</strong></p>
+          <ul class="bios-bullets">
+            <li><strong>Temperature-controlled soldering station</strong> — JBC or Hakko are the pro standards; fast heat-up and stable temp matter more than wattage. A fine conical/bent tip for micro work.</li>
+            <li><strong>Stereo microscope</strong> — not a luxury for board work; you’re soldering parts too small to see reliably by eye (down to 01005). 7×–45× zoom, good ring light.</li>
+            <li><strong>Hot-air rework station</strong> — for connectors, shields and BGAs. Airflow <em>and</em> temp both need care or you lift pads/warp the board.</li>
+            <li><strong>Multimeter with diode mode</strong> — your primary diagnostic; diode-mode and resistance readings tell you where a rail is shorted.</li>
+            <li><strong>Consumables</strong> — good flux (paste + pen), <strong>leaded 63/37 solder ~0.3 mm</strong> (easier than lead-free), ChipQuik low-temp removal alloy, solder wick, 99% IPA, lint-free wipes.</li>
+            <li><strong>Fixturing</strong> — a PCB holder/fixture, fine curved + straight tweezers.</li>
+          </ul>
+          <p class="muted"><strong>Add next:</strong> a <strong>DC bench power supply</strong> (current-limited — for voltage injection and watching current draw), a <strong>preheater</strong> (even bottom-heat so big chips come off without stress).</p>
+          <p class="muted"><strong>Advanced:</strong> <strong>thermal camera</strong> (instantly shows the hot shorted component), BGA reball stencils + kit, ultrasonic cleaner.</p>
+        </div>
+        <div class="drv-panel">
+          <h3>Core techniques</h3>
+          <ul class="bios-bullets">
+            <li><strong>Flux is everything</strong> — more than you think. It cleans, wets and carries heat. Clean residue with IPA afterwards.</li>
+            <li><strong>Heat control</strong> — leaded solder flows ~315–345 °C on the iron; hot air typically ~350–400 °C with moderate airflow for connectors, shielding adjacent plastics with Kapton.</li>
+            <li><strong>Removing a chip/connector</strong> — pre-heat the board, flood with flux, even hot-air circles, lift only when solder is fully molten (never pry cold — that’s how pads tear).</li>
+            <li><strong>Low-temp removal</strong> — ChipQuik lowers the melting point so you can lift delicate parts with far less heat.</li>
+            <li><strong>Pad/trace repair</strong> — scrape to clean copper, tin, and jumper with fine enamelled wire; re-establish the net from the boardview.</li>
+            <li><strong>BGA reball</strong> — remove, wick the pads clean, flux, stencil + balls, reflow, align, reflow onto the board. Practice this a lot on scrap.</li>
+          </ul>
+        </div>
+        <div class="drv-panel bios-golden">
+          <h3>Safety &amp; good habits</h3>
+          <ul class="bios-bullets">
+            <li><strong>ESD</strong> — wrist strap + mat; logic boards are static-sensitive.</li>
+            <li><strong>Leaded solder hygiene</strong> — fume extraction, wash hands, don’t eat at the bench.</li>
+            <li><strong>Disconnect the battery</strong> before rework; discharge, and never hot-air over a connected Li-ion cell.</li>
+            <li>Practice on dead boards, and keep the original dump/data before you change anything.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- CIRCUIT EXPLAINERS -->
+      <section id="br-circuits" class="bios-section" hidden>
+        <div class="drv-panel bios-golden">
+          <h3>Why this matters</h3>
+          <p class="muted">Once you understand the handful of circuits a board is built from, a meter reading stops being a number and starts telling a story. These are the building blocks you meet on every laptop, phone and console board.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Reading a power rail (the foundation)</h3>
+          <p class="muted">A "rail" is a voltage the board generates (e.g. 3.3 V, 1.8 V, VCORE). Every rail has a web of <strong>decoupling capacitors</strong> to ground, so in <strong>diode mode / resistance to ground</strong> a healthy rail reads a small-to-moderate value that <em>drifts upward</em> as those caps charge from your meter. A <strong>hard ~0 Ω / 0.000 V</strong> that doesn't move = something on that rail is shorted to ground (usually a cracked MLCC or a dead FET). That single idea drives most no-power diagnosis: measure the rail, decide "short or not", then hunt the part.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Buck converter (step-down) — the workhorse</h3>
+          <p class="muted">Turns a higher rail into a lower one efficiently. A <strong>PWM controller</strong> switches a <strong>high-side FET</strong> and <strong>low-side FET</strong> in turn, feeding an <strong>inductor (coil)</strong> and <strong>output caps</strong>; a <strong>feedback</strong> line tells the controller to hold the target voltage. Most of a board's rails are bucks.</p>
+          <ul class="bios-bullets">
+            <li><strong>Shorted low-side FET</strong> → output rail dead-shorts to ground (classic "rail short").</li>
+            <li><strong>Open inductor</strong> → no output (often blows after a FET fails).</li>
+            <li><strong>Bad feedback / caps</strong> → wrong or unstable voltage.</li>
+            <li><strong>So:</strong> rail shorted → suspect the low FET/output caps; rail missing but input + enable present → suspect coil/controller/feedback.</li>
+          </ul>
+        </div>
+
+        <div class="drv-panel">
+          <h3>LDO (linear regulator)</h3>
+          <p class="muted">A simpler, less efficient step-down for small/quiet rails. Three things matter: <strong>input</strong>, <strong>enable</strong>, <strong>output</strong>. Input + enable present but no output = dead LDO (or its output is shorted downstream and it's folding back). Great news for diagnosis: easy to reason about.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Boost converter (step-up)</h3>
+          <p class="muted">Steps voltage <em>up</em> — the backlight rail (~40 V from ~12 V) is a boost. Inductor + switch FET + diode + feedback. If enable/PWM is missing or the feedback is broken, it won't boost — which is exactly the backlight no-boost case.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Power sequencing &amp; PWRGOOD</h3>
+          <p class="muted">Rails must come up <strong>in order</strong>: the EC enables rail A, waits for its <strong>PWRGOOD</strong>, then enables rail B, and so on up to the CPU/SoC. If any rail fails to assert PWRGOOD, the <strong>whole chain stalls</strong> — so "no power" is often one early rail that's shorted or missing, not the CPU. Find the first rail that doesn't come up and work from there.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>USB-C Power Delivery (PD)</h3>
+          <p class="muted">The port's <strong>CC1/CC2</strong> lines carry a negotiation. Pull-up/pull-down resistances advertise roles; the <strong>PD controller</strong> then requests 5 / 9 / 15 / 20 V and the source switches <strong>VBUS</strong> up. That's why a dead CC line (blown ESD diode / cracked trace) leaves a port that only works one way round, and why a stuck PD controller sits at 5 V and never boosts to 20 V.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Battery charger IC &amp; FETs</h3>
+          <p class="muted">The charger IC regulates current/voltage into the pack, sensing current through tiny <strong>current-sense resistors</strong> and switching through the <strong>battery FETs</strong>. The fuel <strong>gauge</strong> talks to the system over <strong>SMBus</strong>. Knowing this, "won't charge" vs "no battery detected" point to different parts of the same chain (sense R / charger enable vs battery FET / gauge / SMBus).</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Clocks, resets &amp; the EC</h3>
+          <p class="muted">Chips need a <strong>clock</strong> (crystal/oscillator) and the right <strong>reset</strong> release to run. A dead EC crystal = no power sequence at all. Resets are usually released once rails are good — a stuck-low reset holds a chip off. These don't show on a meter; a scope or a known-good swap confirms them.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Decoupling capacitors — why they short rails</h3>
+          <p class="muted">Every rail is peppered with <strong>MLCC</strong> decoupling caps to ground. They fail <strong>short</strong> (mechanical cracks from board flex or heat), which instantly drags that rail to ground — the single most common "mystery short". That's why short-finding (injection + freeze/thermal) so often ends at one tiny cracked cap.</p>
+        </div>
+      </section>
+
+      <!-- COMPONENT TESTING -->
+      <section id="br-testing" class="bios-section" hidden>
+        <div class="drv-panel bios-golden">
+          <h3>Before you test anything</h3>
+          <ul class="bios-bullets">
+            <li><strong>Power off and discharge</strong> the board. In-circuit readings are only a rough screen — parallel caps/resistors/diodes on the same net can make a good part look bad and vice-versa.</li>
+            <li>When a reading looks wrong, confirm against the <strong>schematic/boardview</strong>, and where you can, lift one end or remove the part to test it properly.</li>
+            <li>Use <strong>diode mode</strong> for junctions and <strong>resistance (ohms)</strong> for passives; a reading of <strong>0.000 V / 0 Ω</strong> usually means a dead short, <strong>OL</strong> means open.</li>
+          </ul>
+        </div>
+
+        <div class="drv-panel">
+          <h3>MOSFETs</h3>
+          <p class="muted"><strong>Types you'll meet:</strong> N-channel (most common, low-side switches &amp; the low FET in buck converters), P-channel (high-side load switches / reverse-protection), logic-level (turn on from ~1.8–3.3 V gate), dual-N in one package, and synchronous buck pairs (high + low FET feeding a coil). Always get the pinout from the datasheet — G/D/S placement varies.</p>
+          <p class="muted"><strong>Body-diode test (N-channel), part powered off:</strong></p>
+          <ul class="bios-bullets">
+            <li>Diode mode. First short all three legs briefly to discharge the gate.</li>
+            <li><strong>Black on Drain, Red on Source</strong> → body diode forward, reads ~<strong>0.4–0.6 V</strong>. Reverse the probes → <strong>OL</strong>. (P-channel: polarity reversed — body diode points the other way.)</li>
+            <li><strong>Gate-charge check:</strong> touch Red to Gate for a moment to charge it, then Drain↔Source should now read near <strong>0 both ways</strong> (channel turned on). Shorting the gate to source again turns it back off. High-threshold parts may not fully turn on from a meter.</li>
+            <li><strong>Bad:</strong> ~0 V both ways from the start = shorted (the usual failure — often D–S short that drags a rail down). Never turns on after gate charge, or gate leaks to source = dead.</li>
+          </ul>
+          <p class="muted bk-note">A normal body-diode reading only proves one junction behaves at low current — it is NOT an R<sub>DS(on)</sub> or switching test. Treat in-circuit results as a screen.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Diodes, Schottky &amp; TVS</h3>
+          <ul class="bios-bullets">
+            <li>Diode mode: forward ~<strong>0.15–0.3 V</strong> (Schottky) or ~<strong>0.4–0.7 V</strong> (silicon); reverse <strong>OL</strong>.</li>
+            <li><strong>0 V both ways = shorted</strong> (common on TVS/ESD diodes that took a surge — they short to protect, and then hold a rail down). OL both ways = open.</li>
+          </ul>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Capacitors</h3>
+          <ul class="bios-bullets">
+            <li><strong>Ceramic (MLCC):</strong> the classic rail-short culprit. In diode/ohms a good decoupling cap reads high/OL (big banks read a short rise as they charge). A hard <strong>0 Ω short</strong> on a cap bank = one cracked MLCC — find it with injection + freeze/thermal. You can't read value in-circuit; look for cracks/burn marks.</li>
+            <li><strong>Electrolytic / polymer:</strong> check for bulging/leaking; measure <strong>ESR</strong> (an ESR meter in-circuit is gold) — high ESR = tired cap even if value is OK.</li>
+          </ul>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Resistors, current-sense, inductors, coils, fuses</h3>
+          <ul class="bios-bullets">
+            <li><strong>Resistor:</strong> measure ohms (best out-of-circuit). Open = burnt. <strong>Current-sense</strong> resistors are milliohms (often marked R010 = 0.010 Ω) — read ~0 Ω; open one kills a rail's feedback.</li>
+            <li><strong>Inductor / coil / ferrite bead:</strong> should read ~<strong>0–few Ω</strong>. Open = blown (common in buck outputs after a FET fails). A shorted-turns fault won't show on a meter — needs scope/injection.</li>
+            <li><strong>Fuse / zero-ohm link:</strong> <strong>0 Ω = good, OL = blown</strong>. Tiny fuses sit right behind charge ports &amp; connectors — check these early on "no power/no charge".</li>
+            <li><strong>Crystal/oscillator:</strong> a meter won't test it — scope the output or swap a known-good.</li>
+          </ul>
+        </div>
+        <p class="muted bk-note">Method/readings informed by <a href="https://electricalflux.com/learn-components/check-transistor-with-multimeter-bjt-mosfet">electricalflux</a>, <a href="https://www.bettlink.com/blog/how-to-test-a-mosfet-with-a-multimeter">Bettlink</a> and <a href="https://industrialmonitordirect.com/blogs/knowledgebase/mosfet-testing-methods-with-multimeter-and-curve-tracer">Industrial Monitor Direct</a>. Exact numbers vary by part — check the datasheet.</p>
+      </section>
+
+      <!-- HEAT & TIPS -->
+      <section id="br-heat" class="bios-section" hidden>
+        <div class="drv-panel bios-golden">
+          <h3>Read this first</h3>
+          <ul class="bios-bullets">
+            <li>These are <strong>starting points</strong>, not gospel — every board differs. Big boards and large ground/copper planes sink heat, so they need more airflow/temp or a <strong>preheater</strong>. Start low, add heat, keep the nozzle moving.</li>
+            <li><strong>Leaded 63/37</strong> melts ~183 °C, flows nicely with an iron at <strong>320–345 °C</strong>. <strong>Lead-free (SAC)</strong> melts ~217 °C, iron <strong>350–380 °C</strong>, and hot air hotter still. Add a little <strong>leaded</strong> solder to a lead-free joint to lower its melting point when reworking.</li>
+            <li>Protect neighbours with <strong>Kapton tape</strong>; preheat to cut thermal shock (stops pad-lift and cracked MLCCs). "Overheating the neighbourhood turns a port job into a chip job."</li>
+          </ul>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Hot-air guide — your Quick 861DW (100–500 °C, airflow 1–120 L/min)</h3>
+          <table class="heat-table">
+            <tr><th>Job</th><th>Air temp</th><th>Airflow</th><th>Nozzle / notes</th></tr>
+            <tr><td>01005 / 0201 / 0402 passives</td><td>280–320 °C</td><td>low ~20–40</td><td>Small nozzle, low air so you don't blow parts away or cook neighbours; flux + tweezers.</td></tr>
+            <tr><td>0603 / 0805 / SOT-23</td><td>320–350 °C</td><td>~40–60</td><td>Flood with flux; lift when fully molten.</td></tr>
+            <tr><td>Small ICs (SOIC / QFN / TSOP)</td><td>330–360 °C</td><td>~50–70</td><td>Preheat helps; even circles around the body.</td></tr>
+            <tr><td>BGA remove / reflow / reball</td><td>350–380 °C (Pb) / 370–400 (Pb-free)</td><td>~60–80</td><td>Preheat board 150–200 °C from below; big nozzle; don't chase a number, watch the solder.</td></tr>
+            <tr><td>FPC / USB-C / board connectors &amp; shields</td><td>350–400 °C</td><td>~60–100</td><td>Big nozzle, preheat, Kapton the neighbours; lots of thermal mass.</td></tr>
+            <tr><td>HDMI port (console, big grounds, Pb-free)</td><td>400–450 °C (up to 500 stubborn)</td><td>high ~100–120</td><td>Preheat ~200 °C; often <em>remove the nozzle</em> to spread heat; add leaded solder; shield the nearby retimer.</td></tr>
+          </table>
+          <p class="muted bk-note">861DW spec + "low air for small SMD" per <a href="https://clevercreations.org/quick-861dw-hot-air-rework-station-review/">this review</a>; HDMI figures from <a href="https://www.ifixit.com/Answers/View/727176/HDMI+port+:+solder+does+not+melt!">iFixit</a> &amp; <a href="https://www.retrosix.wiki/ps5-hdmi-port">RetroSix</a>. Verify on scrap first.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Soldering iron &amp; tips — your Aixun</h3>
+          <ul class="bios-bullets">
+            <li><strong>Temps:</strong> leaded <strong>320–345 °C</strong>, lead-free <strong>350–380 °C</strong>. If a joint isn't flowing, it's usually too little tip mass or no flux — not just low temperature. Go hotter briefly rather than dwelling long.</li>
+            <li><strong>Micro / bent tip (fine I or small bent):</strong> 0201/0402 passives, QFN corners, fine enamelled-wire jumpers, lifted-pad repair, IC legs.</li>
+            <li><strong>Chisel / knife tip (bigger):</strong> connectors, ground pins, big pads, through-hole, and <strong>drag-soldering</strong> IC rows — the mass holds heat so you're done faster with less total damage.</li>
+            <li><strong>Conical / bent medium:</strong> general-purpose SMD and point work.</li>
+            <li><strong>Rule of thumb:</strong> use the <em>biggest tip that fits</em> — more thermal mass means a faster joint and less dwell time on the board.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- REPAIR JOBS -->
+      <section id="br-jobs" class="bios-section" hidden>
+        <div class="drv-panel">
+          <h3>HDMI port — PlayStation (PS4 / PS5)</h3>
+          <ol class="bios-steps">
+            <li>Strip the board out, clean, and inspect the old port + pads under the scope. Note the orientation and the anchor legs.</li>
+            <li><strong>Preheat</strong> the board (~200 °C) — consoles have huge ground planes; cold boards lift pads.</li>
+            <li>Flood with flux. Hot air <strong>~400–450 °C, high airflow (~100–120)</strong>, nozzle often removed to spread heat over the whole port. <strong>Kapton-shield</strong> the nearby retimer/encoder chip — that's the expensive thing to cook.</li>
+            <li>Lift <strong>only when every pin is molten</strong> — never pry a cold port or you'll tear pads. Clean pads with wick + flux, inspect.</li>
+            <li>Tin, place the new port, anchor the <strong>4 mechanical legs first</strong> for alignment/strength, then reflow the signal pins. Inspect every joint under the scope; test for shorts before powering.</li>
+          </ol>
+          <p class="muted bk-note">Technique/temps from <a href="https://www.ifixit.com/Answers/View/727176/HDMI+port+:+solder+does+not+melt!">iFixit</a>, <a href="https://www.retrosix.wiki/ps5-hdmi-port">RetroSix</a> and <a href="https://kasynparts.com/ps5-hdmi-replacement-guide-fix-no-display-wholesale-parts/">kasynparts</a>. Start lower and work up on your board.</p>
+        </div>
+        <div class="drv-panel">
+          <h3>Replacing a shorted ceramic cap (MLCC) on a rail</h3>
+          <ol class="bios-steps">
+            <li>Find the shorted cap first (resistance → voltage injection → freeze spray/thermal to spot the hot one).</li>
+            <li>Remove it: hot air <strong>~300–330 °C</strong>, low airflow, with tweezers — or add leaded/ChipQuik and roll it off with the iron. Don't launch the part into a neighbour.</li>
+            <li>Wick the pads clean, flux, place a <strong>same value &amp; voltage</strong> cap (match the footprint). If you don't know the value, read it from the schematic or an identical point.</li>
+            <li>Reflow, clean, and re-measure the rail isn't still shorted before powering.</li>
+          </ol>
+        </div>
+        <div class="drv-panel">
+          <h3>Lifted pad / broken trace</h3>
+          <ol class="bios-steps">
+            <li>Scrape back to clean copper on the trace, tin it.</li>
+            <li>Jumper with fine enamelled wire to the next via/component on that net (get the net from the boardview).</li>
+            <li>Tack both ends, verify continuity, then protect with UV solder-mask or a dab of epoxy so it can't flex and break again.</li>
+          </ol>
+        </div>
+        <div class="drv-panel">
+          <h3>USB-C charge port &amp; Power Delivery (no charge)</h3>
+          <ol class="bios-steps">
+            <li><strong>Rule out the easy stuff first:</strong> try a known-good PD charger + cable, try the other USB-C port (some don't support charging), and do an EC drain (hold power 30 s, no charger/battery).</li>
+            <li><strong>CC lines are the handshake.</strong> The PD controller reads a resistance on <strong>CC1/CC2</strong> (whichever matches plug orientation) to detect the charger. Idle, a healthy CC pin sits around <strong>~1.7 V</strong>. <strong>Both CC at 0 V with no 5 V</strong> = PD-controller fault or a short. <strong>Charges in one orientation only</strong> = a blown ESD diode or fractured trace on that CC line.</li>
+            <li>Check the CC <strong>ESD/TVS diodes</strong> near the port in diode mode (a shorted one kills that CC). Check the port pins aren't bent/dirty — negotiation is physically impossible if they are.</li>
+            <li>Confirm <strong>VBUS</strong> (5 V in) reaches the board and the PD controller's own rail is present. Stuck at 5 V and never boosting to 20 V = PD controller, not the port (e.g. TI TPS6598x / Cypress CCG — get the part + schematic).</li>
+            <li><strong>Repair:</strong> reflow or replace the port (hot air ~350–400 °C, big nozzle, preheat, Kapton neighbours), replace shorted CC ESD diodes, then re-test negotiation.</li>
+          </ol>
+          <p class="muted bk-note">CC behaviour/readings from <a href="https://learn.microsoft.com/en-us/answers/questions/2334558/what-reason-may-cause-usb-c-port-cc1-cc2-become-0v">Microsoft Q&amp;A</a> and <a href="https://nepguru.com/labs/repairing-a-usb-c-charging-port-with-no-power-negotiation/">nepguru</a>. Confirm part numbers on the schematic.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Battery charging path &amp; FETs (won't charge / "no battery detected")</h3>
+          <p class="muted">Path: <strong>adapter → adapter-detect → input FETs → charger IC → current-sense resistors → battery FETs → battery &amp; fuel gauge</strong>. Work along it:</p>
+          <ol class="bios-steps">
+            <li><strong>Adapter detect</strong> (ACDET/ADAPDET) — if the board doesn't "see" the adapter it won't charge. A bad DC jack/port can read 0 V here.</li>
+            <li><strong>Input rail</strong> reaches the charger IC? Check the charger IC's supply and <strong>enable</strong>.</li>
+            <li><strong>Current-sense resistors</strong> around the charger IC (milliohm, R010-type) — an open one kills the feedback and charging stops.</li>
+            <li><strong>Battery FETs</strong> (often a dual-N pack between charger and battery): a shorted or open battery FET = no charge, or the system never detects a battery. Test as MOSFETs.</li>
+            <li><strong>Fuel gauge + SMBus (SMClk/SMData)</strong> — "no battery detected" with good FETs points here, or at a dead gauge / pack.</li>
+          </ol>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Backlight circuit (image present, screen dark)</h3>
+          <ol class="bios-steps">
+            <li><strong>Confirm it's the backlight</strong> — shine a torch at the panel; if you can faintly see the desktop, the image/GPU is fine and it's the backlight. An external monitor working also isolates it to panel/cable/backlight.</li>
+            <li><strong>Backlight fuse</strong> — check continuity (power off). Powered, ~<strong>12.6 V on both sides</strong> means the supply reaches the boost stage but it isn't boosting. A blown fuse means a <strong>downstream short</strong> — find it before fitting the same-rating fuse or it'll just blow again.</li>
+            <li><strong>Boost output</strong> — healthy is ~<strong>39–49 V</strong>. Seeing ~8.5 V or ~12 V = not boosting; near 0 V = a short to ground on that line (or a blown via/trace).</li>
+            <li><strong>Enable &amp; PWM</strong> — the driver needs <strong>BKL_EN ≥ ~2.7 V</strong> and a <strong>BKL_PWM</strong> signal; missing either (from the EC/GPU) means no boost. A broken <strong>feedback trace</strong> to the LED-driver IC is a classic failure — jumpering it can confirm the diagnosis.</li>
+            <li><strong>Panel side</strong> — bad LCD connector/cable (a backlight cable in upside-down is the single most common one), or a dead LED string in the panel.</li>
+          </ol>
+          <p class="muted bk-note">Voltages/method from iFixit &amp; Rossmann-forum MacBook threads and <a href="https://tft-display.net/posts/lcd-image-no-backlight-troubleshooting/">this guide</a> — MacBook-specific numbers; always check the model's schematic. LED-driver work is usually BGA hot-air rework.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Won't power on — the EC / power-sequence path</h3>
+          <ol class="bios-steps">
+            <li>Confirm the always-on rail (e.g. 3.3 V ALW / RTC / "G3" rails) is present — the EC runs from it even when "off".</li>
+            <li>Press power and watch for the sequence: power button → EC → enable the primary rails → PWRGOOD → CPU/SoC. If it dies instantly, go to the <strong>short-to-ground</strong> playbook (Fault-Finding).</li>
+            <li>Check the <strong>RTC/CMOS battery</strong> and the EC's clock/crystal — a dead EC clock = no power sequence.</li>
+            <li>No single rail coming up: find the regulator/enable for that rail on the schematic and work back to what gates it.</li>
+          </ol>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Other useful tools worth adding</h3>
+          <ul class="bios-bullets">
+            <li><strong>Quality tweezers</strong> (Vetus-style), a <strong>PCB holder/fixture</strong>, and a <strong>fibreglass scratch pen</strong> for cleaning pads/traces.</li>
+            <li><strong>ChipQuik low-temp alloy</strong>, good <strong>flux</strong> (paste + pen), <strong>Kapton tape</strong>, fine <strong>enamelled jumper wire</strong>, <strong>UV solder mask + torch</strong>.</li>
+            <li><strong>Current-limited bench PSU</strong> (Korad-type) and a <strong>USB-C trigger/tester</strong> for charge-path work.</li>
+            <li><strong>Thermal camera</strong> (or at least freeze spray) to pinpoint shorts; <strong>ESR meter</strong> for caps.</li>
+            <li><strong>Ultrasonic cleaner</strong> for liquid-damage boards; <strong>BGA reball stencils</strong> + solder balls; a solid <strong>microscope</strong> with a ring light.</li>
+            <li><strong>Fume extraction</strong> — look after your lungs with leaded solder &amp; flux.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- FAULT-FINDING -->
+      <section id="br-fault" class="bios-section" hidden>
+        <div class="drv-panel bios-golden">
+          <h3>Golden rule: measure before you power</h3>
+          <p class="muted">Before applying any power, measure each rail’s resistance/diode-mode reading to ground. Powering into a dead short destroys components. A near-zero reading on a main rail = hard short — don’t plug the charger in.</p>
+        </div>
+        <div class="drv-panel">
+          <h3>No power / short to ground</h3>
+          <ol class="bios-steps">
+            <li><strong>Resistance first.</strong> Disconnect charger, battery and peripherals. Measure the main rail (e.g. 19 V input, then 3.3 V/5 V/1.8 V rails) to ground. Healthy diode-mode on a good rail is often ~0.3–0.5 V; below a few ohms on B+ to ground indicates a short.</li>
+            <li><strong>Isolate the rail.</strong> Work out which rail is shorted — and whether it’s the board or the charger path. (Some laptops use an ADAPDET pin in the DC jack that reads 0 V until the adapter fully seats, so a bad jack can look like a fault.)</li>
+            <li><strong>Voltage injection.</strong> Current-limited bench supply, ground on a solid board ground (screw/shield). Start low: ~0.5–1.5 V, limit ~1.5–2 A. If the supply instantly collapses to ~0.1 V, it’s in constant-current — that’s what a real short looks like, not a PSU fault.</li>
+            <li><strong>Find the hot part.</strong> With current flowing, find what heats up: thermal camera, a smear of IPA (evaporates fastest over the hot part), or freeze spray. Usual culprits: shorted caps, MOSFETs, current-sense resistors.</li>
+            <li><strong>Confirm on the schematic/boardview</strong> which component sits on that net before you remove anything — a short can sit anywhere on a big copper plane.</li>
+          </ol>
+          <p class="muted">Treat specific voltages/thresholds as rough guides — always check the board’s own schematic.</p>
+        </div>
+        <div class="drv-panel">
+          <h3>Won’t charge</h3>
+          <ul class="bios-bullets">
+            <li>Check the DC jack/USB-C port and the ADAPDET/CC lines first — bad ports are extremely common.</li>
+            <li>Verify the charging IC’s input rail and enable signals; check the current-sense resistors and the battery FETs.</li>
+            <li>USB-C: check the CC lines and the protection/e-marker; a blown TVS/short on VBUS stops charging.</li>
+          </ul>
+        </div>
+        <div class="drv-panel">
+          <h3>No display / no backlight</h3>
+          <ul class="bios-bullets">
+            <li>Does it POST (fans, caps-lock, external monitor)? If external works, suspect panel/cable/backlight, not the GPU.</li>
+            <li>Backlight: check the backlight boost rail and enable, the fuse/filter near the connector, and the LED driver.</li>
+            <li>No output at all: check the GPU/SoC core rails and clocks.</li>
+          </ul>
+        </div>
+        <div class="drv-panel">
+          <h3>Liquid damage</h3>
+          <ul class="bios-bullets">
+            <li>Don’t power on. Full teardown, inspect under the scope for corrosion/green crud, especially around connectors and power sections.</li>
+            <li>Ultrasonic clean (or IPA + brush), dry fully, then diagnose as a short/no-power board — corrosion creates leakage paths.</li>
+            <li>Replace visibly corroded components; corrosion wicks under shields and BGAs.</li>
+          </ul>
+        </div>
+        <div class="drv-panel">
+          <h3>Boot loop / random shutdown</h3>
+          <ul class="bios-bullets">
+            <li>Thermal: reflow/re-paste, check fan. Shuts off within seconds of load → overheating or a failing rail.</li>
+            <li>Check for a rail that sags under load (scope/meter), marginal caps, or a failing VRM phase.</li>
+            <li>If it reaches Windows then BSODs → use Crash Analysis; if events show WHEA/hardware errors → Diagnose → Recent Problems.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- VIEWERS & LIBRARY -->
+      <section id="br-lib" class="bios-section" hidden>
+        <div class="drv-panel">
+          <h3>Boardview viewer (built in)</h3>
+          <p class="muted">Opens the component/net map of a board — click a part to see its pins and the net, trace a short to the right component. Supports .brd, .brd2, .bdv, .bvr, .fz, .cad, .asc and more (auto-detected). Powered by the bundled OpenBoardView.</p>
+          <div class="bk-actions"><button id="brBoardGo" class="btn btn--primary" type="button">Open a boardview file…</button></div>
+        </div>
+        <div class="drv-panel">
+          <h3>PDF viewer (built in)</h3>
+          <p class="muted">Open a schematic or datasheet PDF in the bundled lightweight viewer (SumatraPDF) — fast, no browser needed.</p>
+          <div class="bk-actions"><button id="brPdfGo" class="btn btn--primary" type="button">Open a PDF…</button></div>
+        </div>
+        <div class="drv-panel">
+          <h3>Your reference library</h3>
+          <p class="muted">Keep your own schematics, boardviews and datasheets, filed by model, so they travel with your USB. <strong>I don’t ship or link pirated schematics</strong> — import the files you’re entitled to use; open each with the right viewer in one click.</p>
+          <div class="bk-actions">
+            <input id="brModel" class="bk-pathinput" type="text" placeholder="Model / label (optional, e.g. Dell 7490)" />
+            <button id="brImport" class="btn btn--primary" type="button">Import file(s)…</button>
+            <button id="brImportFolder" class="btn btn--primary" type="button">Import a folder…</button>
+            <button id="brOpenLib" class="btn btn--ghost" type="button">Open folder</button>
+          </div>
+          <div class="bk-actions">
+            <input id="brSearch" class="bk-pathinput" type="text" placeholder="Filter library by name or model…" />
+            <button id="brRefresh" class="btn btn--ghost" type="button">Refresh</button>
+            <span id="brLibCount" class="dt-total"></span>
+          </div>
+          <div id="brLibList" class="bios-vault-list"></div>
+        </div>
+        <div class="drv-panel">
+          <h3>Legitimate reference sources</h3>
+          <p class="muted">Official datasheets and component data — for identifying parts and checking pinouts/values.</p>
+          <div class="bk-actions">
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://octopart.com/">Octopart</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://www.lcsc.com/">LCSC</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://www.alldatasheet.com/">AllDatasheet</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://www.ifixit.com/Guide">iFixit Guides</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= DEBLOAT ================= -->
+    <main id="panel-debloat" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Debloat</h1>
+          <p class="muted">Every installed program and Windows Store app in one list, with likely <strong>bloatware/trialware flagged</strong>. Tick what to remove and uninstall it. Run as administrator for machine-wide programs. Nothing is pre-ticked — you decide.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="dbScan" class="btn btn--primary" type="button">Scan installed software</button>
+        </div>
+      </div>
+      <div class="bk-actions">
+        <label class="drv-auto"><input id="dbFlaggedOnly" type="checkbox" /> <span>Show flagged bloat only</span></label>
+        <button id="dbUninstall" class="btn btn--primary btn--danger" type="button" hidden>Uninstall selected</button>
+        <span id="dbTotal" class="dt-total"></span>
+      </div>
+      <div id="dbStatus" class="scan-status" hidden><div class="spinner" aria-hidden="true"></div><p class="muted">Reading installed software…</p></div>
+      <div id="dbList" class="db-list" hidden></div>
+      <div id="dbRunner" class="repairs-runner" hidden>
+        <div class="repairs-runner__head"><h3>Uninstalling</h3><span id="dbState" class="repairs-state"></span></div>
+        <pre id="dbLog" class="repairs-log"></pre>
+      </div>
+    </main>
+
+    <!-- ================= DIAGNOSE ================= -->
+    <main id="panel-diagnose" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Diagnose &amp; Verify</h1>
+          <p class="muted">A guided troubleshooter for a machine that won’t start, and a component-authenticity check that flags counterfeit or relabelled RAM and storage.</p>
+        </div>
+      </div>
+      <div class="subnav">
+        <button class="subtab subtab--active" data-dgsub="post" type="button">Won’t Power On / POST</button>
+        <button class="subtab" data-dgsub="events" type="button">Recent Problems</button>
+        <button class="subtab" data-dgsub="auth" type="button">Component Authenticity</button>
+      </div>
+
+      <section id="dg-post" class="net-section">
+        <div id="dgPostBox" class="dg-flow"></div>
+      </section>
+
+      <section id="dg-events" class="net-section" hidden>
+        <p class="muted">The nasties from the last 7 days of Windows event logs, grouped and explained — unexpected shutdowns, disk errors, hardware (WHEA) errors, blue screens, service failures and app crashes.</p>
+        <div class="bk-actions"><button id="dgEventsGo" class="btn btn--primary" type="button">Scan recent problems</button></div>
+        <div id="dgEventsResult"></div>
+      </section>
+
+      <section id="dg-auth" class="net-section" hidden>
+        <div class="bk-actions"><button id="dgAuthGo" class="btn btn--primary" type="button">Check components</button></div>
+        <div id="dgAuthResult"></div>
+      </section>
+    </main>
+
+    <!-- ================= BIOS / UEFI ================= -->
+    <main id="panel-bios" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>BIOS / UEFI Firmware Bench</h1>
+          <p class="muted">Read this PC’s firmware, open a chip dump and read it in plain English, clean the Intel ME region, find clean OEM files, and prep images to flash with your XGecu T76 (via Xgpro). Reading and parsing is all done here; the T76 does the actual programming.</p>
+        </div>
+      </div>
+
+      <div class="subnav">
+        <button class="subtab subtab--active" data-bbsub="sys" type="button">This System</button>
+        <button class="subtab" data-bbsub="dump" type="button">Analyze a Dump</button>
+        <button class="subtab" data-bbsub="compare" type="button">Compare / Pre-flash</button>
+        <button class="subtab" data-bbsub="get" type="button">Get Firmware</button>
+        <button class="subtab" data-bbsub="tools" type="button">Tools &amp; Programmer</button>
+        <button class="subtab" data-bbsub="vault" type="button">Identity Vault</button>
+        <button class="subtab" data-bbsub="safeguards" type="button">Safeguards</button>
+        <button class="subtab" data-bbsub="guide" type="button">Guide</button>
+      </div>
+
+      <!-- THIS SYSTEM -->
+      <section id="bios-sys" class="bios-section">
+        <div id="biosSysBusy" class="scan-status" hidden><div class="spinner" aria-hidden="true"></div><p class="muted">Reading firmware info…</p></div>
+        <div id="biosSysCard" class="net-kv" hidden></div>
+      </section>
+
+      <!-- READ A DUMP -->
+      <section id="bios-dump" class="bios-section" hidden>
+        <p class="muted">Open a dumped <code>.bin</code> (from your T76) and TM Toolset decodes it: regions, Intel ME, UEFI volumes, vendor, readable identity strings and integrity checks.</p>
+        <div class="bk-actions">
+          <input id="biosDumpPath" class="bk-pathinput" type="text" placeholder="Choose a dump…" readonly />
+          <button id="biosDumpPick" class="btn btn--ghost" type="button">Choose…</button>
+          <button id="biosDumpGo" class="btn btn--primary" type="button" disabled>Analyze</button>
+        </div>
+        <div id="biosReport" class="bios-report" hidden></div>
+
+        <div id="biosUefiActions" class="bk-actions" hidden>
+          <button id="biosUefiReport" class="btn btn--ghost" type="button">Full UEFI report</button>
+          <button id="biosUefiOpen" class="btn btn--ghost" type="button">Open in UEFITool</button>
+        </div>
+        <pre id="biosUefiReportBox" class="repairs-log" hidden></pre>
+
+        <div id="biosMePanel" class="drv-panel" hidden>
+          <h3>Clean the Intel ME region</h3>
+          <p class="muted">Neutralises/minimises the ME firmware (me_cleaner) and writes a new <code>.cleaned.bin</code> next to the original — your source dump is untouched. Use for a fresh, factory-clean image before flashing.</p>
+          <label class="drv-auto"><input id="biosMeTrunc" type="checkbox" checked /> <span>Truncate ME region (-t) — smaller, recommended</span></label>
+          <label class="drv-auto"><input id="biosMeReloc" type="checkbox" /> <span>Relocate FTPR (-r) — try if truncate alone fails to boot</span></label>
+          <div class="bk-actions"><button id="biosMeGo" class="btn btn--primary" type="button">Clean ME region</button></div>
+          <div id="biosMeRunner" class="repairs-runner" hidden>
+            <div class="repairs-runner__head"><h3>me_cleaner</h3><span id="biosMeState" class="repairs-state"></span></div>
+            <pre id="biosMeLog" class="repairs-log"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- GET FIRMWARE -->
+      <section id="bios-get" class="bios-section" hidden>
+        <div class="drv-panel">
+          <h3>Find a clean BIOS file</h3>
+          <p class="muted" id="biosModelLine">Search by board/model. Your Bad Caps membership lets you open and download from threads it finds.</p>
+          <div class="bk-actions">
+            <input id="biosSearchQ" class="bk-pathinput" type="text" placeholder="e.g. Dell 0ABCD1 bios, or a board model" />
+            <button id="biosSearchBadcaps" class="btn btn--primary" type="button">Search Bad Caps</button>
+            <button id="biosSearchWeb" class="btn btn--ghost" type="button">Search the web</button>
+          </div>
+          <div class="bk-actions">
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://www.badcaps.net/forum/">Bad Caps forum</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://www.dell.com/support/home/en-us?app=drivers">Dell</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://support.hp.com/us-en/drivers">HP</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://support.lenovo.com/us/en/">Lenovo</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-openurl="https://www.asus.com/support/download-center/">ASUS</button>
+          </div>
+        </div>
+        <div class="drv-panel">
+          <h3>Unpack an OEM BIOS download</h3>
+          <p class="muted">HP / Dell / Lenovo ship their BIOS as a self-extracting installer. Point this at the file you downloaded and it unpacks it and pulls out the usable firmware image(s) into your library. <strong>Note:</strong> OEM packages are usually just the BIOS region / capsule (for the vendor’s own flasher) — for a full-chip programmer write you may need to graft it onto the board’s own descriptor + ME.</p>
+          <div class="bk-actions">
+            <button id="biosExtractGo" class="btn btn--primary" type="button">Choose a downloaded package…</button>
+            <button id="biosExtractOpen" class="btn btn--ghost" type="button" hidden>Open folder</button>
+          </div>
+          <pre id="biosExtractLog" class="repairs-log" hidden></pre>
+          <div id="biosExtractList" class="bios-extract-list"></div>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Your firmware library</h3>
+          <p class="muted">Keep clean files for jobs you see often. They’re stored in the app’s data folder (travels with your USB).</p>
+          <div class="bk-actions">
+            <button id="biosImport" class="btn btn--primary" type="button">Import a file…</button>
+            <button id="biosOpenLib" class="btn btn--ghost" type="button">Open library folder</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOOLS & PROGRAMMER -->
+      <section id="bios-tools" class="bios-section" hidden>
+        <div class="drv-panel drv-panel--hero">
+          <h3>XGecu T76 (Xgpro)</h3>
+          <p class="muted">Point TM Toolset at your Xgpro install and launch it from here to do the actual read/write with the T76. Prep the image here (read → clean ME → verify), then flash in Xgpro.</p>
+          <label class="field field--wide"><span>Xgpro.exe</span>
+            <div class="field__row"><input id="biosXgproPath" type="text" placeholder="Not set — Locate it, or Get Xgpro" readonly /><button id="biosXgproLocate" class="btn btn--ghost" type="button">Locate…</button><button class="btn btn--ghost" type="button" data-openurl="http://www.xgecu.com/en/">Get Xgpro</button></div>
+          </label>
+          <div class="bk-actions"><button id="biosXgproLaunch" class="btn btn--primary" type="button">Launch Xgpro</button></div>
+        </div>
+        <div class="drv-panel">
+          <h3>Built-in firmware toolkit</h3>
+          <p class="muted">These run <strong>inside</strong> TM Toolset — nothing to download or install. Open a dump in <strong>Read a Dump</strong> and use the buttons there:</p>
+          <ul class="bios-bullets">
+            <li><strong>Full UEFI report</strong> &amp; <strong>Open in UEFITool</strong> — UEFITool / UEFIExtract, bundled.</li>
+            <li><strong>Clean ME region</strong> — me_cleaner, bundled (runs with the app’s own Python).</li>
+          </ul>
+          <div class="bk-actions"><button id="biosUefiOpenBlank" class="btn btn--primary" type="button">Open UEFITool</button></div>
+          <p class="muted bk-note">Want more tools (ME Analyzer, flashrom, Dell/AMI/Insyde extractors) built in too? Say the word and I’ll add them here the same way.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>SPI chip helper</h3>
+          <p class="muted">Type the marking printed on the flash chip and I’ll tell you its capacity, voltage (the board-killer — 1.8 V vs 3.3 V) and how to approach it on your T76.</p>
+          <div class="bk-actions">
+            <input id="spiInput" class="bk-pathinput" type="text" placeholder="e.g. W25Q128FV, MX25L6406E, GD25Q64, MT25QL256" />
+            <button id="spiGo" class="btn btn--primary" type="button">Identify</button>
+          </div>
+          <div id="spiResult" class="net-kv" hidden></div>
+        </div>
+      </section>
+
+      <!-- COMPARE / PRE-FLASH -->
+      <section id="bios-compare" class="bios-section" hidden>
+        <div class="drv-panel">
+          <h3>Firmware Diff — compare two dumps</h3>
+          <p class="muted">See exactly what differs between two images: verify a flash actually took, spot a tampered/implanted BIOS, or confirm an ME clean only touched the ME region.</p>
+          <div class="bk-actions"><input id="diffA" class="bk-pathinput" type="text" readonly placeholder="File A (e.g. before / suspect)…" /><button id="diffPickA" class="btn btn--ghost" type="button">Choose A…</button></div>
+          <div class="bk-actions"><input id="diffB" class="bk-pathinput" type="text" readonly placeholder="File B (e.g. after / known-clean)…" /><button id="diffPickB" class="btn btn--ghost" type="button">Choose B…</button><button id="diffGo" class="btn btn--primary" type="button">Compare</button></div>
+          <div id="diffResult" class="bios-report"></div>
+        </div>
+        <div class="drv-panel">
+          <h3>Pre-flash safety check</h3>
+          <p class="muted">Before you write, check a clean candidate image against the chip you just read off the board. I give a <strong>go / no-go</strong> so a size or layout mismatch doesn’t brick it.</p>
+          <div class="bk-actions"><input id="pfTarget" class="bk-pathinput" type="text" readonly placeholder="Target — the dump from THIS board…" /><button id="pfPickT" class="btn btn--ghost" type="button">Choose target…</button></div>
+          <div class="bk-actions"><input id="pfCand" class="bk-pathinput" type="text" readonly placeholder="Candidate — the clean image you want to flash…" /><button id="pfPickC" class="btn btn--ghost" type="button">Choose candidate…</button><button id="pfGo" class="btn btn--primary" type="button">Check</button></div>
+          <div id="pfResult" class="bios-report"></div>
+        </div>
+      </section>
+
+      <!-- SAFEGUARDS -->
+      <section id="bios-safeguards" class="bios-section" hidden>
+        <div class="drv-panel">
+          <h3>BitLocker pre-work guard</h3>
+          <p class="muted">Changing BIOS / TPM / Secure Boot settings or flashing firmware can trigger <strong>BitLocker recovery</strong> and lock the customer out of their own PC. Check here <em>first</em>, and save the recovery key before you touch anything. Reading recovery keys needs administrator rights.</p>
+          <div class="bk-actions">
+            <button id="blGo" class="btn btn--primary" type="button">Check BitLocker</button>
+            <button id="blSave" class="btn btn--ghost" type="button" hidden>Save recovery keys (.txt)</button>
+            <button id="blSyncro" class="btn btn--ghost" type="button" hidden>Post to Syncro</button>
+          </div>
+          <div id="blResult"></div>
+        </div>
+      </section>
+
+      <!-- IDENTITY VAULT -->
+      <section id="bios-vault" class="bios-section" hidden>
+        <div class="drv-panel">
+          <h3>Board Identity Vault</h3>
+          <p class="muted">Before you swap a board or BIOS chip, capture its identity — serial, UUID, baseboard serial, asset tag and NIC MAC(s). It’s saved in the app (travels with your USB) so you can restore the board’s own identity onto the new chip afterwards, and optionally post it to the Syncro ticket.</p>
+          <div class="bk-actions">
+            <input id="vaultNote" class="bk-pathinput" type="text" placeholder="Ticket # / customer / note (optional)" />
+            <button id="vaultCapture" class="btn btn--primary" type="button">Capture this PC</button>
+            <button id="vaultOpenDir" class="btn btn--ghost" type="button">Open folder</button>
+          </div>
+          <p class="muted bk-note">Restore tip: most boards let you re-enter serial/UUID/asset tag in BIOS setup or the OEM’s DMI tool; the LAN MAC is re-written with the NIC vendor’s tool. Keep this card handy while you do it.</p>
+        </div>
+        <div id="vaultList" class="bios-vault-list"></div>
+      </section>
+
+      <!-- GUIDE -->
+      <section id="bios-guide" class="bios-section" hidden>
+        <div class="drv-panel">
+          <h3>New to BIOS chips? Start here</h3>
+          <p class="muted">A motherboard’s firmware lives on a tiny SPI flash chip. Your <strong>XGecu T76</strong> clips onto it and can read it (make a copy = a “dump”) or write to it (program a new image). This tab helps you understand a dump, fix it, find a clean one, and get it ready to flash — in plain English.</p>
+        </div>
+
+        <div class="drv-panel">
+          <h3>The safe workflow</h3>
+          <ol class="bios-steps">
+            <li><strong>Read the chip</strong> with Xgpro on the T76 and save the dump as a <code>.bin</code>. <em>Always keep that original untouched</em> — work on copies.</li>
+            <li><strong>Analyze a Dump</strong> here → hit <strong>Analyze</strong>. You get a verdict, confidence, and what-to-do-next.</li>
+            <li>If the board was tampered with or you want factory-fresh: <strong>Clean the ME region</strong> (it writes a new <code>.cleaned.bin</code>, original kept).</li>
+            <li>If the chip is blank or corrupt: <strong>Get Firmware</strong> → find a clean image for the <em>exact</em> board (Bad Caps / OEM).</li>
+            <li><strong>Write</strong> the final image back with Xgpro, then <strong>verify</strong> the write.</li>
+          </ol>
+        </div>
+
+        <div class="drv-panel">
+          <h3>What to use, and when</h3>
+          <ul class="bios-bullets">
+            <li><strong>Analyze</strong> — always first. Tells you what the image is, whether it’s healthy/complete, and your next move.</li>
+            <li><strong>Clean ME region (me_cleaner)</strong> — neutralises the Intel Management Engine for a clean, factory-like state. Intel boards only; skip on AMD.</li>
+            <li><strong>Full UEFI report / UEFITool</strong> — to look inside: firmware volumes, modules, settings. UEFITool also edits modules when you know what you’re changing.</li>
+            <li><strong>Get Firmware</strong> — when you need a clean donor image because the chip is blank, corrupt, or wrong.</li>
+            <li><strong>Xgpro</strong> — the only thing that actually reads/writes the physical chip. TM Toolset preps the file; Xgpro flashes it.</li>
+          </ul>
+        </div>
+
+        <div class="drv-panel bios-golden">
+          <h3>Golden rules</h3>
+          <ul class="bios-bullets">
+            <li>Keep the original dump. Name it <code>board_original.bin</code> and never overwrite it.</li>
+            <li>Match the <strong>exact</strong> board/model — a BIOS from a “similar” board can brick it or wipe its identity (serial/UUID/MAC).</li>
+            <li>After a chip swap you may need to restore the board’s original serial/UUID/MAC — note them down first.</li>
+            <li>If the Analyze step flags <strong>Boot Guard / FIT</strong>, flash a clean OEM image <em>as-is</em> — a modified/ME-cleaned image may refuse to boot.</li>
+            <li>Verify every write. A half-written chip is a dead board until re-flashed.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= NETWORKING ================= -->
+    <main id="panel-network" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Networking</h1>
+          <p class="muted">Connection status and common “gotchas” (like a network stuck on Public that blocks printers &amp; sharing), an internet speed test, and LAN tools — ping and a device sweep of your subnet.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="netRefresh" class="btn btn--ghost" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div class="subnav">
+        <button class="subtab subtab--active" data-nsub="status" type="button">Status &amp; Gotchas</button>
+        <button class="subtab" data-nsub="speed" type="button">Internet Speed</button>
+        <button class="subtab" data-nsub="lan" type="button">LAN Tools</button>
+      </div>
+
+      <!-- STATUS & GOTCHAS -->
+      <section id="net-status" class="net-section">
+        <div id="netStatusBusy" class="scan-status" hidden><div class="spinner" aria-hidden="true"></div><p class="muted">Reading network status…</p></div>
+        <div id="netError" class="scan-error" hidden><h3>Couldn’t read network status</h3><pre id="netErrorDetail" class="finding__detail"></pre></div>
+        <div id="netWarnings" class="net-warnings"></div>
+        <div id="netCards" class="net-cards"></div>
+      </section>
+
+      <!-- INTERNET SPEED -->
+      <section id="net-speed" class="net-section" hidden>
+        <p class="muted">Measures latency, download and upload against Cloudflare’s public speed service. Results are a guide — nearby Wi-Fi, the browser and background traffic all affect them.</p>
+        <div class="bk-actions"><button id="netSpeedGo" class="btn btn--primary" type="button">Run speed test</button></div>
+        <div id="netSpeedResult" class="net-speed" hidden></div>
+        <div id="netSpeedRunner" class="repairs-runner" hidden>
+          <div class="repairs-runner__head"><h3>Speed test</h3><span id="netSpeedState" class="repairs-state"></span></div>
+          <pre id="netSpeedLog" class="repairs-log"></pre>
+        </div>
+      </section>
+
+      <!-- LAN TOOLS -->
+      <section id="net-lan" class="net-section" hidden>
+        <div class="drv-panel">
+          <h3>Ping</h3>
+          <p class="muted">Latency, jitter and packet loss to a host. Leave blank to ping your gateway.</p>
+          <div class="bk-actions">
+            <input id="netPingTarget" class="bk-pathinput" type="text" placeholder="e.g. 8.8.8.8, google.com, or a PC name" />
+            <button id="netPingGo" class="btn btn--primary" type="button">Ping</button>
+          </div>
+          <div id="netPingResult" class="net-speed" hidden></div>
+        </div>
+        <div class="drv-panel">
+          <h3>Devices on this network</h3>
+          <p class="muted">Sweeps your subnet and lists everything that answers — handy for spotting the printer/NAS or an unknown device.</p>
+          <div class="bk-actions">
+            <button id="netDiscoverGo" class="btn btn--primary" type="button">Scan my network</button>
+            <span id="netDiscoverHint" class="muted"></span>
+          </div>
+          <div id="netDiscoverList" class="net-devices"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= DRIVERS ================= -->
+    <main id="panel-drivers" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Drivers</h1>
+          <p class="muted">Scan this PC and, where your offline pack already has a newer or missing driver, fix it in one click. Build that pack on any drive — harvest from machines you service, import folders, or pull official drivers from Windows Update and the Microsoft Update Catalog. Run as administrator to install.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="drvRescan" class="btn btn--ghost" type="button">Rescan</button>
+        </div>
+      </div>
+
+      <div class="subnav">
+        <button class="subtab subtab--active" data-dsub="scan" type="button">This PC</button>
+        <button class="subtab" data-dsub="library" type="button">Offline Library</button>
+        <button class="subtab" data-dsub="get" type="button">Get Drivers</button>
+        <button class="subtab" data-dsub="packs" type="button">Driverpacks</button>
+      </div>
+
+      <!-- THIS PC -->
+      <section id="drv-scan" class="drv-section">
+        <div id="drvScanStatus" class="scan-status" hidden><div class="spinner" aria-hidden="true"></div><p class="muted">Scanning devices and matching against your library…</p></div>
+        <div id="drvScanError" class="scan-error" hidden><h3>Couldn’t scan drivers</h3><pre id="drvScanErrorDetail" class="finding__detail"></pre></div>
+        <div id="drvSummary" class="drv-summary" hidden></div>
+        <div class="bk-actions" id="drvScanActions" hidden>
+          <button id="drvFixAll" class="btn btn--primary" type="button">Fix all from library</button>
+          <button id="drvWuScan" class="btn btn--ghost" type="button">Check Windows Update</button>
+        </div>
+        <div id="drvClasses" class="drv-classes" hidden></div>
+        <div id="drvRunner" class="repairs-runner" hidden>
+          <div class="repairs-runner__head"><h3 id="drvRunnerTitle">Working…</h3><span id="drvRunnerState" class="repairs-state"></span></div>
+          <pre id="drvRunnerLog" class="repairs-log"></pre>
+        </div>
+      </section>
+
+      <!-- OFFLINE LIBRARY -->
+      <section id="drv-library" class="drv-section" hidden>
+        <div class="drv-libbar">
+          <label class="field field--wide"><span>Library location (put this on your big drive)</span>
+            <div class="field__row"><input id="drvLibPath" type="text" readonly /><button id="drvLibChange" class="btn btn--ghost" type="button">Change…</button><button id="drvLibOpen" class="btn btn--ghost" type="button">Open</button></div>
+          </label>
+        </div>
+        <div class="bk-actions">
+          <button id="drvHarvest" class="btn btn--primary" type="button">Harvest this PC’s drivers</button>
+          <button id="drvImport" class="btn btn--ghost" type="button">Import a folder…</button>
+          <button id="drvRefreshLib" class="btn btn--ghost" type="button">Refresh list</button>
+          <span id="drvLibTotal" class="dt-total"></span>
+        </div>
+        <div id="drvLibStatus" class="scan-status" hidden><div class="spinner" aria-hidden="true"></div><p id="drvLibStatusText" class="muted">Reading library…</p></div>
+        <div id="drvLibClasses" class="drv-libclasses" hidden></div>
+        <div id="drvLibRunner" class="repairs-runner" hidden>
+          <div class="repairs-runner__head"><h3 id="drvLibRunnerTitle">Working…</h3><span id="drvLibRunnerState" class="repairs-state"></span></div>
+          <pre id="drvLibRunnerLog" class="repairs-log"></pre>
+        </div>
+      </section>
+
+      <!-- GET DRIVERS -->
+      <section id="drv-get" class="drv-section" hidden>
+        <div class="drv-panel">
+          <h3>Microsoft Update Catalog</h3>
+          <p class="muted">Search Microsoft’s official, signed driver catalog by hardware ID (e.g. <code>PCI\VEN_8086&amp;DEV_1234</code>) or name (e.g. “Intel Wi-Fi”), and download straight into your library. Best-effort — the catalog has no official API.</p>
+          <div class="bk-actions">
+            <input id="drvCatQuery" class="bk-pathinput" type="text" placeholder="hardware ID or driver name…" />
+            <button id="drvCatSearch" class="btn btn--primary" type="button">Search</button>
+          </div>
+          <div id="drvCatStatus" class="scan-status" hidden><div class="spinner" aria-hidden="true"></div><p class="muted">Searching catalog…</p></div>
+          <div id="drvCatResults" class="drv-catlist"></div>
+        </div>
+        <div class="drv-panel">
+          <h3>Manufacturer driver packs</h3>
+          <p class="muted" id="drvOemNote">Official per-model driver packs, built for offline deployment. Download from the maker, then Import the folder into your library.</p>
+          <div class="bk-actions">
+            <button class="btn btn--ghost" type="button" data-openurl="https://www.dell.com/support/kbdoc/en-us/000124139/dell-command-deploy-driver-packs-for-enterprise-client-os-deployment">Dell packs</button>
+            <button class="btn btn--ghost" type="button" data-openurl="https://www.hp.com/us-en/solutions/client-management-solutions/drivers-pack.html">HP packs</button>
+            <button class="btn btn--ghost" type="button" data-openurl="https://support.lenovo.com/us/en/solutions/ht074984">Lenovo packs</button>
+          </div>
+        </div>
+        <div id="drvGetRunner" class="repairs-runner" hidden>
+          <div class="repairs-runner__head"><h3 id="drvGetRunnerTitle">Working…</h3><span id="drvGetRunnerState" class="repairs-state"></span></div>
+          <pre id="drvGetRunnerLog" class="repairs-log"></pre>
+        </div>
+      </section>
+
+      <!-- DRIVERPACKS (built-in torrent + SDI integration + official network packs) -->
+      <section id="drv-packs" class="drv-section" hidden>
+        <div class="drv-panel drv-panel--hero">
+          <h3>Offline driverpacks — built in, self-contained</h3>
+          <p class="muted">TM Toolset fetches SDI’s freely-distributed driverpacks over BitTorrent, extracts them into your library and indexes them, so <em>This PC → scan</em> installs them <strong>fully offline</strong> — no SDI or internet at the point of use. Covers the classics: a PC that can’t get online (<strong>Network</strong>), and <strong>Windows Setup that can’t see the SSD</strong> (<strong>Storage controllers</strong> — extract to your install USB and use Setup’s “Load driver”).</p>
+          <div class="bk-actions drv-quick">
+            <button id="drvPacksNet" class="btn btn--primary" type="button" data-scope="lan,wlan" data-label="Network (LAN + Wi-Fi)">Network (LAN + Wi-Fi)</button>
+            <button id="drvPacksStorage" class="btn btn--primary" type="button" data-scope="massstorage" data-label="Storage controller">Storage controllers</button>
+            <button id="drvPacksAll" class="btn btn--ghost" type="button" data-scope="*" data-label="ALL">All categories (big)</button>
+            <button id="drvPacksChoose" class="btn btn--ghost" type="button">Choose packs…</button>
+            <button id="drvPacksUpdate" class="btn btn--ghost" type="button">Check for updates</button>
+            <button id="drvPacksCancel" class="btn btn--ghost btn--danger" type="button" hidden>Cancel</button>
+          </div>
+          <label class="drv-auto"><input id="drvPacksAuto" type="checkbox" /> <span>Keep my packs up to date automatically (check &amp; download on startup)</span></label>
+          <p id="drvPacksScope" class="muted drv-scopeline"></p>
+
+          <div id="drvPicker" class="drv-picker" hidden>
+            <div class="drv-picker__bar">
+              <span id="drvPickerTotal" class="muted">Loading pack list…</span>
+              <span class="drv-picker__btns">
+                <button id="drvPickAll" class="btn btn--ghost btn--xs" type="button">Select all</button>
+                <button id="drvPickNone" class="btn btn--ghost btn--xs" type="button">None</button>
+                <button id="drvPickGo" class="btn btn--primary btn--sm" type="button">Download selected</button>
+              </span>
+            </div>
+            <div id="drvPickerCats" class="drv-picker__cats"></div>
+          </div>
+
+          <div id="drvPacksRunner" class="repairs-runner" hidden>
+            <div class="repairs-runner__head"><h3 id="drvPacksTitle">Working…</h3><span id="drvPacksState" class="repairs-state"></span></div>
+            <pre id="drvPacksLog" class="repairs-log"></pre>
+          </div>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Or drive Snappy Driver Installer directly</h3>
+          <p class="muted">SDI’s full driverpacks (~50 GB) come over BitTorrent, so rather than re-host them, TM Toolset <strong>drives SDI</strong> and points its driverpack folder at your drive. Install SDI once, set the folder below, and launch it from here — the packs live on your drive/USB and SDI handles the download, matching and install. <strong>Tip:</strong> in SDI’s Expert mode tick only the <em>LAN</em> and <em>WLAN</em> packs for a ~1–2 GB offline network-rescue set.</p>
+          <label class="field field--wide"><span>SDIO executable (SDIO_x64.exe)</span>
+            <div class="field__row"><input id="drvSdiExe" type="text" placeholder="Not set — Locate it, or Get SDI first" readonly /><button id="drvSdiLocate" class="btn btn--ghost" type="button">Locate…</button><button id="drvSdiGet" class="btn btn--ghost" type="button" data-openurl="https://sdi-tool.org/download/">Get SDI</button></div>
+          </label>
+          <label class="field field--wide"><span>Driverpack folder (put this on your big drive / USB)</span>
+            <div class="field__row"><input id="drvSdiPacks" type="text" readonly /><button id="drvSdiPacksChange" class="btn btn--ghost" type="button">Change…</button></div>
+          </label>
+          <div class="bk-actions">
+            <button id="drvSdiLaunch" class="btn btn--primary" type="button">Launch Snappy Driver Installer</button>
+            <span id="drvSdiHint" class="muted"></span>
+          </div>
+        </div>
+
+        <div class="drv-panel">
+          <h3>Official network rescue packs (no torrent)</h3>
+          <p class="muted">For the “dead machine with no internet” case, these official, freely-downloadable packs cover the big majority of NICs and Wi-Fi adapters. Download on a working PC, then <strong>Import</strong> the extracted folder into your library (Offline Library tab) so the scanner can match and install them offline.</p>
+          <div class="bk-actions">
+            <button class="btn btn--ghost" type="button" data-openurl="https://www.intel.com/content/www/us/en/download/15084/intel-ethernet-adapter-complete-driver-pack.html">Intel Ethernet (complete)</button>
+            <button class="btn btn--ghost" type="button" data-openurl="https://www.intel.com/content/www/us/en/download/18293/intel-wireless-wi-fi-drivers-for-windows-10-and-windows-11.html">Intel Wi-Fi</button>
+            <button class="btn btn--ghost" type="button" data-openurl="https://www.realtek.com/Download/List?cate_id=584">Realtek Ethernet</button>
+            <button class="btn btn--ghost" type="button" data-openurl="https://www.realtek.com/Download/List?cate_id=585">Realtek Wi-Fi</button>
+          </div>
+          <p class="muted bk-note">These open the official vendor pages in your browser. TM Toolset doesn’t re-host vendor drivers — you grab them from the maker, then import once and they travel with your library.</p>
+        </div>
+      </section>
+    </main>
+      </div>
+    </div>
+
+    <!-- Backup action modal (partition ops + confirmations) -->
+    <div id="bkModal" class="modal" hidden>
+      <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="bkModalTitle">
+        <h2 id="bkModalTitle"></h2>
+        <p class="muted" id="bkModalMsg"></p>
+        <div id="bkModalFields"></div>
+        <div class="modal__actions">
+          <button id="bkModalCancel" class="btn btn--ghost" type="button">Cancel</button>
+          <button id="bkModalOk" class="btn btn--primary" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CUSTOMER REPORT ================= -->
+    <main id="panel-report" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Customer Report</h1>
+          <p class="muted">Build a clean, branded summary of this PC's condition to print, save as PDF, or post to the ticket.</p>
+        </div>
+      </div>
+
+      <div id="reportForm" class="report-form">
+        <label class="field"><span>Customer</span><input id="repCustomer" type="text" placeholder="Customer name" /></label>
+        <label class="field"><span>Ticket #</span><input id="repTicket" type="text" placeholder="Optional" /></label>
+        <label class="field"><span>Technician</span><input id="repTech" type="text" placeholder="Your name" /></label>
+        <label class="field field--wide"><span>Work performed / notes (shown on the report)</span><textarea id="repNotes" rows="3" placeholder="e.g. Removed malware, cleaned up startup, replaced thermal paste..."></textarea></label>
+      </div>
+      <div id="reportActions" class="report-actions">
+        <button id="repBuild" class="btn btn--primary" type="button">Build report</button>
+        <button id="repPrint" class="btn btn--ghost" type="button" disabled>Print / Save as PDF</button>
+        <button id="repSave" class="btn btn--ghost" type="button" disabled>Save as HTML…</button>
+        <button id="repSyncro" class="btn btn--ghost" type="button" disabled>Post to Syncro</button>
+      </div>
+
+      <div id="reportStatus" class="scan-status" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="reportStatusText" class="muted">Gathering this PC's details…</p>
+      </div>
+      <div id="reportPreview" class="report-preview"></div>
+    </main>
+
+    <!-- Quick-find / command palette -->
+    <div id="quickFind" class="qf" hidden>
+      <div class="qf__panel" role="dialog" aria-modal="true">
+        <input id="qfInput" class="qf__input" type="text" placeholder="Jump to a tab, tool or task… (e.g. “fake drive”, “BitLocker”, “clean ME”)" autocomplete="off" />
+        <div id="qfResults" class="qf__results"></div>
+        <div class="qf__hint">↑↓ to move · Enter to open · Esc to close</div>
+      </div>
+    </div>
+
+    <!-- Licence activation gate (blocks the app when unlicensed/expired) -->
+    <div id="licenseGate" class="lic-gate" hidden>
+      <div class="lic-gate__panel">
+        <button id="licGateClose" class="lic-gate__x" type="button" title="Back to the app" aria-label="Close" hidden>&times;</button>
+        <h2 id="licGateTitle">Activate this app</h2>
+        <p id="licGateMsg" class="muted"></p>
+        <label class="field"><span>E-mail on your licence</span><input id="licEmail" type="email" placeholder="you@example.com" autocomplete="off" /></label>
+        <label class="field"><span>Licence key</span><textarea id="licKey" rows="3" placeholder="Paste your licence key here" autocomplete="off"></textarea></label>
+        <div class="modal__actions">
+          <button id="licActivate" class="btn btn--primary" type="button">Activate</button>
+          <button id="licGateBack" class="btn btn--ghost" type="button" hidden>Back to the app</button>
+        </div>
+        <p id="licGateErr" class="info-line"></p>
+        <p class="muted" id="licBuy">One licence covers one user across the machines you work on. To purchase, contact your supplier.</p>
+        <p class="muted lic-mid">Support reference (this machine): <span id="licMid" class="bk-mono"></span></p>
+      </div>
+    </div>
 
     <div id="toast" class="toast"></div>
 
@@ -316,6 +1832,7 @@
       </div>
     </div>
 
+    <script src="theme.js"></script>
     <script src="renderer.js"></script>
     <script src="elevate.js"></script>
     <script src="ticket.js"></script>
@@ -323,7 +1840,30 @@
     <script src="inform.js"></script>
     <script src="settings-ui.js"></script>
     <script src="startup-ui.js"></script>
+    <script src="syncro-export.js"></script>
     <script src="drives-ui.js"></script>
+    <script src="crash-ui.js"></script>
+    <script src="battery-ui.js"></script>
+    <script src="devices-ui.js"></script>
+    <script src="repairs-ui.js"></script>
+    <script src="disktools-ui.js"></script>
+    <script src="backup-ui.js"></script>
+    <script src="drivers-ui.js"></script>
+    <script src="net-ui.js"></script>
+    <script src="bios-ui.js"></script>
+    <script src="diagnose-ui.js"></script>
+    <script src="debloat-ui.js"></script>
+    <script src="logs-ui.js"></script>
+    <script src="board-ui.js"></script>
+    <script src="quickfind.js"></script>
+    <script src="license-ui.js"></script>
+    <script src="overview-ui.js"></script>
+    <script src="recommended-tools.js"></script>
+    <script src="m365-ui.js"></script>
+    <script src="feedback-ui.js"></script>
+    <script src="updates-ui.js"></script>
+    <script src="news-ui.js"></script>
+    <script src="report-ui.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

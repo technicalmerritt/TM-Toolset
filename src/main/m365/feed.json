@@ -1,0 +1,216 @@
+{
+  "updated": "2026-11-03",
+  "note": "Plain-English summaries written for a repair/MSP technician and their clients. Each item links to the official source. Courses link to Microsoft Learn's live catalog pages, which Microsoft keeps current, so the link stays accurate even as the catalogue changes.",
+  "updates": [
+    {
+      "id": "m365-win10-eol",
+      "date": "Ongoing",
+      "cat": "End of life",
+      "title": "Windows 10 is end of support - but Microsoft 365 Apps keep getting security updates until Oct 2028",
+      "tldr": "Windows 10 stopped getting free updates on 14 Oct 2025. Microsoft 365 Apps (the desktop Office apps) will still get SECURITY updates on Windows 10 until 10 Oct 2028, but no new features. The OS itself is the exposure, not Office.",
+      "impact": "High",
+      "who": "Any client still on Windows 10",
+      "action": "Plan Windows 11 upgrades or ESU. Don't let a client think their Office is unsupported - it isn't yet; the risk is the operating system underneath.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365-apps/end-of-support/windows-10-support"
+    },
+    {
+      "id": "m365-mcp-connectors-2026-10",
+      "date": "Oct 2026",
+      "cat": "Copilot",
+      "title": "Admins can build custom Copilot connectors (MCP) and push them org-wide",
+      "tldr": "From the Microsoft 365 admin center, admins can now wire Copilot into custom/line-of-business data sources using MCP-based connectors and deploy them to the whole organisation. Previously this was limited.",
+      "impact": "Medium",
+      "who": "Clients running Microsoft 365 Copilot",
+      "action": "If a client asks why Copilot can't see their internal data, this is now the supported route. Treat any new data connection as a security review.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/release-notes"
+    },
+    {
+      "id": "m365-domain-exclusion-2026-03",
+      "date": "Mar 2026",
+      "cat": "Security",
+      "title": "Admins can restrict which external sites Copilot uses for web answers",
+      "tldr": "Domain exclusion lets an admin limit which external websites Copilot is allowed to read when it grounds answers on the web, and manage which internal sources it treats as authoritative. A privacy/data-governance control.",
+      "impact": "Medium",
+      "who": "Copilot admins, security-conscious clients",
+      "action": "Worth flagging to any client nervous about where Copilot gets its information.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/release-notes"
+    },
+    {
+      "id": "m365-license-requests-2026-09",
+      "date": "Sep 2026",
+      "cat": "Admin",
+      "title": "New License Requests page in the admin center",
+      "tldr": "Admins get a dedicated page to see, review and approve users' requests for Microsoft 365 Copilot licences, instead of chasing them manually.",
+      "impact": "Low",
+      "who": "Admins managing Copilot seats",
+      "action": "Handy to know when helping a client decide who actually needs a paid Copilot seat.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/release-notes"
+    },
+    {
+      "id": "m365-agent-governance-2026-07",
+      "date": "May - Jul 2026",
+      "cat": "Admin",
+      "title": "Tools to govern Copilot agents (Agent Store review, bulk install, cost dashboard)",
+      "tldr": "Microsoft added admin controls around Copilot 'agents': submit in-house agents to the Agent Store after admin approval, bulk-install first-party agents, reassign ownerless ones, and track AI spend in a Cost Management dashboard.",
+      "impact": "Low",
+      "who": "Larger clients rolling out Copilot agents",
+      "action": "Mostly relevant if a client is going deep on Copilot. Point them at their admin center if costs are a worry.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/release-notes"
+    },
+    {
+      "id": "m365-new-outlook",
+      "date": "Ongoing",
+      "cat": "Apps",
+      "title": "'New Outlook' for Windows is replacing the old Mail & Calendar apps",
+      "tldr": "Microsoft is moving everyone to the new Outlook app. It looks and behaves differently, stores some settings in the cloud, and a few classic features are still catching up. Clients WILL notice the change and may ask you about it.",
+      "impact": "Medium",
+      "who": "Everyday users and small-business clients",
+      "action": "Know the toggle between classic and new Outlook. Reassure clients it's a Microsoft change, not a fault.",
+      "url": "https://support.microsoft.com/en-us/office/getting-started-with-the-new-outlook-for-windows-656bb8d9-5a60-49b2-a98b-ba7822bc7627"
+    },
+    {
+      "id": "m365-consumer-price-copilot",
+      "date": "2025",
+      "cat": "Licensing",
+      "title": "Microsoft 365 Personal & Family prices rose when Copilot was added in",
+      "tldr": "Microsoft folded Copilot features into consumer Microsoft 365 Personal and Family plans and raised the price. There is a cheaper 'classic' plan without Copilot if a client asks, but it's not advertised prominently.",
+      "impact": "Heads-up",
+      "who": "Home and family clients on Personal/Family subscriptions",
+      "action": "If a client is annoyed about a price rise, the classic (no-Copilot) tier exists as a downgrade option.",
+      "url": "https://www.microsoft.com/en-us/microsoft-365/microsoft-365-and-office-resources"
+    }
+  ],
+  "courses": [
+    {
+      "id": "crs-copilot-foundations",
+      "cat": "Copilot",
+      "name": "Get started with Microsoft Copilot (AI Fluency)",
+      "provider": "Microsoft Learn",
+      "cost": "Free",
+      "level": "Beginner",
+      "mins": 90,
+      "desc": "Official beginner path. What Copilot is, how to prompt it well, and how it behaves across the Office apps. The best first stop before you advise clients on it.",
+      "url": "https://learn.microsoft.com/en-us/training/paths/copilot-foundations/"
+    },
+    {
+      "id": "crs-m365-admin",
+      "cat": "Admin",
+      "name": "Explore Microsoft 365 administration",
+      "provider": "Microsoft Learn",
+      "cost": "Free",
+      "level": "Beginner",
+      "mins": 120,
+      "desc": "How the admin center, users, licences and basic policies fit together. Core knowledge for supporting any business client on 365.",
+      "url": "https://learn.microsoft.com/en-us/training/paths/explore-microsoft-365-administration/"
+    },
+    {
+      "id": "crs-ms900",
+      "cat": "Fundamentals",
+      "name": "MS-900: Microsoft 365 Fundamentals (free study path)",
+      "provider": "Microsoft Learn",
+      "cost": "Free training (exam is paid)",
+      "level": "Beginner",
+      "mins": 480,
+      "desc": "The whole free learning collection behind the MS-900 certification - plans, services, security and pricing. Training is free; only the exam voucher costs money.",
+      "url": "https://learn.microsoft.com/en-us/training/browse/?terms=MS-900"
+    },
+    {
+      "id": "crs-sc900",
+      "cat": "Security",
+      "name": "SC-900: Security, Compliance & Identity Fundamentals",
+      "provider": "Microsoft Learn",
+      "cost": "Free training (exam is paid)",
+      "level": "Beginner",
+      "mins": 360,
+      "desc": "Plain-English grounding in Microsoft's security, identity and compliance concepts. Increasingly what clients expect you to understand.",
+      "url": "https://learn.microsoft.com/en-us/training/browse/?terms=SC-900"
+    },
+    {
+      "id": "crs-excel",
+      "cat": "Office apps",
+      "name": "Excel training (all levels)",
+      "provider": "Microsoft Learn / Support",
+      "cost": "Free",
+      "level": "All levels",
+      "mins": 0,
+      "desc": "Microsoft's own Excel tutorials, kept current. Live catalogue link, so it always shows today's lessons.",
+      "url": "https://support.microsoft.com/en-us/excel"
+    },
+    {
+      "id": "crs-teams",
+      "cat": "Office apps",
+      "name": "Microsoft Teams training",
+      "provider": "Microsoft Learn",
+      "cost": "Free",
+      "level": "All levels",
+      "mins": 0,
+      "desc": "Setting up and running Teams - meetings, channels, calling. Common client request. Live catalogue link.",
+      "url": "https://learn.microsoft.com/en-us/training/browse/?terms=microsoft%20teams"
+    },
+    {
+      "id": "crs-outlook",
+      "cat": "Office apps",
+      "name": "Outlook training (incl. new Outlook)",
+      "provider": "Microsoft Support",
+      "cost": "Free",
+      "level": "All levels",
+      "mins": 0,
+      "desc": "Email, calendar and the new Outlook app. Useful when clients are thrown by the interface change.",
+      "url": "https://support.microsoft.com/en-us/outlook"
+    },
+    {
+      "id": "crs-powerplatform",
+      "cat": "Automation",
+      "name": "Power Platform (Power Automate / Apps) fundamentals",
+      "provider": "Microsoft Learn",
+      "cost": "Free",
+      "level": "Beginner",
+      "mins": 240,
+      "desc": "Automate repetitive client tasks and build simple apps without heavy coding. A differentiator few small MSPs offer.",
+      "url": "https://learn.microsoft.com/en-us/training/browse/?terms=power%20platform"
+    },
+    {
+      "id": "crs-browse-all",
+      "cat": "Browse",
+      "name": "Browse the entire free Microsoft Learn catalogue",
+      "provider": "Microsoft Learn",
+      "cost": "Free",
+      "level": "All levels",
+      "mins": 0,
+      "desc": "Every free Microsoft learning path and module, filterable by product and role. Bookmark this - it never goes out of date.",
+      "url": "https://learn.microsoft.com/en-us/training/browse/"
+    }
+  ],
+  "resources": [
+    {
+      "id": "res-roadmap",
+      "name": "Microsoft 365 Roadmap (official, live)",
+      "desc": "What Microsoft has shipped, is rolling out, and is building next. The source of truth. The Live Roadmap panel in this tab pulls straight from here.",
+      "url": "https://www.microsoft.com/en-us/microsoft-365/roadmap"
+    },
+    {
+      "id": "res-copilot-release",
+      "name": "Microsoft 365 Copilot release notes",
+      "desc": "Dated, official list of what changed in Copilot each month.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/release-notes"
+    },
+    {
+      "id": "res-whatsnew-copilot",
+      "name": "'What's New in Microsoft 365 Copilot' (Tech Community)",
+      "desc": "Microsoft's monthly write-up, more readable than the raw notes.",
+      "url": "https://techcommunity.microsoft.com/t5/microsoft-365-copilot-blog/bg-p/Microsoft365CopilotBlog"
+    },
+    {
+      "id": "res-message-center",
+      "name": "Message center - what it is & how to read it",
+      "desc": "The per-tenant feed of changes that affect a specific client. If you administer their 365, this is where Microsoft warns you first.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/message-center"
+    },
+    {
+      "id": "res-adoption",
+      "name": "Microsoft 365 adoption & training hub",
+      "desc": "Ready-made guides and handouts you can give clients to help them adopt features.",
+      "url": "https://adoption.microsoft.com/"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
-  "name": "mbts-launcher",
-  "version": "0.1.0",
-  "description": "A desktop launcher for the MBTS toolset.",
+  "name": "tm-toolset",
+  "version": "0.66.0",
+  "description": "TM Toolset — technician diagnostic suite by Technical Merritt Computer Services.",
   "license": "UNLICENSED",
   "private": true,
   "main": "src/main/main.js",
@@ -15,8 +15,8 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.technicalmerit.mbtslauncher",
-    "productName": "MBTS Launcher",
+    "appId": "com.technicalmerit.tmtoolset",
+    "productName": "TM Toolset",
     "directories": {
       "output": "release"
     },
@@ -25,14 +25,41 @@
       "package.json"
     ],
     "asarUnpack": [
-      "**/scanner/**"
+      "**/scanner/**",
+      "**/drives/**",
+      "**/crash/**",
+      "**/battery/**",
+      "**/devices/**",
+      "**/startup/**",
+      "**/inform/**",
+      "**/repairs/**",
+      "**/disktools/**",
+      "**/backup/**",
+      "**/drivers/**",
+      "**/net/**",
+      "**/bios/**",
+      "**/diagnose/**",
+      "**/debloat/**",
+      "**/boardrepair/**",
+      "**/tools/**",
+      "**/m365/**"
     ],
     "win": {
       "icon": "src/icon.ico",
       "requestedExecutionLevel": "requireAdministrator",
       "target": [
-        { "target": "nsis", "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "nsis": {

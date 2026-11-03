@@ -1,4 +1,4 @@
-# TM Toolset — online surface / file-system scan (read-only). Needs admin.
+# TM Toolset - online surface / file-system scan (read-only). Needs admin.
 # Runs Repair-Volume -Scan on each fixed volume (the online equivalent of
 # chkdsk /scan) and reports whether errors were found. Makes no repairs.
 

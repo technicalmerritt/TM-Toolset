@@ -68,12 +68,11 @@ async function openToken(token) {
   }
 }
 
-const ALLOWED_HOSTS = ['learn.microsoft.com', 'support.microsoft.com', 'www.microsoft.com', 'docs.microsoft.com'];
-
 async function openUrl(url) {
   try {
     const u = new URL(String(url));
-    if (u.protocol === 'https:' && ALLOWED_HOSTS.includes(u.hostname)) {
+    // Only ever hand https/http links to the system browser (never file:, etc.).
+    if (u.protocol === 'https:' || u.protocol === 'http:') {
       await shell.openExternal(u.href);
       return true;
     }

@@ -1,101 +1,55 @@
-# MBTS Launcher
+# TM Toolset
 
-A lightweight Windows desktop launcher for the MBTS toolset. Add your tools
-once, then launch any of them from a single window. Tool definitions are stored
-in a local JSON file, so nothing is hard-coded and you can edit the list at any
-time from the UI.
+A Windows diagnostic and repair suite for PC technicians, by **Technical
+Merritt Computer Services**. Built with [Electron](https://www.electronjs.org/).
 
-Built with [Electron](https://www.electronjs.org/). This is original source you
-own and can change freely — add your Technical Merit branding, more features,
-auto-update, whatever you like.
+TM Toolset pulls the everyday jobs of a repair bench into one window:
+hardware and drive health, issue scanning, repairs, debloat, driver packs,
+backup & imaging, BIOS/UEFI inspection, board-level repair references, a
+Microsoft 365 "what's new + training" feed, a technician tools library, and
+Syncro ticket integration — with white-label theming and an offline licensing
+system so it can be resold.
 
-## Features
+> This is original source. The UI, workflows and tooling are our own; where the
+> app drives third-party utilities it does so as separate, clearly-credited
+> programs, and it never redistributes commercial software.
 
-- Tool cards with name, description, category and target path
-- One-click **Launch** (spawns the executable with optional arguments and
-  working directory)
-- Add / edit / remove tools from the UI, with a native file picker
-- Search and category filtering
-- Config persisted to your Windows user profile (survives app updates)
-- Hardened Electron setup: context isolation on, Node integration off, sandboxed
-  renderer, strict Content-Security-Policy
-
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) `>= 22.23.4` (or 24.x / 26.x) and npm
-- Windows 10/11 for the packaged build (you can develop on any OS)
-
-## Run in development
+## Run from source (development)
 
 ```bash
-cd mbts-launcher
 npm install
 npm start
 ```
 
-## Build a Windows installer
+Node `>= 20` and Windows 10/11 for the full feature set (many collectors are
+PowerShell and Windows-only).
 
-```bash
-npm run dist
-```
+## Bundled tool binaries
 
-Output lands in `release/`:
+Some tabs drive small third-party command-line tools (e.g. aria2, 7-Zip CLI,
+UEFITool, OpenBoardView, SumatraPDF). Those executables are **not** stored in
+this repository — they live under `src/main/**/bin/` in the packaged build and
+ship inside the release zips. A plain `git clone` gives you all of our source;
+drop the binaries into the matching `bin/` folders to run every feature
+locally.
 
-- `MBTS Launcher Setup <version>.exe` — NSIS installer
-- `MBTS Launcher <version>.exe` — portable single-file build
+## Updates
 
-To produce an unpacked folder without an installer (faster for testing):
+Packaged builds update themselves from this repo's
+[Releases](../../releases): the app checks the latest release, and — while
+licensed or on trial — downloads the code-only update asset, applies it over
+its own source (leaving the bundled binaries and your settings untouched), and
+restarts. The first install is the full portable zip from the latest release.
 
-```bash
-npm run dist:dir
-```
+## Licensing
 
-> Packaging a Windows `.exe` is most reliable **on Windows**. Cross-building from
-> Linux/macOS works for many cases via electron-builder but can need extra setup
-> (e.g. Wine) for installer signing and icons.
+The app runs a 14-day trial, then requires a per-user licence (e-mail + signed
+key) that works across all of a technician's machines. Licences are verified
+offline with an embedded public key; the private signing key is kept entirely
+outside this repository.
 
-## Where your tool list lives
+## Data & config
 
-```
-%APPDATA%\mbts-launcher\tools.json
-```
-
-Click **Config** in the app to open that folder. The file looks like:
-
-```json
-{
-  "tools": [
-    {
-      "id": "…",
-      "name": "Map Editor",
-      "description": "Edit campaign maps",
-      "category": "Editors",
-      "path": "C:\\MBTS\\tools\\MapEditor.exe",
-      "args": "--profile \"default\"",
-      "cwd": "C:\\MBTS\\tools"
-    }
-  ]
-}
-```
-
-## Project layout
-
-```
-src/
-  main/
-    main.js      Electron main process: window, config I/O, launching, dialogs
-    preload.js   Secure contextBridge API exposed to the UI
-  renderer/
-    index.html   App markup
-    styles.css   Dark theme (swap in your branding here)
-    renderer.js  UI logic
-```
-
-## Branding (when you're ready)
-
-- Colors live as CSS variables at the top of `src/renderer/styles.css`
-  (`--accent`, `--bg`, etc.).
-- The placeholder logo is the `.brand__mark` element in `index.html`; drop in
-  an `<img>` pointing at your logo instead.
-- App/installer icon: add `icon` entries under the `build` block in
-  `package.json` (a 256×256 `.ico`).
+Per-install settings live in the portable data folder next to the executable
+(or in `%APPDATA%` for an installed build). Use **Settings → Config** / the
+**Activity Log → Data folder** button to open it.

@@ -1,4 +1,4 @@
-# TM Toolset — Information (Inform) inventory collector
+# TM Toolset - Information (Inform) inventory collector
 # READ-ONLY. Emits a single JSON object describing the computer. Makes no changes.
 
 $ErrorActionPreference = 'SilentlyContinue'

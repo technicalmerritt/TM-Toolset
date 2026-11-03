@@ -1,4 +1,4 @@
-# TM Toolset — Issue Scanner data collector
+# TM Toolset - Issue Scanner data collector
 # READ-ONLY. Gathers system diagnostics and emits a single JSON object on stdout.
 # Makes no changes to the system. Every section is wrapped so one failure can't
 # abort the whole scan; checks that need elevation simply return null when denied.

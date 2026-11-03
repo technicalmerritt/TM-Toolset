@@ -1,4 +1,4 @@
-# TM Toolset — enable/disable a single startup item.
+# TM Toolset - enable/disable a single startup item.
 # Receives a base64-encoded JSON item (+ enable flag) and makes the change the
 # same way Task Manager does (reversible). Machine-wide items need admin.
 
