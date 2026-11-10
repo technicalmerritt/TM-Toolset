@@ -1,5 +1,5 @@
 {
-  "version": "0.70.5",
-  "notes": "Issues scan now checks the active Windows power plan. A desktop running on 'Power Saver' is flagged as a warning - it caps the CPU and is a common hidden cause of a sluggish PC - with a one-click button to the Power Options applet to switch it back to Balanced. On laptops the same finding is shown as a gentler informational note, since Power Saver is normal on battery.",
-  "zip": "tmtoolset-app-0.70.5.zip"
+  "version": "0.70.6",
+  "notes": "Licensing: refreshed the app's licence-verification key. Update to this version before activating a licence. Your trial and any existing settings are unaffected. (Behind the scenes this swaps in a new signing key for issuing licences; no change to how the app works day to day.)",
+  "zip": "tmtoolset-app-0.70.6.zip"
 }
