@@ -253,6 +253,25 @@
     catch { toast('Could not copy report'); }
   }
 
+  async function installTools() {
+    if (!window.idevice || !window.idevice.install) return;
+    if (els.installMsg) { els.installMsg.hidden = false; els.installMsg.textContent = 'Installing…'; }
+    try {
+      const r = await window.idevice.install();
+      if (!r || r.canceled) { if (els.installMsg) els.installMsg.hidden = true; return; }
+      if (r.ok) {
+        if (els.installMsg) els.installMsg.textContent = 'Installed ' + r.installed + ' files. Apple device support is now active.';
+        toast('Apple device support installed');
+        refreshStatus();
+      } else {
+        const miss = r.missing && r.missing.length ? ' Missing: ' + r.missing.join(', ') + '.' : '';
+        if (els.installMsg) els.installMsg.textContent = (r.reason || 'That archive did not contain the required tools.') + miss;
+      }
+    } catch (err) {
+      if (els.installMsg) els.installMsg.textContent = (err && err.message) || 'Install failed.';
+    }
+  }
+
   function init() {
     els = {
       dot: $('#idevConnDot'), connText: $('#idevConnText'),
@@ -260,8 +279,12 @@
       busy: $('#idevBusy'), error: $('#idevError'), errDetail: $('#idevErrorDetail'),
       content: $('#idevContent'),
       readBtn: $('#idevReadBtn'), reportBtn: $('#idevReportBtn'), syncroBtn: $('#idevSyncroBtn'),
+      installBtn: $('#idevInstallBtn'), openDirBtn: $('#idevOpenDirBtn'), installMsg: $('#idevInstallMsg'),
     };
     if (!els.readBtn) return; // panel not present
+
+    if (els.installBtn) els.installBtn.addEventListener('click', installTools);
+    if (els.openDirBtn) els.openDirBtn.addEventListener('click', () => { try { window.idevice.openToolsDir(); } catch { /* ignore */ } });
 
     els.readBtn.addEventListener('click', readDevice);
     els.reportBtn.addEventListener('click', exportReport);

@@ -623,13 +623,18 @@
 
       <!-- tools-missing guidance -->
       <div id="idevSetup" class="scan-error" hidden>
-        <h3>Apple device support isn’t active in this build yet</h3>
+        <h3>One-time setup: install Apple device support</h3>
         <p class="muted" id="idevSetupMsg"></p>
-        <ul class="muted idev-setup-list">
-          <li>The reader uses the open-source <strong>libimobiledevice</strong> tools, bundled in the full portable build.</li>
-          <li>The PC also needs Apple’s Mobile Device driver — installed by <strong>iTunes</strong> or the free <strong>Apple Devices</strong> app from the Microsoft Store.</li>
-          <li>Once both are present, connect a device, unlock it and tap <strong>Trust</strong>.</li>
-        </ul>
+        <ol class="muted idev-setup-list">
+          <li><strong>Apple driver:</strong> install Apple’s Mobile Device driver via <strong>iTunes</strong> or the free <strong>Apple Devices</strong> app from the Microsoft Store (this provides the USB connection service).</li>
+          <li><strong>Reader tools:</strong> get a vetted copy of the open-source <strong>libimobiledevice</strong> Windows tools (a .zip containing <code>ideviceinfo.exe</code>, <code>idevice_id.exe</code>, <code>idevicediagnostics.exe</code> and their DLLs), then click <em>Install from file…</em> below. They’re saved onto your USB stick so they travel with it.</li>
+          <li>Connect a device, unlock it and tap <strong>Trust</strong>, then press <em>Read device</em>.</li>
+        </ol>
+        <div class="idev-setup-actions">
+          <button id="idevInstallBtn" class="btn btn--primary" type="button">Install from file…</button>
+          <button id="idevOpenDirBtn" class="btn btn--ghost" type="button">Open tools folder</button>
+        </div>
+        <p id="idevInstallMsg" class="muted" hidden></p>
       </div>
 
       <div id="idevBusy" class="scan-status" hidden>

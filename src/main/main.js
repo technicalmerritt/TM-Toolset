@@ -177,6 +177,10 @@ async function writeConfig(config) {
 // credentials travel on the USB stick) using the serialized atomic writer.
 settings.configure({ readConfig, writeConfig });
 
+// Point the Apple-device tool runner at the portable data dir, so installed
+// libimobiledevice tools live on the USB stick and travel with it.
+idevice.configure({ dataDir: getDataDir() });
+
 // ---- Driver library location (stored in the portable config) ----
 async function getDriverLib() {
   try {
@@ -2137,6 +2141,48 @@ function registerIpc() {
       return await idevice.crashReports((args && args.udid) || '', out);
     } catch (err) { return { ok: false, reason: (err && err.message) || String(err) }; }
   });
+  // Install the libimobiledevice tools from a zip the technician has downloaded
+  // and vetted (we never silently fetch unverified binaries). Extracts and
+  // flattens the .exe/.dll into the portable idevice-bin folder.
+  ipcMain.handle('idevice:install', async () => {
+    try {
+      const pick = await dialog.showOpenDialog(mainWindow, {
+        title: 'Select the libimobiledevice tools (.zip)',
+        properties: ['openFile'],
+        filters: [{ name: 'Zip archive', extensions: ['zip'] }, { name: 'All files', extensions: ['*'] }],
+      });
+      if (pick.canceled || !pick.filePaths || !pick.filePaths[0]) return { ok: false, canceled: true };
+      const zip = pick.filePaths[0];
+      const tmp = path.join(app.getPath('temp'), 'tmts-idev-' + Date.now());
+      await fsp.mkdir(tmp, { recursive: true });
+      await run7z(['x', zip, '-o' + tmp, '-y']);
+      // Collect every .exe/.dll from the extracted tree (handles nested folders).
+      const found = [];
+      const walk = async (d) => {
+        for (const ent of await fsp.readdir(d, { withFileTypes: true })) {
+          const p = path.join(d, ent.name);
+          if (ent.isDirectory()) await walk(p);
+          else if (/\.(exe|dll)$/i.test(ent.name)) found.push(p);
+        }
+      };
+      await walk(tmp);
+      if (!found.length) { try { await fsp.rm(tmp, { recursive: true, force: true }); } catch {} return { ok: false, reason: 'No .exe/.dll files were found in that archive.' }; }
+      const dest = idevice.installDir();
+      await fsp.mkdir(dest, { recursive: true });
+      for (const f of found) await fsp.copyFile(f, path.join(dest, path.basename(f)));
+      try { await fsp.rm(tmp, { recursive: true, force: true }); } catch {}
+      const verify = idevice.verifyDir(dest);
+      tmLog('idevice', 'install', verify.ok ? 'ok' : 'incomplete', 'copied ' + found.length + ' files');
+      return { ok: verify.ok, installed: found.length, dest, missing: verify.missing };
+    } catch (err) {
+      return { ok: false, reason: (err && err.message) || String(err) };
+    }
+  });
+  ipcMain.handle('idevice:openToolsDir', async () => {
+    try { const d = idevice.installDir(); await fsp.mkdir(d, { recursive: true }); await shell.openPath(d); return { ok: true, dir: d }; }
+    catch (err) { return { ok: false, reason: (err && err.message) || String(err) }; }
+  });
+
   // Lightweight connect/disconnect watcher: poll the UDID list and push changes.
   let _idevTimer = null;
   let _idevLast = '';

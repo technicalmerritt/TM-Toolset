@@ -141,6 +141,8 @@ contextBridge.exposeInMainWorld('idevice', {
   read: (udid) => ipcRenderer.invoke('idevice:read', { udid }),
   crash: (udid) => ipcRenderer.invoke('idevice:crash', { udid }),
   watch: (on) => ipcRenderer.invoke('idevice:watch', { on }),
+  install: () => ipcRenderer.invoke('idevice:install'),
+  openToolsDir: () => ipcRenderer.invoke('idevice:openToolsDir'),
   onDevices: (cb) => ipcRenderer.on('idevice:devices', (_e, list) => cb(list)),
 });
 

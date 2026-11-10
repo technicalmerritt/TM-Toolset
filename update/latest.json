@@ -1,5 +1,5 @@
 {
-  "version": "0.70.7",
-  "notes": "New Apple Devices tab (iOS/iPadOS): plug in an iPhone or iPad to read full identity (model, serial, IMEI, UDID), battery health with cycle count and a Good/Replace verdict, storage, software version, and Find My / Activation Lock status — with a plain-English findings list and health score, like the PC issue scanner. Read-only; nothing is changed on the device. This release adds the full interface and diagnostics engine; the device-reading tools themselves arrive in the next full portable build (the tab shows setup guidance until then). Syncro asset registration is the next phase.",
-  "zip": "tmtoolset-app-0.70.7.zip"
+  "version": "0.70.8",
+  "notes": "Apple Devices tab is now wired to real device-reading tools. One-time setup: install Apple's Mobile Device driver (iTunes or the free 'Apple Devices' app), then use the new 'Install from file…' button to add a vetted copy of the open-source libimobiledevice tools — they save onto your USB stick and travel with it. The app looks for them on the stick first, so no rebuild is needed. (For safety the app never auto-downloads these binaries; you supply a copy you trust.) Once installed, connect an iPhone/iPad, unlock and tap Trust, then Read device.",
+  "zip": "tmtoolset-app-0.70.8.zip"
 }
