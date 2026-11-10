@@ -1,5 +1,5 @@
 {
-  "version": "0.70.2",
-  "notes": "Power Signatures: the 'pop to front' option now triggers when you plug a DEVICE INTO THE METER (voltage/current appears), not when the meter itself connects. On a device plug-in it jumps to the Power Signatures view and brings the app to the front (it won't steal focus if you've minimised it - it flashes the taskbar instead). Meter auto-connect still runs quietly in the background.",
-  "zip": "tmtoolset-app-0.70.2.zip"
+  "version": "0.70.3",
+  "notes": "Portable Syncro credentials: your Syncro subdomain and API key now save into the portable config on the USB stick itself, so they travel with you between PCs instead of being tied to one machine. Move the stick to another computer and your Syncro connection is already set up - no re-authenticating. Existing credentials are migrated automatically the first time you run this version. Note: because the key must be readable on any PC, it is stored obfuscated rather than OS-encrypted, so keep your USB stick physically secure.",
+  "zip": "tmtoolset-app-0.70.3.zip"
 }

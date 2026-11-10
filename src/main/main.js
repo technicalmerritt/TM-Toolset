@@ -172,6 +172,10 @@ async function writeConfig(config) {
   return _cfgWriteChain;
 }
 
+// Let the Syncro settings store persist into the portable tools.json (so
+// credentials travel on the USB stick) using the serialized atomic writer.
+settings.configure({ readConfig, writeConfig });
+
 // ---- Driver library location (stored in the portable config) ----
 async function getDriverLib() {
   try {
