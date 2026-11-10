@@ -343,6 +343,26 @@ function evaluate(d) {
     });
   }
 
+  // ---------- Performance: active power plan ----------
+  const pp = d.powerPlan || {};
+  const PWR_SAVER_GUID = 'a1841308-3541-4fab-bc81-f71556f20b4a';
+  const isSaver = (pp.guid && pp.guid.toLowerCase() === PWR_SAVER_GUID) || /power\s*saver/i.test(pp.name || '');
+  if (isSaver) {
+    if (pp.isLaptop) {
+      add('info', 'Performance', 'Power plan set to Power Saver', `The active Windows power plan is "${pp.name || 'Power saver'}". On a laptop this is normal on battery, but it caps CPU speed and can make the machine feel sluggish if it is left on while plugged in.`, {
+        recommendation: 'If the customer reports slowness, switch to Balanced (or High performance) while on mains power.',
+        actions: [{ label: 'Power & sleep settings', token: 'power-settings' }],
+      });
+    } else {
+      add('warning', 'Performance', 'Desktop running on Power Saver', `The active Windows power plan is "${pp.name || 'Power saver'}". On a desktop there is no reason to cap performance like this — it throttles the CPU and is a common hidden cause of a "slow" PC.`, {
+        recommendation: 'Switch to the Balanced power plan (or High performance) and re-test.',
+        explain:
+          'The Power Saver plan deliberately holds the CPU at a low clock speed and aggressively parks cores to save energy — which makes sense on a laptop running on battery, but on a desktop it just makes everything slower for no benefit. Switching to Balanced usually restores full speed instantly, with no downside on a mains-powered machine.',
+        actions: [{ label: 'Power & sleep settings', token: 'power-settings' }],
+      });
+    }
+  }
+
   const junk = d.junk || {};
   const junkMB = num(junk.userTempMB) + num(junk.winTempMB) + num(junk.wuCacheMB) + num(junk.prefetchMB) + num(junk.minidumpMB);
   if (junkMB >= 1024) {

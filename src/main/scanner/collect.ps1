@@ -288,6 +288,21 @@ $out.battery = Safe {
   } else { $null }
 }
 
+# ---------- Active power plan (Power Saver is a common hidden cause of slowness) ----------
+# isLaptop lets the rules soften the finding on battery-powered machines, where
+# Power Saver can be a deliberate choice, versus a desktop stuck on it.
+$out.powerPlan = Safe {
+  $active = Get-CimInstance -Namespace root\cimv2\power -ClassName Win32_PowerPlan -Filter "IsActive = true" -ErrorAction Stop |
+    Select-Object -First 1
+  $hasBattery = $null -ne (Get-CimInstance -ClassName Win32_Battery -ErrorAction SilentlyContinue | Select-Object -First 1)
+  if ($active) {
+    # ElementName is localised; InstanceID carries the stable GUID.
+    $guid = ''
+    if ($active.InstanceID -match '\{([0-9a-fA-F-]+)\}') { $guid = $Matches[1].ToLower() }
+    [ordered]@{ name = "$($active.ElementName)"; guid = $guid; isLaptop = [bool]$hasBattery }
+  } else { $null }
+}
+
 # ---------- Network tamper indicators ----------
 $out.network = [ordered]@{
   hostsEntries = Safe { @(Get-Content "$env:SystemRoot\System32\drivers\etc\hosts" | Where-Object { $_ -match '^\s*[^#\s]' }) }

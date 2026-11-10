@@ -61,6 +61,11 @@ async function openToken(token) {
       return true;
     case 'restore-settings':
       return runExe(sys32('SystemPropertiesProtection.exe'));
+    case 'power-settings':
+      // Classic Power Options applet — lets the technician switch the active
+      // plan directly (the modern Settings page hides the plan chooser).
+      await shell.openPath(sys32('powercfg.cpl'));
+      return true;
     case 'hosts-file':
       return runExe(sys32('notepad.exe'), [path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'drivers', 'etc', 'hosts')]);
     default:

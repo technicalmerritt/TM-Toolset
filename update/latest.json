@@ -1,5 +1,5 @@
 {
-  "version": "0.70.4",
-  "notes": "Issues scan - two new checks: (1) Mechanical system drive - if Windows boots from a spinning hard disk it's flagged as the likely cause of a slow PC, with an SSD-upgrade recommendation. It only flags the actual system drive, so a PC with an SSD boot drive and an HDD for storage is left alone. (2) Low RAM - 4 GB or less is flagged as a warning (page-file thrashing / sluggishness), 5-8 GB as an informational heads-up for heavy multitaskers.",
-  "zip": "tmtoolset-app-0.70.4.zip"
+  "version": "0.70.5",
+  "notes": "Issues scan now checks the active Windows power plan. A desktop running on 'Power Saver' is flagged as a warning - it caps the CPU and is a common hidden cause of a sluggish PC - with a one-click button to the Power Options applet to switch it back to Balanced. On laptops the same finding is shown as a gentler informational note, since Power Saver is normal on battery.",
+  "zip": "tmtoolset-app-0.70.5.zip"
 }
