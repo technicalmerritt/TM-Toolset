@@ -1,5 +1,5 @@
 {
-  "version": "0.70.3",
-  "notes": "Portable Syncro credentials: your Syncro subdomain and API key now save into the portable config on the USB stick itself, so they travel with you between PCs instead of being tied to one machine. Move the stick to another computer and your Syncro connection is already set up - no re-authenticating. Existing credentials are migrated automatically the first time you run this version. Note: because the key must be readable on any PC, it is stored obfuscated rather than OS-encrypted, so keep your USB stick physically secure.",
-  "zip": "tmtoolset-app-0.70.3.zip"
+  "version": "0.70.4",
+  "notes": "Issues scan - two new checks: (1) Mechanical system drive - if Windows boots from a spinning hard disk it's flagged as the likely cause of a slow PC, with an SSD-upgrade recommendation. It only flags the actual system drive, so a PC with an SSD boot drive and an HDD for storage is left alone. (2) Low RAM - 4 GB or less is flagged as a warning (page-file thrashing / sluggishness), 5-8 GB as an informational heads-up for heavy multitaskers.",
+  "zip": "tmtoolset-app-0.70.4.zip"
 }

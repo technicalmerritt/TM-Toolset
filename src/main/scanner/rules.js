@@ -126,6 +126,23 @@ function evaluate(d) {
     }
   }
 
+  // ---------- Storage: mechanical system drive (SSD upgrade opportunity) ----------
+  for (const p of arr(d.physicalDisks)) {
+    if (!p.isSystem) continue;
+    // Only flag when Windows clearly reports a mechanical drive. "Unspecified"
+    // is left alone — both old SSDs and some SATA disks report it, and a wrong
+    // "upgrade your drive" call on a machine that already has an SSD is worse
+    // than a miss.
+    if (/^hdd$/i.test(String(p.mediaType || ''))) {
+      add('warning', 'Storage', 'System drive is a mechanical hard disk', `Windows boots from a spinning hard drive (${p.friendlyName}${p.sizeGB ? ', ' + p.sizeGB + ' GB' : ''}). This is usually the single biggest cause of a slow, laggy PC.`, {
+        recommendation: 'Recommend an SSD upgrade (clone the drive over) — the most cost-effective speed boost there is.',
+        explain:
+          'A mechanical hard drive has moving parts and is dozens of times slower than a solid-state drive for the small, scattered reads Windows does constantly. On an HDD, boot, logins, app launches and updates all crawl no matter how fast the CPU or how much RAM is fitted. Cloning the system onto an SSD typically turns a 2–3 minute boot into 15–20 seconds and makes the whole machine feel new — the best-value upgrade you can offer.',
+        detail: diskDetail(p),
+      });
+    }
+  }
+
   // ---------- SMART failure attributes ----------
   for (const s of arr(d.smart)) {
     const realloc = num(s.reallocatedSectors, 0);
@@ -310,6 +327,20 @@ function evaluate(d) {
   const mem = d.memory || {};
   if (num(mem.usedPct) >= 90) {
     add('warning', 'Performance', 'Memory almost full', `RAM is ${mem.usedPct}% used (${mem.freeMB} MB free of ${mem.totalMB} MB).`, { recommendation: 'Close heavy apps, or consider a RAM upgrade for this workload.' });
+  }
+
+  // ---------- Performance: low total RAM for the OS ----------
+  const ramGB = num(sys.ramGB);
+  if (ramGB > 0 && ramGB <= 4) {
+    add('warning', 'Performance', `Only ${ramGB} GB of RAM`, `${ramGB} GB is below what modern Windows needs to run comfortably — the PC will lean heavily on the (far slower) page file and feel sluggish with a browser and a couple of apps open.`, {
+      recommendation: 'Recommend a RAM upgrade — 8 GB minimum, 16 GB for comfortable everyday use.',
+      explain:
+        'Windows 10/11 plus a modern browser can use several gigabytes on their own. With 4 GB or less, the machine constantly shuffles memory to and from disk (paging), which hammers the drive and makes everything stutter. A RAM upgrade is usually inexpensive and one of the most noticeable improvements you can make, especially alongside an SSD.',
+    });
+  } else if (ramGB > 4 && ramGB <= 8) {
+    add('info', 'Performance', `${ramGB} GB of RAM`, `${ramGB} GB is workable but tight for heavy multitasking or lots of browser tabs.`, {
+      recommendation: 'Consider 16 GB if the customer runs many apps/tabs at once.',
+    });
   }
 
   const junk = d.junk || {};

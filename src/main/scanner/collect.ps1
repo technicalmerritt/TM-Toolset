@@ -82,9 +82,20 @@ $out.volumes = Safe {
 
 Step 'Checking storage and drive health'
 # ---------- Physical disks + SMART / reliability ----------
+# Work out which physical disk hosts the OS (system) drive, so rules can flag a
+# mechanical system drive without false-flagging a PC that correctly has an SSD
+# boot drive plus an HDD data drive.
+$sysDiskNumber = Safe {
+  $letter = ($env:SystemDrive).TrimEnd(':')
+  $part = Get-Partition -DriveLetter $letter -ErrorAction Stop
+  [int]$part.DiskNumber
+}
+
 $out.physicalDisks = Safe {
   Get-PhysicalDisk | ForEach-Object {
     $rc = $_ | Get-StorageReliabilityCounter
+    $isSystem = $false
+    try { if ($null -ne $sysDiskNumber -and [int]$_.DeviceId -eq [int]$sysDiskNumber) { $isSystem = $true } } catch { }
     [ordered]@{
       friendlyName = $_.FriendlyName
       mediaType    = "$($_.MediaType)"
@@ -95,6 +106,7 @@ $out.physicalDisks = Safe {
       wearPct      = $rc.Wear
       temperatureC = $rc.Temperature
       powerOnHours = $rc.PowerOnHours
+      isSystem     = $isSystem
     }
   }
 }
