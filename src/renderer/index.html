@@ -53,6 +53,7 @@
           <button class="tab" data-tab="network"><span class="nav-ico">🌐</span>Networking</button>
           <button class="tab" data-tab="battery"><span class="nav-ico">🔋</span>Battery</button>
           <button class="tab" data-tab="devices"><span class="nav-ico">🔌</span>Devices</button>
+          <button class="tab" data-tab="idevice"><span class="nav-ico">📱</span>Apple Devices</button>
           <div class="nav-label">Storage</div>
           <button class="tab" data-tab="storage"><span class="nav-ico">💽</span>Storage</button>
           <div class="nav-label">System &amp; setup</div>
@@ -598,6 +599,49 @@
         <pre id="devicesErrorDetail" class="finding__detail"></pre>
       </div>
       <div id="devicesContent" class="crash-content" hidden></div>
+    </main>
+
+    <!-- ================= APPLE DEVICES (iOS) ================= -->
+    <main id="panel-idevice" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Apple Devices</h1>
+          <p class="muted">Plug in an iPhone or iPad (unlocked, with “Trust This Computer” tapped) to read its full identity, battery health, storage, software and ownership status. Read-only — nothing is changed on the device.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="idevReadBtn" class="btn btn--primary" type="button" disabled>Read device</button>
+          <button id="idevReportBtn" class="btn btn--ghost" type="button" disabled>Export report</button>
+          <button id="idevSyncroBtn" class="btn btn--ghost" type="button" disabled>Register in Syncro</button>
+        </div>
+      </div>
+
+      <!-- connection / tools status strip -->
+      <div id="idevConn" class="idev-conn">
+        <span id="idevConnDot" class="idev-dot idev-dot--off" aria-hidden="true"></span>
+        <span id="idevConnText" class="muted">Checking for Apple device tools…</span>
+      </div>
+
+      <!-- tools-missing guidance -->
+      <div id="idevSetup" class="scan-error" hidden>
+        <h3>Apple device support isn’t active in this build yet</h3>
+        <p class="muted" id="idevSetupMsg"></p>
+        <ul class="muted idev-setup-list">
+          <li>The reader uses the open-source <strong>libimobiledevice</strong> tools, bundled in the full portable build.</li>
+          <li>The PC also needs Apple’s Mobile Device driver — installed by <strong>iTunes</strong> or the free <strong>Apple Devices</strong> app from the Microsoft Store.</li>
+          <li>Once both are present, connect a device, unlock it and tap <strong>Trust</strong>.</li>
+        </ul>
+      </div>
+
+      <div id="idevBusy" class="scan-status" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted">Reading device…</p>
+      </div>
+      <div id="idevError" class="scan-error" hidden>
+        <h3>Couldn’t read the device</h3>
+        <pre id="idevErrorDetail" class="finding__detail"></pre>
+      </div>
+
+      <div id="idevContent" class="idev-content" hidden></div>
     </main>
 
     <!-- ================= REPAIRS ================= -->
@@ -1965,6 +2009,7 @@
     <script src="crash-ui.js"></script>
     <script src="battery-ui.js"></script>
     <script src="devices-ui.js"></script>
+    <script src="idevice-ui.js"></script>
     <script src="repairs-ui.js"></script>
     <script src="disktools-ui.js"></script>
     <script src="backup-ui.js"></script>

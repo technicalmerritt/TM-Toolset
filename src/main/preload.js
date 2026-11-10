@@ -136,6 +136,14 @@ contextBridge.exposeInMainWorld('settings', {
   test: (payload) => ipcRenderer.invoke('settings:test', payload),
 });
 
+contextBridge.exposeInMainWorld('idevice', {
+  status: () => ipcRenderer.invoke('idevice:status'),
+  read: (udid) => ipcRenderer.invoke('idevice:read', { udid }),
+  crash: (udid) => ipcRenderer.invoke('idevice:crash', { udid }),
+  watch: (on) => ipcRenderer.invoke('idevice:watch', { on }),
+  onDevices: (cb) => ipcRenderer.on('idevice:devices', (_e, list) => cb(list)),
+});
+
 contextBridge.exposeInMainWorld('syncro', {
   lookup: (args) => ipcRenderer.invoke('syncro:lookup', args),
   postScan: (args) => ipcRenderer.invoke('syncro:postScan', args),

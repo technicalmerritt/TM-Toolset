@@ -1,5 +1,5 @@
 {
-  "version": "0.70.6",
-  "notes": "Licensing: refreshed the app's licence-verification key. Update to this version before activating a licence. Your trial and any existing settings are unaffected. (Behind the scenes this swaps in a new signing key for issuing licences; no change to how the app works day to day.)",
-  "zip": "tmtoolset-app-0.70.6.zip"
+  "version": "0.70.7",
+  "notes": "New Apple Devices tab (iOS/iPadOS): plug in an iPhone or iPad to read full identity (model, serial, IMEI, UDID), battery health with cycle count and a Good/Replace verdict, storage, software version, and Find My / Activation Lock status — with a plain-English findings list and health score, like the PC issue scanner. Read-only; nothing is changed on the device. This release adds the full interface and diagnostics engine; the device-reading tools themselves arrive in the next full portable build (the tab shows setup guidance until then). Syncro asset registration is the next phase.",
+  "zip": "tmtoolset-app-0.70.7.zip"
 }

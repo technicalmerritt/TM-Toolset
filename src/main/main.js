@@ -17,6 +17,7 @@ const drives = require('./drives/drives');
 const news = require('./news/news');
 const driverpacks = require('./drivers/driverpacks');
 const licensing = require('./license/verify');
+const idevice = require('./idevice/idevice');
 const netspeed = require('./net/speed');
 const biosparse = require('./bios/parse');
 const biosanalyze = require('./bios/analyze');
@@ -2118,6 +2119,44 @@ function registerIpc() {
     } catch (err) {
       return { ok: false, error: (err && err.message) || String(err) };
     }
+  });
+
+  // ---- Apple devices (iOS/iPadOS over USB via libimobiledevice) ----
+  ipcMain.handle('idevice:status', async () => {
+    try { return await idevice.status(); }
+    catch (err) { return { toolsPresent: false, message: (err && err.message) || String(err), devices: [] }; }
+  });
+  ipcMain.handle('idevice:read', async (_evt, args) => {
+    try { return await idevice.readDevice((args && args.udid) || ''); }
+    catch (err) { return { ok: false, reason: (err && err.message) || String(err) }; }
+  });
+  ipcMain.handle('idevice:crash', async (_evt, args) => {
+    try {
+      const out = path.join(app.getPath('temp'), 'tmts-ios-crash-' + Date.now());
+      await fsp.mkdir(out, { recursive: true });
+      return await idevice.crashReports((args && args.udid) || '', out);
+    } catch (err) { return { ok: false, reason: (err && err.message) || String(err) }; }
+  });
+  // Lightweight connect/disconnect watcher: poll the UDID list and push changes.
+  let _idevTimer = null;
+  let _idevLast = '';
+  ipcMain.handle('idevice:watch', async (_evt, args) => {
+    const on = !!(args && args.on);
+    if (_idevTimer) { clearInterval(_idevTimer); _idevTimer = null; }
+    if (!on) return { ok: true, watching: false };
+    const tick = async () => {
+      try {
+        const list = await idevice.listDevices();
+        const sig = list.join(',');
+        if (sig !== _idevLast) {
+          _idevLast = sig;
+          if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('idevice:devices', list);
+        }
+      } catch { /* ignore */ }
+    };
+    _idevTimer = setInterval(tick, 2500);
+    tick();
+    return { ok: true, watching: true };
   });
 
   // ---- Settings (Syncro credentials) ----

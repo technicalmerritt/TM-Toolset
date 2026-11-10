@@ -1,6 +1,6 @@
 {
   "name": "tm-toolset",
-  "version": "0.70.6",
+  "version": "0.70.7",
   "description": "TM Toolset — technician diagnostic suite by Technical Merritt Computer Services.",
   "license": "UNLICENSED",
   "private": true,
@@ -41,6 +41,7 @@
       "**/diagnose/**",
       "**/debloat/**",
       "**/boardrepair/**",
+      "**/idevice/**",
       "**/tools/**",
       "**/m365/**"
     ],

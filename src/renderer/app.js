@@ -19,6 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
     diagnose: document.getElementById('panel-diagnose'),
     battery: document.getElementById('panel-battery'),
     devices: document.getElementById('panel-devices'),
+    idevice: document.getElementById('panel-idevice'),
     repairs: document.getElementById('panel-repairs'),
     disktools: document.getElementById('panel-disktools'),
     debloat: document.getElementById('panel-debloat'),
