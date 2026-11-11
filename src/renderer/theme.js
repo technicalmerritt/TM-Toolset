@@ -14,7 +14,13 @@
     ['Paper', '#faf9f6', '#2f6df6'],
     ['Oaklands', '#f5f7f4', '#0a7f39', { brand: 'Oaklands Computer Services', logo: 'logo-oaklands.svg', appIcon: 'oaklands' }],
   ];
+  const DEFAULT_TITLE = 'TM Toolset';
   let current = Object.assign({}, DEFAULT);
+
+  // True when a brand/logo/appIcon value was put there by a built-in preset
+  // (e.g. Oaklands) rather than typed or uploaded by the user. Switching to
+  // another preset drops those, but keeps anything the user set themselves.
+  function fromPreset(key, val) { return !!val && PRESETS.some((p) => p[3] && p[3][key] === val); }
 
   function $(s) { return document.querySelector(s); }
   function hexToRgb(h) { h = ('' + h).replace('#', ''); if (h.length === 3) h = h.split('').map((c) => c + c).join(''); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
@@ -57,8 +63,10 @@
     if (img) {
       if (t.logo) img.src = t.logo;
       else img.src = vars._dark ? 'logo-dark.svg' : 'logo-light.svg';
+      img.alt = t.brand || 'Technical Merritt Computer Services';
     }
-    if (t.brand) { try { document.title = t.brand; } catch { /* ignore */ } }
+    // Title bar follows the brand, and falls back when the brand is cleared.
+    try { document.title = t.brand || DEFAULT_TITLE; } catch { /* ignore */ }
     // App icon (window + taskbar) follows the theme.
     try { if (window.theme && window.theme.setAppIcon) window.theme.setAppIcon(t.appIcon || ''); } catch { /* ignore */ }
     try { localStorage.setItem('tmTheme', JSON.stringify(t)); } catch { /* ignore */ }
@@ -84,7 +92,7 @@
   function wireSettings() {
     const name = $('#brandName'), acc = $('#brandAccent'), bg = $('#brandBg');
     if (!bg) return;
-    const live = () => { apply({ brand: name.value, accent: acc.value, bg: bg.value, logo: current.logo }); save(); };
+    const live = () => { apply({ brand: name.value, accent: acc.value, bg: bg.value, logo: current.logo, appIcon: current.appIcon }); save(); };
     name.addEventListener('input', live);
     acc.addEventListener('input', live);
     bg.addEventListener('input', live);
@@ -112,11 +120,14 @@
         chip.type = 'button'; chip.className = 'ov-chip'; chip.textContent = label;
         chip.addEventListener('click', () => {
           const e = extra || {};
+          // A preset's own branding replaces what is there; otherwise keep the
+          // user's custom name/logo/icon but drop any left by another preset.
+          const pick = (k) => (e[k] != null ? e[k] : (fromPreset(k, current[k]) ? '' : current[k]));
           apply({
-            brand: e.brand != null ? e.brand : current.brand,
+            brand: pick('brand'),
             accent: pacc, bg: pbg,
-            logo: e.logo != null ? e.logo : current.logo,
-            appIcon: e.appIcon != null ? e.appIcon : current.appIcon,
+            logo: pick('logo'),
+            appIcon: pick('appIcon'),
           });
           save(); fillSettings();
         });
