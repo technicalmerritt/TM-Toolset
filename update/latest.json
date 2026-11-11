@@ -1,5 +1,5 @@
 {
-  "version": "0.70.9",
-  "notes": "Ticket picker: the ticket box in the top bar now has a ▾ button that pulls your recent live (unresolved) tickets — up to 50 — so you can pick the job from a list instead of typing a number. A filter box narrows a long list. Typing a number still works.",
-  "zip": "tmtoolset-app-0.70.9.zip"
+  "version": "0.70.10",
+  "notes": "Two additions. (1) Install Syncro agent: a button on the ticket bar installs your Syncro RMM agent on this PC for the active ticket's customer — paste your installer link once in Settings. It only downloads from Syncro addresses and now only runs the installer if it's validly signed BY Syncro/RepairTech. (2) Theme fix: switching away from a preset (e.g. Oaklands) no longer leaves its logo, app icon or title-bar name behind. Note: the agent installer flow hasn't been tested on a live Windows install yet — try it on a test PC first.",
+  "zip": "tmtoolset-app-0.70.10.zip"
 }
