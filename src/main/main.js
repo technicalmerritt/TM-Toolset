@@ -12,6 +12,7 @@ const inform = require('./inform/inform');
 const actions = require('./actions');
 const settings = require('./settings');
 const syncro = require('./syncro');
+const syncroAgent = require('./syncro-agent');
 const startup = require('./startup/startup');
 const drives = require('./drives/drives');
 const news = require('./news/news');
@@ -2256,6 +2257,58 @@ function registerIpc() {
       body: (args && args.body) || '',
       hidden: !(args && args.hidden === false),
     });
+  });
+
+  // ---- Install the Syncro RMM agent on this PC for the active ticket's customer ----
+  ipcMain.handle('agent:get', async () => {
+    const cfg = await readConfig();
+    const a = (cfg.syncroAgent && typeof cfg.syncroAgent === 'object') ? cfg.syncroAgent : {};
+    let host = '';
+    try { if (a.url) host = new URL(a.url).hostname; } catch { /* ignore */ }
+    return { hasLink: !!a.url, host, installed: syncroAgent.isInstalled(), folders: a.folders || {} };
+  });
+  ipcMain.handle('agent:setLink', async (_evt, args) => {
+    const raw = String((args && args.link) || '').trim();
+    const cfg = await readConfig();
+    const a = (cfg.syncroAgent && typeof cfg.syncroAgent === 'object') ? cfg.syncroAgent : {};
+    if (!raw) { delete a.url; cfg.syncroAgent = a; await writeConfig(cfg); return { ok: true, cleared: true }; }
+    const link = syncroAgent.parseInstallerLink(raw);
+    if (!link.ok) return link;
+    a.url = link.url; cfg.syncroAgent = a;
+    await writeConfig(cfg);
+    return { ok: true, host: new URL(link.url).hostname };
+  });
+  ipcMain.handle('agent:install', async (_evt, args) => {
+    const t = (args && args.ticket) || {};
+    const folderId = String((args && args.folderId) || '').trim();
+    const cfg = await readConfig();
+    const a = (cfg.syncroAgent && typeof cfg.syncroAgent === 'object') ? cfg.syncroAgent : {};
+    if (!a.url) return { ok: false, message: 'Add your Syncro agent installer link in Settings first.' };
+    const onProgress = (msg) => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('agent:progress', msg); };
+    const res = await syncroAgent.install({ url: a.url, customerId: t.customerId, folderId, onProgress });
+    tmLog('syncro-agent', 'install for ' + (t.customerName || '') + ' (customer ' + (t.customerId || '?') + ')', res.ok ? (res.installed ? 'installed' : 'ran, not yet detected') : 'failed', res.message || '');
+    if (res.ok) {
+      // Remember the policy folder used for this customer, for next time.
+      try {
+        const c2 = await readConfig();
+        const a2 = (c2.syncroAgent && typeof c2.syncroAgent === 'object') ? c2.syncroAgent : {};
+        a2.folders = a2.folders || {};
+        if (folderId) a2.folders[String(t.customerId)] = folderId; else delete a2.folders[String(t.customerId)];
+        c2.syncroAgent = a2; await writeConfig(c2);
+      } catch { /* ignore */ }
+      if (args && args.note && t.id) {
+        try {
+          const { subdomain, token } = await settings.getForApi();
+          if (subdomain && token) {
+            const host = require('node:os').hostname();
+            const r = await syncro.postComment({ subdomain, token, ticketId: t.id, subject: 'TM Toolset', hidden: true,
+              body: '<p><strong>Syncro agent installed</strong> on ' + host + ' via TM Toolset (' + new Date().toLocaleString() + ').</p>' });
+            res.noted = !!(r && r.ok);
+          }
+        } catch { res.noted = false; }
+      }
+    }
+    return res;
   });
 
   // ---- Repairs (DISM/SFC/chkdsk/WU/network/DNS/temp) with live output ----

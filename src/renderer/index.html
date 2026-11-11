@@ -36,6 +36,7 @@
             <span id="ticketCustomer" class="ticket__cust"></span>
             <span id="ticketSubject" class="ticket__subj"></span>
           </div>
+          <button id="ticketAgent" class="ticket__agent" type="button" title="Install your Syncro agent on this PC for this ticket's customer">Install agent</button>
           <button id="ticketClear" class="ticket__clear" type="button" title="Clear ticket">&times;</button>
         </div>
         <div id="ticketPicker" class="ticket__picker" hidden>
@@ -373,6 +374,17 @@
         </div>
         <p class="muted settings-hint">One licence is tied to your e-mail and works on all the machines you work on. Support reference (this machine): <span id="licSetMid" class="bk-mono"></span></p>
         <p id="licSetStatus" class="info-line"></p>
+      </section>
+
+      <section class="info-card settings-card">
+        <h3 class="info-card__title">Syncro agent installer</h3>
+        <p class="muted settings-hint">Lets the <strong>Install agent</strong> button in the ticket bar install your Syncro agent on the PC you are working on, under that ticket's customer. In Syncro: New Asset, pick any customer, choose <strong>Command Line</strong>, and copy the link.</p>
+        <label class="field"><span>Installer link</span><input id="agentSetLink" type="text" placeholder="https://rmm.syncromsp.com/dl/rs/…" autocomplete="off" /></label>
+        <div class="settings-actions">
+          <button id="agentSetSave" class="btn btn--primary" type="button">Save link</button>
+          <button id="agentSetClear" class="btn btn--ghost" type="button">Remove</button>
+        </div>
+        <p id="agentSetStatus" class="info-line"></p>
       </section>
 
       <section class="info-card settings-card">
@@ -1986,6 +1998,31 @@
     </div>
 
     <!-- Create-asset modal -->
+    <div id="agentModal" class="modal" hidden>
+      <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="agentTitle">
+        <h2 id="agentTitle">Install Syncro agent on this PC</h2>
+        <p class="muted" id="agentTarget"></p>
+        <p class="muted" id="agentWarn" hidden>A Syncro agent already looks to be installed on this PC. Installing again re-registers it under this customer.</p>
+        <div id="agentSetup" hidden>
+          <label class="field">
+            <span>Your Syncro installer link (one-off setup)</span>
+            <input id="agentLink" type="text" placeholder="https://rmm.syncromsp.com/dl/rs/…" autocomplete="off" />
+          </label>
+          <p class="muted settings-hint">In Syncro: New Asset, pick any customer, choose <strong>Command Line</strong>, and copy the link (or the whole snippet). It is saved with your settings and reused for every customer.</p>
+        </div>
+        <label class="field">
+          <span>Policy folder ID (optional)</span>
+          <input id="agentFolder" type="text" inputmode="numeric" placeholder="Leave blank for the customer's top-level policy" autocomplete="off" />
+        </label>
+        <label class="agent-note"><input id="agentNote" type="checkbox" checked /> Add a private note to the ticket when it is installed</label>
+        <p id="agentStatus" class="info-line"></p>
+        <div class="modal__actions">
+          <button id="agentCancel" class="btn btn--ghost" type="button">Close</button>
+          <button id="agentGo" class="btn btn--primary" type="button">Install agent</button>
+        </div>
+      </div>
+    </div>
+
     <div id="assetModal" class="modal" hidden>
       <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="assetTitle">
         <h2 id="assetTitle">Create asset in Syncro</h2>
@@ -2010,6 +2047,7 @@
     <script src="renderer.js"></script>
     <script src="elevate.js"></script>
     <script src="ticket.js"></script>
+    <script src="agent-ui.js"></script>
     <script src="scanner.js"></script>
     <script src="inform.js"></script>
     <script src="settings-ui.js"></script>
