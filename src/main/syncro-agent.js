@@ -18,6 +18,11 @@ const { spawn, execFile } = require('node:child_process');
 // Only ever download an installer from Syncro's own hosts.
 const ALLOWED_HOSTS = /(^|\.)(syncromsp\.com|syncrosecure\.com|kabutoservices\.com)$/i;
 
+// The Authenticode publisher the Syncro agent installer must be signed by.
+// (Syncro / RepairTech, Inc.; Kaseya is the parent group.) If a real install is
+// refused for an unexpected-but-correct publisher, add it here.
+const TRUSTED_SIGNER = /(RepairTech|Syncro|Kaseya)/i;
+
 // Accepts either the bare link or the whole command-line snippet copied from
 // Syncro (which contains the link). Returns { ok, url } or { ok:false, message }.
 function parseInstallerLink(input) {
@@ -124,6 +129,12 @@ async function install({ url, customerId, folderId, onProgress }) {
     if (onProgress) onProgress('Checking the installer is signed…');
     const sig = await signature(exe);
     if (sig.status !== 'Valid') return { ok: false, message: 'The downloaded installer is not validly signed (' + sig.status + '), so it was not run.' };
+    // Defence in depth: a valid signature alone isn't enough — the download
+    // follows redirects (Syncro's CDN), so require the publisher to actually be
+    // Syncro/RepairTech. A validly-signed binary from anyone else is refused.
+    if (!TRUSTED_SIGNER.test(sig.signer || '')) {
+      return { ok: false, message: 'The installer is validly signed, but by an unexpected publisher (' + (sig.signer || 'unknown') + ') — not Syncro/RepairTech — so it was NOT run. If this publisher is correct for your Syncro account, let the developer know to allow it.' };
+    }
     if (onProgress) onProgress('Installing (signed by ' + (sig.signer || 'unknown') + ')…');
     const r = await runInstaller(exe, args, onProgress);
     const installed = isInstalled();
