@@ -155,6 +155,17 @@ contextBridge.exposeInMainWorld('syncro', {
   createAsset: (args) => ipcRenderer.invoke('syncro:createAsset', args),
 });
 
+contextBridge.exposeInMainWorld('agent', {
+  get: () => ipcRenderer.invoke('agent:get'),
+  setLink: (link) => ipcRenderer.invoke('agent:setLink', { link }),
+  install: (args) => ipcRenderer.invoke('agent:install', args),
+  onProgress: (cb) => {
+    const handler = (_e, payload) => cb(payload);
+    ipcRenderer.on('agent:progress', handler);
+    return () => ipcRenderer.removeListener('agent:progress', handler);
+  },
+});
+
 contextBridge.exposeInMainWorld('repairs', {
   run: (action) => ipcRenderer.invoke('repairs:run', { action }),
   onProgress: (cb) => {
