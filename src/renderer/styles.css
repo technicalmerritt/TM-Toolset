@@ -2245,3 +2245,16 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .idev-finding__sev { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; padding:2px 7px; border-radius:999px; background:var(--bg-elev); color:var(--muted); }
 .idev-finding--bad .idev-finding__sev { color:var(--danger); } .idev-finding--warn .idev-finding__sev { color:#f3b23c; } .idev-finding--ok .idev-finding__sev { color:#3ec07a; }
 .idev-setup-actions { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+
+/* ===== live-ticket picker ===== */
+.ticket { position: relative; }
+.ticket__pick { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 12px; padding: 4px 4px 4px 2px; line-height: 1; }
+.ticket__pick:hover { color: var(--accent); }
+.ticket__picker { position: absolute; top: calc(100% + 6px); right: 0; width: 360px; max-width: 80vw; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.45); z-index: 60; padding: 8px; }
+.ticket__pickfilter { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 7px 9px; font: inherit; margin-bottom: 8px; }
+.ticket__picklist { max-height: 340px; overflow-y: auto; display: grid; gap: 4px; }
+.ticket__pickitem { display: block; width: 100%; text-align: left; background: var(--bg-elev-2); border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; color: var(--text); cursor: pointer; font: inherit; font-size: 13px; }
+.ticket__pickitem:hover { border-color: var(--accent); }
+.ticket__pickitem strong { color: var(--accent); margin-right: 6px; }
+.ticket__picksub { display: block; color: var(--muted, #9aa5b5); font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticket__pickempty { color: var(--text-dim); font-size: 13px; padding: 10px; text-align: center; }

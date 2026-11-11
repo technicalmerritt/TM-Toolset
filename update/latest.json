@@ -1,5 +1,5 @@
 {
-  "version": "0.70.8",
-  "notes": "Apple Devices tab is now wired to real device-reading tools. One-time setup: install Apple's Mobile Device driver (iTunes or the free 'Apple Devices' app), then use the new 'Install from file…' button to add a vetted copy of the open-source libimobiledevice tools — they save onto your USB stick and travel with it. The app looks for them on the stick first, so no rebuild is needed. (For safety the app never auto-downloads these binaries; you supply a copy you trust.) Once installed, connect an iPhone/iPad, unlock and tap Trust, then Read device.",
-  "zip": "tmtoolset-app-0.70.8.zip"
+  "version": "0.70.9",
+  "notes": "Ticket picker: the ticket box in the top bar now has a ▾ button that pulls your recent live (unresolved) tickets — up to 50 — so you can pick the job from a list instead of typing a number. A filter box narrows a long list. Typing a number still works.",
+  "zip": "tmtoolset-app-0.70.9.zip"
 }

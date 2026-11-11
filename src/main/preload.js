@@ -148,6 +148,7 @@ contextBridge.exposeInMainWorld('idevice', {
 
 contextBridge.exposeInMainWorld('syncro', {
   lookup: (args) => ipcRenderer.invoke('syncro:lookup', args),
+  listTickets: (args) => ipcRenderer.invoke('syncro:listTickets', args),
   postScan: (args) => ipcRenderer.invoke('syncro:postScan', args),
   postNote: (args) => ipcRenderer.invoke('syncro:postNote', args),
   assetTypes: () => ipcRenderer.invoke('syncro:assetTypes'),

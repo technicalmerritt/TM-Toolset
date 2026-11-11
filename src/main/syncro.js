@@ -71,6 +71,40 @@ async function lookupTicket({ subdomain, token, number }) {
 }
 
 // List the account's asset types (so the user can pick a real one).
+// List the most recent live/open tickets (not resolved) so the technician can
+// pick from a menu instead of typing a number. Returns the same shape as
+// lookupTicket's ticket, so the picker can set the active ticket directly.
+async function listActiveTickets({ subdomain, token, limit }) {
+  const base = normalizeBase(subdomain);
+  if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
+  if (!token) return { ok: false, message: 'Syncro API token is not set.' };
+  const per = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 100);
+  try {
+    const res = await apiRequest(base, token, `/tickets?per_page=${per}`);
+    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected — the API token needs Tickets permission.' };
+    if (res.status !== 200) return { ok: false, message: `Syncro returned HTTP ${res.status}.` };
+    let j = {};
+    try { j = await res.json(); } catch { /* ignore */ }
+    const list = (j && (j.tickets || j.data)) || [];
+    const tickets = list
+      .filter((t) => !/resolved/i.test(String(t.status || '')))
+      .map((t) => ({
+        id: t.id,
+        number: t.number,
+        subject: t.subject || '',
+        status: t.status || '',
+        customerId: t.customer_id,
+        customerName:
+          t.customer_business_then_name || t.customer_full_name || t.customer_fullname ||
+          (t.customer && (t.customer.business_name || [t.customer.firstname, t.customer.lastname].filter(Boolean).join(' ').trim())) ||
+          (t.customer_id ? 'Customer ' + t.customer_id : 'Unknown customer'),
+      }));
+    return { ok: true, tickets };
+  } catch (e) {
+    return { ok: false, message: 'Could not reach Syncro: ' + e.message };
+  }
+}
+
 async function listAssetTypes({ subdomain, token }) {
   const base = normalizeBase(subdomain);
   if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
@@ -206,4 +240,4 @@ function buildFindingsComment(result) {
   return out.join('\n');
 }
 
-module.exports = { testConnection, lookupTicket, postComment, listAssetTypes, createAsset, buildFindingsComment, normalizeBase };
+module.exports = { testConnection, lookupTicket, listActiveTickets, postComment, listAssetTypes, createAsset, buildFindingsComment, normalizeBase };

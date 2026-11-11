@@ -2222,6 +2222,13 @@ function registerIpc() {
     return syncro.lookupTicket({ subdomain, token, number: args && args.number });
   });
 
+  // ---- List recent live tickets so the tech can pick one instead of typing ----
+  ipcMain.handle('syncro:listTickets', async (_evt, args) => {
+    const { subdomain, token } = await settings.getForApi();
+    if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
+    return syncro.listActiveTickets({ subdomain, token, limit: (args && args.limit) || 50 });
+  });
+
   // ---- Post an Issue Scan as a comment on an existing Syncro ticket ----
   ipcMain.handle('syncro:postScan', async (_evt, args) => {
     const { subdomain, token } = await settings.getForApi();

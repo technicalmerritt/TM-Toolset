@@ -29,6 +29,7 @@
         <form id="ticketForm" class="ticket__form">
           <span class="ticket__hash">#</span>
           <input id="ticketInput" class="ticket__input" type="text" inputmode="numeric" placeholder="Ticket" autocomplete="off" title="Type a ticket number and press Enter" />
+          <button id="ticketPickBtn" class="ticket__pick" type="button" title="Pick from recent live tickets">▾</button>
         </form>
         <div id="ticketInfo" class="ticket__info" hidden>
           <div class="ticket__text">
@@ -36,6 +37,10 @@
             <span id="ticketSubject" class="ticket__subj"></span>
           </div>
           <button id="ticketClear" class="ticket__clear" type="button" title="Clear ticket">&times;</button>
+        </div>
+        <div id="ticketPicker" class="ticket__picker" hidden>
+          <input id="ticketPickFilter" class="ticket__pickfilter" type="text" placeholder="Filter live tickets…" autocomplete="off" />
+          <div id="ticketPickList" class="ticket__picklist"></div>
         </div>
       </div>
     </header>
