@@ -364,6 +364,23 @@
       </div>
 
       <section class="info-card settings-card">
+        <h3 class="info-card__title">Updates</h3>
+        <p class="info-line">Installed: <span id="updCurrent" class="bk-mono">—</span> &nbsp; Latest: <span id="updLatest" class="bk-mono">—</span></p>
+        <div class="settings-actions">
+          <button id="updCheck" class="btn btn--ghost" type="button">Check for updates</button>
+          <button id="updInstall" class="btn btn--primary" type="button" hidden>Download &amp; install</button>
+          <button id="updPage" class="btn btn--ghost" type="button" hidden>Open Releases page</button>
+        </div>
+        <div id="updProg" class="rec-prog" hidden>
+          <div id="updProgText" class="rec-prog__txt muted"></div>
+          <div class="rec-prog__track"><div id="updProgFill" class="rec-prog__fill"></div></div>
+        </div>
+        <p id="updStatus" class="info-line"></p>
+        <p id="updNotes" class="muted upd-notes" hidden></p>
+        <p class="muted settings-hint">Updates come straight from GitHub (<span id="updRepo" class="bk-mono"></span>) and only run while licensed or on trial. The app restarts itself when done. Your bundled tools and settings are left untouched.</p>
+      </section>
+
+      <section class="info-card settings-card">
         <h3 class="info-card__title">Licence</h3>
         <p id="licStatusLine" class="info-line"></p>
         <label class="field"><span>E-mail on your licence</span><input id="licSetEmail" type="email" placeholder="you@example.com" autocomplete="off" /></label>
@@ -385,23 +402,6 @@
           <button id="agentSetClear" class="btn btn--ghost" type="button">Remove</button>
         </div>
         <p id="agentSetStatus" class="info-line"></p>
-      </section>
-
-      <section class="info-card settings-card">
-        <h3 class="info-card__title">Updates</h3>
-        <p class="info-line">Installed: <span id="updCurrent" class="bk-mono">—</span> &nbsp; Latest: <span id="updLatest" class="bk-mono">—</span></p>
-        <div class="settings-actions">
-          <button id="updCheck" class="btn btn--ghost" type="button">Check for updates</button>
-          <button id="updInstall" class="btn btn--primary" type="button" hidden>Download &amp; install</button>
-          <button id="updPage" class="btn btn--ghost" type="button" hidden>Open Releases page</button>
-        </div>
-        <div id="updProg" class="rec-prog" hidden>
-          <div id="updProgText" class="rec-prog__txt muted"></div>
-          <div class="rec-prog__track"><div id="updProgFill" class="rec-prog__fill"></div></div>
-        </div>
-        <p id="updStatus" class="info-line"></p>
-        <p id="updNotes" class="muted upd-notes" hidden></p>
-        <p class="muted settings-hint">Updates come straight from GitHub (<span id="updRepo" class="bk-mono"></span>) and only run while licensed or on trial. The app restarts itself when done. Your bundled tools and settings are left untouched.</p>
       </section>
 
       <section class="info-card settings-card">
