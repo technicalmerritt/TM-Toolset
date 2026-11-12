@@ -19,10 +19,11 @@ const { spawn, execFile } = require('node:child_process');
 const ALLOWED_HOSTS = /(^|\.)(syncromsp\.com|syncrosecure\.com|kabutoservices\.com)$/i;
 
 // The Authenticode publisher the Syncro agent installer must be signed by.
-// Syncro signs its agent as "Serverably, Inc." (confirmed in the field);
-// RepairTech/Syncro/Kaseya kept for older/other builds. If a real install is
-// ever refused for an unexpected-but-correct publisher, add it here.
-const TRUSTED_SIGNER = /(Serverably|RepairTech|Syncro|Kaseya)/i;
+// Syncro signs its agent as "Servably, Inc." (confirmed in the field);
+// RepairTech/Syncro/Kaseya kept for older/other builds. The Serv(er)?ably
+// pattern tolerates either spelling. If a real install is ever refused for an
+// unexpected-but-correct publisher, add it here.
+const TRUSTED_SIGNER = /(Serv(?:er)?ably|RepairTech|Syncro|Kaseya)/i;
 
 // Accepts either the bare link or the whole command-line snippet copied from
 // Syncro (which contains the link). Returns { ok, url } or { ok:false, message }.

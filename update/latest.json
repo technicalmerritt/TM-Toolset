@@ -1,5 +1,5 @@
 {
-  "version": "0.70.11",
-  "notes": "Syncro agent install: allow the real installer publisher. Syncro signs its agent as 'Serverably, Inc.', which the publisher check didn't recognise, so installs were being refused. That publisher is now trusted, so the Install agent button works.",
-  "zip": "tmtoolset-app-0.70.11.zip"
+  "version": "0.70.12",
+  "notes": "Fix the Syncro agent publisher spelling: the installer is signed by 'Servably, Inc.' (not Serverably). The publisher check now matches the correct name, so the Install agent button works."
+, "zip": "tmtoolset-app-0.70.12.zip"
 }
