@@ -2000,25 +2000,23 @@
     <!-- Create-asset modal -->
     <div id="agentModal" class="modal" hidden>
       <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="agentTitle">
-        <h2 id="agentTitle">Install Syncro agent on this PC</h2>
+        <h2 id="agentTitle">Get the Syncro agent installer</h2>
         <p class="muted" id="agentTarget"></p>
-        <p class="muted" id="agentWarn" hidden>A Syncro agent already looks to be installed on this PC. Installing again re-registers it under this customer.</p>
+        <p class="muted" id="agentWarn" hidden>A Syncro agent already looks to be present on this PC.</p>
         <div id="agentSetup" hidden>
           <label class="field">
             <span>Your Syncro installer link (one-off setup)</span>
             <input id="agentLink" type="text" placeholder="https://rmm.syncromsp.com/dl/rs/…" autocomplete="off" />
           </label>
-          <p class="muted settings-hint">In Syncro: New Asset, pick any customer, choose <strong>Command Line</strong>, and copy the link (or the whole snippet). It is saved with your settings and reused for every customer.</p>
+          <p class="muted settings-hint">In Syncro: New Asset, pick any customer, choose <strong>Command Line</strong>, and copy the link (or the whole snippet). It is saved with your settings and reused.</p>
         </div>
-        <label class="field">
-          <span>Policy folder ID (optional)</span>
-          <input id="agentFolder" type="text" inputmode="numeric" placeholder="Leave blank for the customer's top-level policy" autocomplete="off" />
-        </label>
-        <label class="agent-note"><input id="agentNote" type="checkbox" checked /> Add a private note to the ticket when it is installed</label>
+        <p class="muted settings-hint">TM Toolset downloads your installer straight from Syncro and verifies it is signed by <strong>Servably</strong> (Syncro), then saves it to your Downloads folder. You run it yourself — the normal, safe way — and Syncro's installer handles the rest (including which customer it goes under).</p>
         <p id="agentStatus" class="info-line"></p>
         <div class="modal__actions">
           <button id="agentCancel" class="btn btn--ghost" type="button">Close</button>
-          <button id="agentGo" class="btn btn--primary" type="button">Install agent</button>
+          <button id="agentReveal" class="btn btn--ghost" type="button" hidden>Open folder</button>
+          <button id="agentRun" class="btn btn--ghost" type="button" hidden>Run installer</button>
+          <button id="agentGo" class="btn btn--primary" type="button">Download &amp; verify</button>
         </div>
       </div>
     </div>

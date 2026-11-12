@@ -103,51 +103,48 @@ function signature(file) {
   });
 }
 
-function runInstaller(exe, args, onProgress) {
-  return new Promise((resolve) => {
-    let child;
-    try { child = spawn(exe, args, { windowsHide: true }); }
-    catch (e) { resolve({ code: -1, output: '', error: e.message }); return; }
-    let output = '';
-    const take = (d) => { const t = d.toString(); output += t; const last = t.trim().split(/\r?\n/).pop(); if (last && onProgress) onProgress(last.slice(0, 160)); };
-    child.stdout.on('data', take); child.stderr.on('data', take);
-    const timer = setTimeout(() => { try { child.kill(); } catch { /* ignore */ } resolve({ code: -1, output, error: 'The installer did not finish within 10 minutes.' }); }, 600000);
-    child.on('error', (e) => { clearTimeout(timer); resolve({ code: -1, output, error: e.message }); });
-    child.on('close', (code) => { clearTimeout(timer); resolve({ code: code == null ? -1 : code, output }); });
-  });
-}
-
-async function install({ url, customerId, folderId, onProgress }) {
+// Download the installer from the saved Syncro link, verify it is validly
+// signed by Servably (Syncro), and leave the verified .exe in destDir for the
+// technician to run themselves. We do NOT run it silently — the earlier
+// --console auto-run only unpacked files without registering the service, so
+// handing over the official installer (run interactively) is safer and reliable.
+async function prepare({ url, destDir, onProgress }) {
   if (process.platform !== 'win32') return { ok: false, message: 'The Syncro agent installer only runs on Windows.' };
   const link = parseInstallerLink(url);
   if (!link.ok) return link;
-  let args;
-  try { args = buildArgs(customerId, folderId); } catch (e) { return { ok: false, message: e.message }; }
-  const dir = await fsp.mkdtemp(path.join(os.tmpdir(), 'tm-syncro-'));
-  const exe = path.join(dir, 'SyncroSetup.exe');
+  await fsp.mkdir(destDir, { recursive: true });
+  const exe = path.join(destDir, 'Syncro-Agent-Setup.exe');
+  try { fs.unlinkSync(exe); } catch { /* ignore — overwrite any old copy */ }
   try {
-    if (onProgress) onProgress('Downloading the installer…');
+    if (onProgress) onProgress('Downloading the installer from Syncro…');
     await download(link.url, exe, onProgress);
     if (onProgress) onProgress('Checking the installer is signed…');
     const sig = await signature(exe);
-    if (sig.status !== 'Valid') return { ok: false, message: 'The downloaded installer is not validly signed (' + sig.status + '), so it was not run.' };
+    if (sig.status !== 'Valid') { try { fs.unlinkSync(exe); } catch {} return { ok: false, message: 'The downloaded installer is not validly signed (' + sig.status + '), so it was discarded.' }; }
     // Defence in depth: a valid signature alone isn't enough — the download
     // follows redirects (Syncro's CDN), so require the publisher to actually be
-    // Syncro/RepairTech. A validly-signed binary from anyone else is refused.
+    // Syncro (Servably). A validly-signed binary from anyone else is refused.
     if (!TRUSTED_SIGNER.test(sig.signer || '')) {
-      return { ok: false, message: 'The installer is validly signed, but by an unexpected publisher (' + (sig.signer || 'unknown') + ') — not Syncro/RepairTech — so it was NOT run. If this publisher is correct for your Syncro account, let the developer know to allow it.' };
+      try { fs.unlinkSync(exe); } catch {}
+      return { ok: false, message: 'The installer is validly signed, but by an unexpected publisher (' + (sig.signer || 'unknown') + ') — not Syncro — so it was discarded. If this publisher is correct for your Syncro account, let the developer know to allow it.' };
     }
-    if (onProgress) onProgress('Installing (signed by ' + (sig.signer || 'unknown') + ')…');
-    const r = await runInstaller(exe, args, onProgress);
-    const installed = isInstalled();
-    if (r.error) return { ok: false, message: r.error, output: r.output.slice(-2000), signer: sig.signer };
-    if (r.code !== 0 && !installed) return { ok: false, message: 'The installer exited with code ' + r.code + '.', output: r.output.slice(-2000), signer: sig.signer };
-    return { ok: true, installed, exitCode: r.code, signer: sig.signer, output: r.output.slice(-2000), args: args.join(' ') };
+    return { ok: true, path: exe, signer: sig.signer };
   } catch (e) {
     return { ok: false, message: (e && e.message) || String(e) };
-  } finally {
-    try { await fsp.rm(dir, { recursive: true, force: true }); } catch { /* ignore */ }
   }
 }
 
-module.exports = { parseInstallerLink, buildArgs, isInstalled, install };
+// Launch the verified installer interactively (the same as double-clicking it),
+// so Syncro's own installer handles the full install and customer assignment.
+function launch(exe) {
+  return new Promise((resolve) => {
+    if (process.platform !== 'win32') return resolve({ ok: false, message: 'Windows only.' });
+    try {
+      const child = spawn(exe, [], { detached: true, stdio: 'ignore', windowsHide: false });
+      child.unref();
+      resolve({ ok: true });
+    } catch (e) { resolve({ ok: false, message: (e && e.message) || String(e) }); }
+  });
+}
+
+module.exports = { parseInstallerLink, buildArgs, isInstalled, prepare, launch };

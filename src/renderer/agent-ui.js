@@ -1,30 +1,35 @@
 'use strict';
 
-// "Install agent" in the ticket bar: installs the technician's Syncro RMM agent
-// on this PC under the active ticket's customer.
+// "Install agent" in the ticket bar: downloads the technician's Syncro agent
+// installer, verifies it is signed by Servably (Syncro), and hands it over to
+// run — rather than running it silently (which only unpacked files).
 (function () {
   const els = {};
   let busy = false;
-  let state = { hasLink: false, installed: false, folders: {} };
+  let state = { hasLink: false, installed: false };
+  let readyPath = null; // the verified installer on disk
 
   function $(s) { return document.querySelector(s); }
   function status(msg, kind) {
     els.status.textContent = msg || '';
     els.status.style.color = kind === 'error' ? 'var(--danger)' : kind === 'ok' ? '#7fd6a0' : 'var(--text-dim)';
   }
+  function show(el, on) { if (el) el.hidden = !on; }
 
   async function open() {
     const t = window.activeTicket && window.activeTicket.get();
     if (!t || !t.customerId) return;
-    try { state = await window.agent.get(); } catch { state = { hasLink: false, installed: false, folders: {} }; }
+    try { state = await window.agent.get(); } catch { state = { hasLink: false, installed: false }; }
+    readyPath = null;
     els.target.textContent = 'Customer: ' + (t.customerName || t.customerId) + '   ·   Ticket #' + t.number;
-    els.warn.hidden = !state.installed;
-    els.setup.hidden = !!state.hasLink;
-    els.link.value = '';
-    els.folder.value = (state.folders && state.folders[String(t.customerId)]) || '';
+    show(els.warn, state.installed);
+    show(els.setup, !state.hasLink);
+    if (els.link) els.link.value = '';
     els.go.disabled = false;
-    els.go.textContent = 'Install agent';
-    status(state.hasLink ? 'Downloads your installer from Syncro, checks it is signed, then installs it for this customer.' : 'Paste your installer link once to get started.');
+    els.go.textContent = 'Download & verify';
+    show(els.reveal, false);
+    show(els.run, false);
+    status(state.hasLink ? 'Downloads your installer from Syncro and checks it is signed by Servably, then you run it.' : 'Paste your installer link once to get started.');
     els.modal.hidden = false;
   }
   function close() { if (!busy) els.modal.hidden = true; }
@@ -32,31 +37,31 @@
   async function go() {
     const t = window.activeTicket && window.activeTicket.get();
     if (busy || !t || !t.customerId) return;
-    const folder = (els.folder.value || '').trim();
-    if (folder && !/^\d+$/.test(folder)) { status('Policy folder ID must be a number.', 'error'); return; }
     busy = true; els.go.disabled = true; els.cancel.disabled = true;
     const key = 'syncro-agent';
     try {
       if (!state.hasLink) {
         const saved = await window.agent.setLink(els.link.value);
         if (!saved || !saved.ok || saved.cleared) { status((saved && saved.message) || 'Paste the installer link from Syncro.', 'error'); els.go.disabled = false; return; }
-        state.hasLink = true; els.setup.hidden = true;
+        state.hasLink = true; show(els.setup, false);
         refreshSettings();
       }
       status('Starting…');
-      window.TMActivity && window.TMActivity.start(key, 'Installing Syncro agent');
-      const res = await window.agent.install({ ticket: t, folderId: folder, note: els.note.checked });
+      window.TMActivity && window.TMActivity.start(key, 'Fetching Syncro agent installer');
+      const res = await window.agent.prepare();
       if (res && res.ok) {
-        status((res.installed ? 'Installed for ' : 'The installer finished for ') + (t.customerName || 'this customer') + '.' +
-          (res.installed ? '' : ' The agent was not detected yet - give it a minute.') +
-          ' Check in Syncro that this PC appears under the right customer.' + (res.noted ? ' Note added to ticket #' + t.number + '.' : ''), 'ok');
-        els.go.textContent = 'Done';
+        readyPath = res.path;
+        status('Downloaded and verified (signed by ' + (res.signer || 'Servably') + '). Saved to your Downloads as Syncro-Agent-Setup.exe. Click Run installer, then follow Syncro’s prompts — or Open folder to run it yourself.', 'ok');
+        els.go.textContent = 'Re-download';
+        els.go.disabled = false;
+        show(els.reveal, true);
+        show(els.run, true);
       } else {
-        status((res && res.message) || 'Install failed.', 'error');
+        status((res && res.message) || 'Download failed.', 'error');
         els.go.disabled = false;
       }
     } catch (e) {
-      status('Install failed: ' + ((e && e.message) || e), 'error');
+      status('Failed: ' + ((e && e.message) || e), 'error');
       els.go.disabled = false;
     } finally {
       window.TMActivity && window.TMActivity.end(key);
@@ -81,11 +86,11 @@
     els.warn = $('#agentWarn');
     els.setup = $('#agentSetup');
     els.link = $('#agentLink');
-    els.folder = $('#agentFolder');
-    els.note = $('#agentNote');
     els.status = $('#agentStatus');
     els.go = $('#agentGo');
     els.cancel = $('#agentCancel');
+    els.reveal = $('#agentReveal');
+    els.run = $('#agentRun');
     els.setLink = $('#agentSetLink');
     els.setSave = $('#agentSetSave');
     els.setClear = $('#agentSetClear');
@@ -95,6 +100,13 @@
     els.btn.addEventListener('click', open);
     els.go.addEventListener('click', go);
     els.cancel.addEventListener('click', close);
+    if (els.reveal) els.reveal.addEventListener('click', () => { if (readyPath) window.agent.reveal(readyPath); });
+    if (els.run) els.run.addEventListener('click', async () => {
+      if (!readyPath) return;
+      const r = await window.agent.run(readyPath);
+      if (r && r.ok) status('Installer launched — follow Syncro’s prompts to finish. It can take a minute to appear in Syncro after it checks in.', 'ok');
+      else status((r && r.message) || 'Could not launch the installer — use Open folder and run it yourself.', 'error');
+    });
     els.modal.addEventListener('click', (e) => { if (e.target === els.modal) close(); });
     if (window.agent.onProgress) window.agent.onProgress((msg) => { if (busy) status(String(msg || '')); });
 

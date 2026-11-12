@@ -1,5 +1,5 @@
 {
-  "version": "0.70.13",
-  "notes": "Settings: Updates is now the top card on the Settings page."
-, "zip": "tmtoolset-app-0.70.13.zip"
+  "version": "0.70.14",
+  "notes": "Syncro agent install, safer: TM Toolset now DOWNLOADS the installer from Syncro, verifies it's signed by Servably, and saves it to your Downloads folder — then you run it yourself (Open folder / Run installer). It no longer runs it silently in the background (that only unpacked files without installing the service). If a previous attempt left a C:\\Program Files\\RepairTech\\Syncro folder with no running service, you can delete that folder, then run the downloaded installer for a clean install."
+, "zip": "tmtoolset-app-0.70.14.zip"
 }

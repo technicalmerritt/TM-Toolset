@@ -2278,37 +2278,28 @@ function registerIpc() {
     await writeConfig(cfg);
     return { ok: true, host: new URL(link.url).hostname };
   });
-  ipcMain.handle('agent:install', async (_evt, args) => {
-    const t = (args && args.ticket) || {};
-    const folderId = String((args && args.folderId) || '').trim();
+  // Download + signature-verify the installer, then leave it in Downloads for
+  // the tech to run. (No silent --console run — that only unpacked files.)
+  ipcMain.handle('agent:prepare', async () => {
     const cfg = await readConfig();
     const a = (cfg.syncroAgent && typeof cfg.syncroAgent === 'object') ? cfg.syncroAgent : {};
     if (!a.url) return { ok: false, message: 'Add your Syncro agent installer link in Settings first.' };
     const onProgress = (msg) => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('agent:progress', msg); };
-    const res = await syncroAgent.install({ url: a.url, customerId: t.customerId, folderId, onProgress });
-    tmLog('syncro-agent', 'install for ' + (t.customerName || '') + ' (customer ' + (t.customerId || '?') + ')', res.ok ? (res.installed ? 'installed' : 'ran, not yet detected') : 'failed', res.message || '');
-    if (res.ok) {
-      // Remember the policy folder used for this customer, for next time.
-      try {
-        const c2 = await readConfig();
-        const a2 = (c2.syncroAgent && typeof c2.syncroAgent === 'object') ? c2.syncroAgent : {};
-        a2.folders = a2.folders || {};
-        if (folderId) a2.folders[String(t.customerId)] = folderId; else delete a2.folders[String(t.customerId)];
-        c2.syncroAgent = a2; await writeConfig(c2);
-      } catch { /* ignore */ }
-      if (args && args.note && t.id) {
-        try {
-          const { subdomain, token } = await settings.getForApi();
-          if (subdomain && token) {
-            const host = require('node:os').hostname();
-            const r = await syncro.postComment({ subdomain, token, ticketId: t.id, subject: 'TM Toolset', hidden: true,
-              body: '<p><strong>Syncro agent installed</strong> on ' + host + ' via TM Toolset (' + new Date().toLocaleString() + ').</p>' });
-            res.noted = !!(r && r.ok);
-          }
-        } catch { res.noted = false; }
-      }
-    }
+    let destDir; try { destDir = app.getPath('downloads'); } catch { destDir = app.getPath('temp'); }
+    const res = await syncroAgent.prepare({ url: a.url, destDir, onProgress });
+    tmLog('syncro-agent', 'prepare installer', res.ok ? ('verified, signed by ' + (res.signer || '?')) : 'failed', res.message || '');
     return res;
+  });
+  ipcMain.handle('agent:reveal', async (_evt, args) => {
+    const p = String((args && args.path) || '');
+    try { if (p) shell.showItemInFolder(p); return { ok: true }; } catch (e) { return { ok: false, message: (e && e.message) || String(e) }; }
+  });
+  ipcMain.handle('agent:run', async (_evt, args) => {
+    const p = String((args && args.path) || '');
+    if (!p) return { ok: false, message: 'No installer to run.' };
+    const r = await syncroAgent.launch(p);
+    tmLog('syncro-agent', 'launch installer', r.ok ? 'launched' : 'failed', r.message || '');
+    return r;
   });
 
   // ---- Repairs (DISM/SFC/chkdsk/WU/network/DNS/temp) with live output ----

@@ -158,7 +158,9 @@ contextBridge.exposeInMainWorld('syncro', {
 contextBridge.exposeInMainWorld('agent', {
   get: () => ipcRenderer.invoke('agent:get'),
   setLink: (link) => ipcRenderer.invoke('agent:setLink', { link }),
-  install: (args) => ipcRenderer.invoke('agent:install', args),
+  prepare: () => ipcRenderer.invoke('agent:prepare'),
+  reveal: (path) => ipcRenderer.invoke('agent:reveal', { path }),
+  run: (path) => ipcRenderer.invoke('agent:run', { path }),
   onProgress: (cb) => {
     const handler = (_e, payload) => cb(payload);
     ipcRenderer.on('agent:progress', handler);
