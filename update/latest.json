@@ -1,5 +1,5 @@
 {
-  "version": "0.70.10",
-  "notes": "Two additions. (1) Install Syncro agent: a button on the ticket bar installs your Syncro RMM agent on this PC for the active ticket's customer — paste your installer link once in Settings. It only downloads from Syncro addresses and now only runs the installer if it's validly signed BY Syncro/RepairTech. (2) Theme fix: switching away from a preset (e.g. Oaklands) no longer leaves its logo, app icon or title-bar name behind. Note: the agent installer flow hasn't been tested on a live Windows install yet — try it on a test PC first.",
-  "zip": "tmtoolset-app-0.70.10.zip"
+  "version": "0.70.11",
+  "notes": "Syncro agent install: allow the real installer publisher. Syncro signs its agent as 'Serverably, Inc.', which the publisher check didn't recognise, so installs were being refused. That publisher is now trusted, so the Install agent button works.",
+  "zip": "tmtoolset-app-0.70.11.zip"
 }
