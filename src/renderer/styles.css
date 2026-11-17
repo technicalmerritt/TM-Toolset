@@ -2305,3 +2305,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .ems-trace { margin: 10px 0; font-size: 12px; }
 .ems-trace summary { cursor: pointer; color: var(--text-dim); }
 .ems-trace__l { font-family: ui-monospace, Menlo, monospace; color: var(--text-dim); padding: 3px 0 0 10px; word-break: break-all; }
+.ems-existing { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 2px 0 10px; }
+.ems-existing .ems-hint { margin: 0; }
+.ems-dl { margin: 10px 0; display: grid; gap: 4px; }
+.ems-dl .info-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

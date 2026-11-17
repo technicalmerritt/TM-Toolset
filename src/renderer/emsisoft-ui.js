@@ -204,6 +204,10 @@
       el('label', { class: 'field' }, [el('span', { text: 'Customer email (invite)' }), el('input', { id: 'emsEmail', type: 'email', value: ctx.email || '', placeholder: ctx.emailLoading ? 'Looking up from Syncro…' : 'name@example.com' })]),
       el('div', { class: 'field' }, [el('span', { class: 'ems-lbl', text: 'Licence' }), seg]),
       area,
+      el('div', { class: 'ems-existing' }, [
+        el('span', { class: 'muted ems-hint', text: 'Already deployed for this customer?' }),
+        el('button', { class: 'btn btn--ghost btn--sm', type: 'button', text: 'Check for an existing workspace', onclick: checkExisting }),
+      ]),
       el('div', { class: 'modal__actions' }, [
         el('button', { class: 'btn btn--ghost', type: 'button', text: 'Cancel', onclick: closeModal }),
         el('button', { class: 'btn btn--primary', type: 'button', text: 'Continue', onclick: collectAndConfirm }),
@@ -276,6 +280,66 @@
     });
   }
 
+  // On-demand: check whether a workspace already exists for this customer.
+  function checkExisting() {
+    var name = ($('#emsName') && $('#emsName').value || ctx.name || '').trim();
+    if (!name) { toast('Enter a workspace name first.', 'error'); return; }
+    ctx.name = name;
+    if ($('#emsEmail')) ctx.email = $('#emsEmail').value.trim();
+    titleEl.textContent = 'Checking…';
+    fill(body, [el('p', { class: 'muted', text: 'Checking Emsisoft for an existing workspace…' })]);
+    window.emsisoft.findWorkspace({ name: name }).then(function (f) {
+      if (f && f.ok && f.found && f.guid) { stepExists(f.guid, f.name || name, f.count || 1); return; }
+      stepForm();
+      if (f && f.ok) toast('No existing workspace named “' + name + '”.');
+      else toast((f && f.message) || 'Check failed.', 'error');
+    }, function (e) { stepForm(); toast((e && e.message) || 'Check failed.', 'error'); });
+  }
+
+  // Retry after a failed deploy: first check whether a prior (timed-out) attempt
+  // actually created the workspace — if so, just fetch its links (no duplicate);
+  // otherwise create it.
+  function retryDeploy() {
+    titleEl.textContent = 'Checking…';
+    fill(body, [el('p', { class: 'muted', text: 'Checking whether the workspace was created, before trying again…' })]);
+    if (ctx && ctx.name && window.emsisoft.findWorkspace) {
+      window.emsisoft.findWorkspace({ name: ctx.name }).then(function (f) {
+        if (f && f.ok && f.found && f.guid) { runGetLinks(f.guid, f.name || ctx.name); return; }
+        runDeploy();
+      }, function () { runDeploy(); });
+    } else { runDeploy(); }
+  }
+
+  // Download an installer to the Downloads folder via the app (no browser, no
+  // auto-install). Returns a row with a button + status.
+  function downloadRow(url) {
+    var status = el('div', { class: 'info-line', style: 'margin-top:4px' });
+    var btn = el('button', { class: 'btn btn--primary btn--sm', type: 'button', text: 'Download installer to Downloads' });
+    btn.addEventListener('click', function () { downloadInstaller(url, btn, status); });
+    return el('div', { class: 'ems-dl' }, [btn, status]);
+  }
+  function downloadInstaller(url, btn, status) {
+    if (!(window.emsisoft && window.emsisoft.download)) { if (window.sys && window.sys.openUrl) window.sys.openUrl(url); return; }
+    btn.disabled = true; btn.textContent = 'Downloading…'; status.textContent = ''; status.style.color = 'var(--text-dim)';
+    var off = window.emsisoft.onDownloadProgress ? window.emsisoft.onDownloadProgress(function (p) {
+      if (p && typeof p.pct === 'number' && p.pct >= 0) btn.textContent = 'Downloading… ' + p.pct + '%';
+    }) : null;
+    window.emsisoft.download({ url: url }).then(function (r) {
+      if (off) off();
+      if (r && r.ok) {
+        btn.disabled = false; btn.textContent = 'Download again';
+        status.textContent = 'Saved to Downloads: ' + (r.name || '') + '  '; status.style.color = '#7fd6a0';
+        status.appendChild(el('button', { class: 'btn btn--ghost btn--sm', type: 'button', text: 'Open folder', onclick: function () { window.emsisoft.reveal({ path: r.path }); } }));
+      } else {
+        btn.disabled = false; btn.textContent = 'Download installer to Downloads';
+        status.textContent = (r && r.message) || 'Download failed.'; status.style.color = 'var(--danger)';
+      }
+    }, function (e) {
+      if (off) off(); btn.disabled = false; btn.textContent = 'Download installer to Downloads';
+      status.textContent = (e && e.message) || 'Download failed.'; status.style.color = 'var(--danger)';
+    });
+  }
+
   function copyBtn(text) {
     var b = el('button', { class: 'btn btn--ghost btn--sm', type: 'button', text: 'Copy' });
     b.addEventListener('click', function () { try { navigator.clipboard.writeText(text).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1400); }); } catch (e) { b.textContent = '—'; } });
@@ -303,12 +367,21 @@
   function stepResult(res) {
     if (!res || !res.ok) {
       titleEl.textContent = 'Deploy failed';
+      // Offer the right retry: if we already have a workspace (only the links step
+      // failed), retry just the links; otherwise retry the whole deploy, which
+      // first checks whether a prior timed-out attempt actually created it.
+      var retryBtn = (res && res.guid)
+        ? el('button', { class: 'btn btn--primary', type: 'button', text: 'Try fetching links again', onclick: function () { runGetLinks(res.guid, (res && res.name) || ctx.name); } })
+        : (ctx && ctx.licence)
+          ? el('button', { class: 'btn btn--primary', type: 'button', text: 'Try again', onclick: retryDeploy })
+          : null;
       fill(body, [
         el('p', { class: 'ems-warn', text: (res && res.message) || 'Something went wrong.' }),
         traceEl(res, true),
         el('div', { class: 'modal__actions' }, [
           el('button', { class: 'btn btn--ghost', type: 'button', text: 'Close', onclick: closeModal }),
-          el('button', { class: 'btn btn--primary', type: 'button', text: 'Back', onclick: stepForm }),
+          el('button', { class: 'btn btn--ghost', type: 'button', text: 'Back', onclick: stepForm }),
+          retryBtn,
         ]),
       ]);
       return;
@@ -327,6 +400,7 @@
         linkRow('macOS (Apple silicon)', links.downloadUrlMacOsArm),
         linkRow('macOS (Intel)', links.downloadUrlMacOsX64),
       ]));
+      if (links.downloadUrl) kids.push(downloadRow(links.downloadUrl));
       if (links.installToken) {
         var tokRow = el('div', { class: 'ems-token' });
         var revealed = false;
@@ -399,17 +473,10 @@
       try { var pr = await window.emsisoft.products(); if (pr && pr.ok && pr.products && pr.products.length) PRODUCTS = pr.products; } catch (e2) { /* keep fallback */ }
       ctx.option = defaults.option;
       if (!s || !s.hasKey) { stepConfigMissing(); return; }
-      // If a workspace already exists for this customer, offer its links instead
-      // of creating a duplicate.
-      var name = (ctx.ticket && ctx.ticket.customerName) || '';
-      ctx.name = name;
-      if (name && window.emsisoft.findWorkspace) {
-        fill(body, [el('p', { class: 'muted', text: 'Checking Emsisoft for an existing workspace…' })]);
-        try {
-          var f = await window.emsisoft.findWorkspace({ name: name });
-          if (f && f.ok && f.found && f.guid) { stepExists(f.guid, f.name || name, f.count || 1); return; }
-        } catch (e3) { /* fall through to the create form */ }
-      }
+      ctx.name = (ctx.ticket && ctx.ticket.customerName) || '';
+      // Straight to the form for speed. The existing-workspace check is now
+      // on-demand via the "Check for an existing workspace" button on the form —
+      // auto-checking every time was slow when Emsisoft's server is busy.
       stepForm();
     } catch (e) { stepConfigMissing(); }
   }

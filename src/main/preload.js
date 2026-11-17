@@ -165,6 +165,13 @@ contextBridge.exposeInMainWorld('emsisoft', {
   findWorkspace: (args) => ipcRenderer.invoke('emsisoft:findWorkspace', args),
   getLinks: (args) => ipcRenderer.invoke('emsisoft:getLinks', args),
   deploy: (args) => ipcRenderer.invoke('emsisoft:deploy', args),
+  download: (args) => ipcRenderer.invoke('emsisoft:download', args),
+  reveal: (args) => ipcRenderer.invoke('emsisoft:reveal', args),
+  onDownloadProgress: (cb) => {
+    const handler = (_e, payload) => cb(payload);
+    ipcRenderer.on('emsisoft:download-progress', handler);
+    return () => ipcRenderer.removeListener('emsisoft:download-progress', handler);
+  },
 });
 
 contextBridge.exposeInMainWorld('agent', {

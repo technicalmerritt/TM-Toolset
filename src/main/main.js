@@ -2280,6 +2280,31 @@ function registerIpc() {
     return res;
   });
 
+  // ---- Download an Emsisoft installer to the Downloads folder (no auto-install) ----
+  ipcMain.handle('emsisoft:download', async (_evt, args) => {
+    const url = String((args && args.url) || '');
+    let host = '';
+    try { host = new URL(url).hostname; } catch { return { ok: false, message: 'Invalid download link.' }; }
+    if (!/(^|\.)emsisoft\.com$/i.test(host)) return { ok: false, message: 'That link isn’t an Emsisoft download.' };
+    let destDir; try { destDir = app.getPath('downloads'); } catch { destDir = app.getPath('temp'); }
+    let fname = 'EmsisoftInstaller.exe';
+    try { const b = path.basename(new URL(url).pathname); if (b && /\.(exe|msi)$/i.test(b)) fname = decodeURIComponent(b); } catch { /* keep default */ }
+    const destPath = path.join(destDir, fname);
+    const onProgress = (pct, received, total) => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('emsisoft:download-progress', { pct, received, total }); };
+    try {
+      await downloadToFile(url, destPath, onProgress);
+      tmLog('emsisoft', 'download installer', 'ok', destPath);
+      return { ok: true, path: destPath, name: fname };
+    } catch (e) {
+      tmLog('emsisoft', 'download installer', 'failed', (e && e.message) || String(e));
+      return { ok: false, message: (e && e.message) || String(e) };
+    }
+  });
+  ipcMain.handle('emsisoft:reveal', async (_evt, args) => {
+    const p = String((args && args.path) || '');
+    try { if (p) shell.showItemInFolder(p); return { ok: true }; } catch (e) { return { ok: false, message: (e && e.message) || String(e) }; }
+  });
+
   // ---- Look up a ticket by its human number (→ id + customer) ----
   ipcMain.handle('syncro:lookup', async (_evt, args) => {
     const { subdomain, token } = await settings.getForApi();
