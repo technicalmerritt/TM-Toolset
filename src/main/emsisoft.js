@@ -20,8 +20,9 @@
 // Errors come back as { "error": { "code", "target", "message" } }.
 
 const BASE = 'https://api.emsisoft.com';
-const TIMEOUT_MS = 25000;        // reads / most calls
+const TIMEOUT_MS = 25000;        // quick reads (coupons, test connection)
 const CREATE_TIMEOUT_MS = 60000; // workspace create provisions + emails an invite — allow longer
+const LINKS_TIMEOUT_MS = 55000;  // policy-group / install-token / workspace-list — Emsisoft is often slow here
 
 // Product editions offered in the deploy popup (trialProduct enum is EAM/EBS/EES;
 // EBS/EES are the business editions). Adjust labels freely.
@@ -186,7 +187,7 @@ function wsGuid(w) { return String((w && (w.guid || w.workspaceGuid || w.id)) ||
 
 // Fallback: find a workspace's GUID by its (unique) name.
 async function findWorkspaceGuid({ key, name, trace }) {
-  const r = await request(key, 'GET', API.listWorkspaces, { trace });
+  const r = await request(key, 'GET', API.listWorkspaces, { timeoutMs: LINKS_TIMEOUT_MS, trace });
   if (!r.ok) return '';
   const hit = wsList(r.json).find((w) => String(w.name || '').trim() === String(name).trim());
   return hit ? wsGuid(hit) : '';
@@ -197,7 +198,7 @@ async function findWorkspaceGuid({ key, name, trace }) {
 async function findWorkspace({ key, name, trace }) {
   if (!key) return { ok: false, message: 'Emsisoft API key is not set.' };
   if (!name || !String(name).trim()) return { ok: true, found: false };
-  const r = await request(key, 'GET', API.listWorkspaces, { trace });
+  const r = await request(key, 'GET', API.listWorkspaces, { timeoutMs: LINKS_TIMEOUT_MS, trace });
   if (!r.ok) return { ok: false, message: describeFail(r, 'Checking existing workspaces') };
   const want = String(name).trim().toLowerCase();
   const matches = wsList(r.json).filter((w) => String(w.name || '').trim().toLowerCase() === want);
@@ -238,7 +239,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // workspace can take a moment to provision it, so retry briefly.
 async function findPolicyGroupGuid({ key, guid, trace }) {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const r = await request(key, 'GET', API.protectionGroups(guid), { trace });
+    const r = await request(key, 'GET', API.protectionGroups(guid), { timeoutMs: LINKS_TIMEOUT_MS, trace });
     if (!r.ok) return { ok: false, message: describeFail(r, 'Listing protection groups') };
     const groups = Array.isArray(r.json) ? r.json : ((r.json && (r.json.data || r.json.items)) || []);
     if (groups.length) {
@@ -263,10 +264,15 @@ async function getInstall({ key, guid, trace }) {
   const pg = await findPolicyGroupGuid({ key, guid, trace });
   if (!pg.ok) return { ok: false, message: pg.message };
 
-  const p = await request(key, 'PUT', API.setInstallToken(pg.pgGuid), {
-    body: { tokenTerm: 'Never', isAutoRenewEnabled: true },
-    trace,
-  });
+  // Create the install token (this call also returns all the download links).
+  // Emsisoft's server is often slow here, so allow a long timeout and retry once
+  // on a timeout / 5xx. Re-issuing is safe: it just creates/replaces the token.
+  const tokenBody = { tokenTerm: 'Never', isAutoRenewEnabled: true };
+  let p = await request(key, 'PUT', API.setInstallToken(pg.pgGuid), { body: tokenBody, timeoutMs: LINKS_TIMEOUT_MS, trace });
+  if (!p.ok && (p.aborted || p.networkError || (p.status >= 500 && p.status < 600))) {
+    await sleep(2500);
+    p = await request(key, 'PUT', API.setInstallToken(pg.pgGuid), { body: tokenBody, timeoutMs: LINKS_TIMEOUT_MS, trace });
+  }
   if (!p.ok) return { ok: false, message: describeFail(p, 'Creating the install token') };
 
   const links = pickLinks(p.json || {});

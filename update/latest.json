@@ -1,5 +1,5 @@
 {
-  "version": "0.70.23",
-  "notes": "Emsisoft deploy diagnostics: when installer links don't come back, the result screen now shows exactly what Emsisoft returned for each call (status + raw response), expanded automatically, so the problem is visible instead of silent. No behaviour change otherwise — this is to pinpoint why links aren't appearing.",
-  "zip": "tmtoolset-app-0.70.23.zip"
+  "version": "0.70.24",
+  "notes": "Emsisoft deploy: rides through Emsisoft's slow server. The install-token and workspace-lookup calls now allow up to 55s and retry once automatically when Emsisoft times out, and if links still don't come back there's a 'Try fetching links again' button that re-pulls them for the SAME workspace — no new workspace and no licence used. The existing-workspace check is also more reliable now. When Emsisoft's own servers are overloaded (504 / gateway timeout) the workspace and the links may simply need a retry a minute later.",
+  "zip": "tmtoolset-app-0.70.24.zip"
 }

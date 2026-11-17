@@ -347,9 +347,14 @@
     kids.push(noteStatus);
     kids.push(traceEl(res, !res.links)); // expand the detail when no links came back
 
+    // When the workspace exists but links didn't come back (usually Emsisoft being
+    // slow), let the tech retry JUST the links step on the same workspace — no new
+    // workspace, no licence, no duplicate.
+    var canRetryLinks = !res.links && res.guid;
     kids.push(el('div', { class: 'modal__actions' }, [
       ctx.ticket && ctx.ticket.id ? el('button', { class: 'btn btn--ghost', type: 'button', text: 'Log to ticket #' + ctx.ticket.number, onclick: function () { postNote(res, noteStatus, true); } }) : null,
-      el('button', { class: 'btn btn--primary', type: 'button', text: 'Done', onclick: closeModal }),
+      canRetryLinks ? el('button', { class: 'btn btn--primary', type: 'button', text: 'Try fetching links again', onclick: function () { runGetLinks(res.guid, res.name || ctx.name); } }) : null,
+      el('button', { class: canRetryLinks ? 'btn btn--ghost' : 'btn btn--primary', type: 'button', text: 'Done', onclick: closeModal }),
     ]));
 
     fill(body, kids);
