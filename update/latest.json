@@ -1,5 +1,5 @@
 {
-  "version": "0.70.19",
-  "notes": "Emsisoft deploy: installer links now appear. A brand-new workspace has no install token yet, so the download links came back empty. The deploy now creates the install token on the new workspace automatically and shows the real download links (web, full offline, direct, and macOS) plus the install token behind a reveal. Re-run a Trial deploy and you'll get working download links at the end.",
-  "zip": "tmtoolset-app-0.70.19.zip"
+  "version": "0.70.20",
+  "notes": "Emsisoft deploy now returns working download links, plus two improvements. (1) Install links fixed: a brand-new workspace's /install endpoint hangs, so the app now creates the install token via the workspace's policy group and reads the real download links (web, direct, macOS) from that — no more timeout. (2) Deploy now checks first whether a workspace already exists for that customer; if so it offers 'Get install links' instead of creating a duplicate. Also widened the top-right ticket bar so the customer name and number aren't cut off.",
+  "zip": "tmtoolset-app-0.70.20.zip"
 }

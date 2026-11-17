@@ -594,8 +594,8 @@ function applyAppIcon(value) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1100,
-    height: 720,
+    width: 1240,
+    height: 760,
     minWidth: 820,
     minHeight: 540,
     backgroundColor: '#0e1b33',
@@ -2230,6 +2230,19 @@ function registerIpc() {
     const { key } = await settings.getEmsisoftForApi();
     if (!key) return { ok: false, message: 'Add your Emsisoft API key in the Settings tab first.' };
     return emsisoft.listLicences({ key, product: args && args.product });
+  });
+  ipcMain.handle('emsisoft:findWorkspace', async (_evt, args) => {
+    const { key } = await settings.getEmsisoftForApi();
+    if (!key) return { ok: false, message: 'Add your Emsisoft API key in the Settings tab first.' };
+    return emsisoft.findWorkspace({ key, name: args && args.name });
+  });
+  ipcMain.handle('emsisoft:getLinks', async (_evt, args) => {
+    const { key } = await settings.getEmsisoftForApi();
+    if (!key) return { ok: false, message: 'Add your Emsisoft API key in the Settings tab first.' };
+    const res = await emsisoft.getLinks({ key, name: args && args.name, guid: args && args.guid });
+    const traceStr = Array.isArray(res.trace) && res.trace.length ? (' | ' + res.trace.join(' ; ')) : '';
+    tmLog('emsisoft', 'get links', res.ok ? ('ok ' + (res.guid || '')) : 'failed', (res.message || '') + traceStr);
+    return res;
   });
   ipcMain.handle('emsisoft:deploy', async (_evt, args) => {
     const { key } = await settings.getEmsisoftForApi();

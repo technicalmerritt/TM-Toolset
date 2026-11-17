@@ -107,7 +107,7 @@ body {
 
 .search {
   flex: 1;
-  max-width: 420px;
+  max-width: 320px;
   background: var(--bg-elev-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -463,14 +463,15 @@ body {
   border: 1px solid var(--accent);
   border-radius: 8px;
   padding: 5px 6px 5px 12px;
-  max-width: 340px;
+  max-width: 620px;
 }
 
 .ticket__text {
   display: flex;
   flex-direction: column;
   line-height: 1.2;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 130px;
 }
 
 .ticket__cust {

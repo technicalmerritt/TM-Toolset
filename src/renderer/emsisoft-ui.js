@@ -310,9 +310,9 @@
       ]);
       return;
     }
-    titleEl.textContent = 'Emsisoft deployed';
+    titleEl.textContent = res.reused ? 'Install links' : 'Emsisoft deployed';
     var links = res.links || {};
-    var kids = [el('p', {}, [el('strong', { text: 'Workspace “' + (res.name || ctx.name) + '” created.' })])];
+    var kids = [el('p', {}, [el('strong', { text: 'Workspace “' + (res.name || ctx.name) + (res.reused ? '” (existing).' : '” created.') })])];
 
     if (res.links) {
       kids.push(el('div', { class: 'ems-links' }, [
@@ -351,7 +351,8 @@
     fill(body, kids);
 
     // Auto-post the private note once if the default is on and a ticket is active.
-    if (defaults.logToTicket !== false && ctx.ticket && ctx.ticket.id && !ctx.noted) postNote(res, noteStatus, false);
+    // Skip auto-posting for a reused/existing workspace (nothing new was deployed).
+    if (defaults.logToTicket !== false && ctx.ticket && ctx.ticket.id && !ctx.noted && !res.reused) postNote(res, noteStatus, false);
   }
 
   function noteBody(res) {
@@ -389,8 +390,42 @@
       try { var pr = await window.emsisoft.products(); if (pr && pr.ok && pr.products && pr.products.length) PRODUCTS = pr.products; } catch (e2) { /* keep fallback */ }
       ctx.option = defaults.option;
       if (!s || !s.hasKey) { stepConfigMissing(); return; }
+      // If a workspace already exists for this customer, offer its links instead
+      // of creating a duplicate.
+      var name = (ctx.ticket && ctx.ticket.customerName) || '';
+      ctx.name = name;
+      if (name && window.emsisoft.findWorkspace) {
+        fill(body, [el('p', { class: 'muted', text: 'Checking Emsisoft for an existing workspace…' })]);
+        try {
+          var f = await window.emsisoft.findWorkspace({ name: name });
+          if (f && f.ok && f.found && f.guid) { stepExists(f.guid, f.name || name, f.count || 1); return; }
+        } catch (e3) { /* fall through to the create form */ }
+      }
       stepForm();
     } catch (e) { stepConfigMissing(); }
+  }
+
+  // A workspace with this customer's name already exists — offer its links.
+  function stepExists(guid, name, count) {
+    titleEl.textContent = 'Workspace already exists';
+    fill(body, [
+      el('p', {}, [el('strong', { text: 'A workspace named “' + name + '” already exists' }), count > 1 ? (' (' + count + ' matches)') : '', ' in Emsisoft.']),
+      el('p', { class: 'muted', text: 'You can get its installer links straight away instead of creating another workspace.' }),
+      el('div', { class: 'modal__actions' }, [
+        el('button', { class: 'btn btn--ghost', type: 'button', text: 'Create a new one anyway', onclick: stepForm }),
+        el('button', { class: 'btn btn--primary', type: 'button', text: 'Get install links', onclick: function () { runGetLinks(guid, name); } }),
+      ]),
+    ]);
+  }
+
+  function runGetLinks(guid, name) {
+    titleEl.textContent = 'Fetching install links…';
+    fill(body, [el('p', { class: 'muted', text: 'Creating the install token and fetching the download links…' })]);
+    window.emsisoft.getLinks({ guid: guid }).then(function (r) {
+      r = r || {};
+      r.name = name; r.reused = true;
+      stepResult(r);
+    }, function (e) { stepResult({ ok: false, message: (e && e.message) || String(e) }); });
   }
 
   window.addEventListener('DOMContentLoaded', function () {

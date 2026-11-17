@@ -35,7 +35,8 @@ const API = {
   listLicences: { path: '/v1/partner/coupons', query: { Used: 'false' } },     // GET
   createWorkspace: '/v1/partner/workspaces',                                    // POST
   listWorkspaces: '/v1/workspaces',                                            // GET (guid fallback)
-  install: (guid) => `/v1/workspaces/${encodeURIComponent(guid)}/install`,     // GET
+  install: (guid) => `/v1/workspaces/${encodeURIComponent(guid)}/install`,     // GET (hangs on a brand-new workspace — avoided; use set-install-token)
+  protectionGroups: (guid) => `/v1/workspaces/${encodeURIComponent(guid)}/protection-groups`, // GET (find the default policy group)
   setInstallToken: (pgGuid) => `/v1/protection-groups/${encodeURIComponent(pgGuid)}/set-install-token`, // PUT (creates token + returns links)
   assignLicence: (guid) => `/v1/workspaces/${encodeURIComponent(guid)}/assign-license`, // POST {key}
   // Default remote-management mode for new workspaces (enum: LocalAndRemote|LocalOnly|RemoteOnly).
@@ -175,13 +176,43 @@ async function createWorkspace({ key, name, customerEmail, licence, trace }) {
   return { ok: true, name: body.name, guid };
 }
 
+function wsList(json) {
+  return (json && (json.data || json.workspaces || json.items)) || (Array.isArray(json) ? json : []);
+}
+function wsGuid(w) { return String((w && (w.guid || w.workspaceGuid || w.id)) || ''); }
+
 // Fallback: find a workspace's GUID by its (unique) name.
 async function findWorkspaceGuid({ key, name, trace }) {
   const r = await request(key, 'GET', API.listWorkspaces, { trace });
   if (!r.ok) return '';
-  const list = (r.json && (r.json.data || r.json.workspaces || r.json.items)) || (Array.isArray(r.json) ? r.json : []);
-  const hit = (Array.isArray(list) ? list : []).find((w) => String(w.name || '').trim() === String(name).trim());
-  return hit ? String(hit.guid || hit.workspaceGuid || hit.id || '') : '';
+  const hit = wsList(r.json).find((w) => String(w.name || '').trim() === String(name).trim());
+  return hit ? wsGuid(hit) : '';
+}
+
+// Look up whether a workspace with this (customer) name already exists, so the
+// deploy popup can offer its install links instead of creating a duplicate.
+async function findWorkspace({ key, name, trace }) {
+  if (!key) return { ok: false, message: 'Emsisoft API key is not set.' };
+  if (!name || !String(name).trim()) return { ok: true, found: false };
+  const r = await request(key, 'GET', API.listWorkspaces, { trace });
+  if (!r.ok) return { ok: false, message: describeFail(r, 'Checking existing workspaces') };
+  const want = String(name).trim().toLowerCase();
+  const matches = wsList(r.json).filter((w) => String(w.name || '').trim().toLowerCase() === want);
+  if (!matches.length) return { ok: true, found: false };
+  return { ok: true, found: true, guid: wsGuid(matches[0]), name: String(matches[0].name || name), count: matches.length };
+}
+
+// Get install links for a workspace already known by guid (or resolved by name).
+// Used by the deploy popup's "workspace already exists → get its links" path.
+async function getLinks({ key, name, guid }) {
+  const trace = [];
+  let g = guid || '';
+  if (!g && name) { const f = await findWorkspace({ key, name, trace }); if (f.ok && f.found) g = f.guid; }
+  if (!g) return { ok: false, message: 'No matching workspace was found to get links for.', trace: traceLines(trace) };
+  const r = await getInstall({ key, guid: g, trace });
+  r.trace = traceLines(trace);
+  r.guid = g;
+  return r;
 }
 
 function pickLinks(j) {
@@ -198,28 +229,44 @@ function pickLinks(j) {
   };
 }
 
-// Get the installer download links + token for a workspace. A freshly created
-// workspace has no install token yet, so GET /install returns empty links; in
-// that case create the token on the default policy group (which both creates it
-// and returns the full set of download links) and use those.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Find the workspace's default (root) protection group guid. A freshly created
+// workspace can take a moment to provision it, so retry briefly.
+async function findPolicyGroupGuid({ key, guid, trace }) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const r = await request(key, 'GET', API.protectionGroups(guid), { trace });
+    if (!r.ok) return { ok: false, message: describeFail(r, 'Listing protection groups') };
+    const groups = Array.isArray(r.json) ? r.json : ((r.json && (r.json.data || r.json.items)) || []);
+    if (groups.length) {
+      const root = groups.find((g) => !g.parentGroupGuid) || groups[0];
+      if (root && root.guid) return { ok: true, pgGuid: String(root.guid) };
+    }
+    if (attempt < 2) await sleep(2000); // provisioning lag — wait and retry
+  }
+  return { ok: false, message: 'The workspace has no protection group yet. Give it a moment and try “Get links” again, or open MyEmsisoft.' };
+}
+
+// Get the installer download links + token for a workspace.
+//
+// NOTE: GET /v1/workspaces/{guid}/install hangs on a brand-new workspace (no
+// token yet), so we do NOT use it. Instead we find the default policy group and
+// PUT a new install token — that call CREATES the token and returns the full set
+// of download links in one go.
 async function getInstall({ key, guid, trace }) {
   if (!key) return { ok: false, message: 'Emsisoft API key is not set.' };
   if (!guid) return { ok: false, message: 'No workspace GUID.' };
-  const r = await request(key, 'GET', API.install(guid), { trace });
-  if (!r.ok) return { ok: false, message: describeFail(r, 'Getting install links') };
-  const j = r.json || {};
-  let links = pickLinks(j);
 
-  // No token/links yet → create the install token on the default policy group.
-  if ((!links.downloadUrl || !links.installToken) && j.policyGroupGuid) {
-    const p = await request(key, 'PUT', API.setInstallToken(j.policyGroupGuid), {
-      body: { tokenTerm: 'Never', isAutoRenewEnabled: true },
-      trace,
-    });
-    if (!p.ok) return { ok: false, message: describeFail(p, 'Creating the install token') };
-    links = pickLinks(p.json || {});
-  }
+  const pg = await findPolicyGroupGuid({ key, guid, trace });
+  if (!pg.ok) return { ok: false, message: pg.message };
 
+  const p = await request(key, 'PUT', API.setInstallToken(pg.pgGuid), {
+    body: { tokenTerm: 'Never', isAutoRenewEnabled: true },
+    trace,
+  });
+  if (!p.ok) return { ok: false, message: describeFail(p, 'Creating the install token') };
+
+  const links = pickLinks(p.json || {});
   if (!links.downloadUrl && !links.installToken) {
     return { ok: false, message: 'The workspace was created but Emsisoft returned no install links or token. You can get them from MyEmsisoft.' };
   }
@@ -271,7 +318,9 @@ module.exports = {
   listLicences,
   createWorkspace,
   findWorkspaceGuid,
+  findWorkspace,
   getInstall,
+  getLinks,
   assignLicence,
   deploy,
 };

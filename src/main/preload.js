@@ -162,6 +162,8 @@ contextBridge.exposeInMainWorld('emsisoft', {
   test: (payload) => ipcRenderer.invoke('emsisoft:test', payload),
   products: () => ipcRenderer.invoke('emsisoft:products'),
   listLicences: (args) => ipcRenderer.invoke('emsisoft:listLicences', args),
+  findWorkspace: (args) => ipcRenderer.invoke('emsisoft:findWorkspace', args),
+  getLinks: (args) => ipcRenderer.invoke('emsisoft:getLinks', args),
   deploy: (args) => ipcRenderer.invoke('emsisoft:deploy', args),
 });
 
