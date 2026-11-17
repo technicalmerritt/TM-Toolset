@@ -2266,3 +2266,38 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 }
 .ticket__agent:hover { background: var(--accent); color: var(--on-accent); }
 .agent-note { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; font-size: 13px; }
+
+/* Emsisoft deploy button + dialog */
+.ticket__deploy { border-color: #4aa3ff; color: #4aa3ff; }
+.ticket__deploy:hover { background: #4aa3ff; color: #06121f; }
+.ems-panel { max-width: 540px; }
+.ems-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.ems-head h2 { margin: 0; }
+.btn--sm { padding: 4px 9px; font-size: 12px; }
+.settings-subhead { margin: 18px 0 8px; font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; }
+.field--check { flex-direction: row; align-items: center; gap: 8px; }
+.field--check input { width: auto; }
+.field--check > span { font-size: 13px; color: var(--text); }
+.settings-card select, .ems-select, #emsModal select {
+  background: var(--bg-elev-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+  padding: 9px 11px; outline: none; font: inherit; width: 100%;
+}
+.settings-card select:focus, .ems-select:focus, #emsModal select:focus { border-color: var(--accent); }
+.ems-lbl { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 6px; }
+.ems-hint { margin: 6px 0 0; font-size: 12px; }
+.ems-area { margin: 4px 0 6px; }
+.ems-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.ems-seg button { border: 0; border-right: 1px solid var(--border); background: var(--bg-elev-2); color: var(--text); padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer; }
+.ems-seg button:last-child { border-right: 0; }
+.ems-seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.ems-confirm { background: var(--bg-elev-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: grid; gap: 8px; }
+.ems-confirm p { margin: 0; }
+.ems-warn { color: #ffb4a8; font-weight: 600; }
+.ems-links { display: grid; gap: 8px; margin: 10px 0; }
+.ems-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg-elev-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.ems-link__l { min-width: 0; }
+.ems-link__url { font-size: 11px; color: var(--text-dim); word-break: break-all; margin-top: 2px; }
+.ems-link__b { display: flex; gap: 6px; flex: 0 0 auto; }
+.ems-token { margin: 12px 0; padding: 10px; border: 1px dashed var(--border); border-radius: 8px; }
+.ems-token__row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.ems-token__val { font-family: ui-monospace, Menlo, monospace; word-break: break-all; background: var(--bg-elev-2); padding: 4px 8px; border-radius: 6px; }

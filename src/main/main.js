@@ -13,6 +13,7 @@ const actions = require('./actions');
 const settings = require('./settings');
 const syncro = require('./syncro');
 const syncroAgent = require('./syncro-agent');
+const emsisoft = require('./emsisoft');
 const startup = require('./startup/startup');
 const drives = require('./drives/drives');
 const news = require('./news/news');
@@ -2216,6 +2217,34 @@ function registerIpc() {
     return syncro.testConnection({ subdomain, token });
   });
 
+  // ---- Emsisoft deploy (partner API: create workspace + installer links) ----
+  ipcMain.handle('emsisoft:get', async () => emsisoft && settings.getEmsisoftPublic());
+  ipcMain.handle('emsisoft:save', async (_evt, payload) => settings.saveEmsisoft(payload || {}));
+  ipcMain.handle('emsisoft:test', async (_evt, payload) => {
+    const stored = await settings.getEmsisoftForApi();
+    const key = (payload && payload.key) || stored.key;
+    return emsisoft.testConnection({ key });
+  });
+  ipcMain.handle('emsisoft:products', async () => ({ ok: true, products: emsisoft.PRODUCTS }));
+  ipcMain.handle('emsisoft:listLicences', async (_evt, args) => {
+    const { key } = await settings.getEmsisoftForApi();
+    if (!key) return { ok: false, message: 'Add your Emsisoft API key in the Settings tab first.' };
+    return emsisoft.listLicences({ key, product: args && args.product });
+  });
+  ipcMain.handle('emsisoft:deploy', async (_evt, args) => {
+    const { key } = await settings.getEmsisoftForApi();
+    if (!key) return { ok: false, message: 'Add your Emsisoft API key in the Settings tab first.' };
+    const res = await emsisoft.deploy({
+      key,
+      name: args && args.name,
+      customerEmail: args && args.customerEmail,
+      licence: args && args.licence,
+    });
+    const lic = (args && args.licence) || {};
+    tmLog('emsisoft', 'deploy ' + (lic.type || '?'), res.ok ? ('created ' + (res.name || '') + (res.guid ? ' ' + res.guid : '')) : 'failed', res.message || '');
+    return res;
+  });
+
   // ---- Look up a ticket by its human number (→ id + customer) ----
   ipcMain.handle('syncro:lookup', async (_evt, args) => {
     const { subdomain, token } = await settings.getForApi();
@@ -2228,6 +2257,13 @@ function registerIpc() {
     const { subdomain, token } = await settings.getForApi();
     if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
     return syncro.listActiveTickets({ subdomain, token, limit: (args && args.limit) || 50 });
+  });
+
+  // ---- Fetch a customer (email + name) for the Emsisoft deploy pre-fill ----
+  ipcMain.handle('syncro:getCustomer', async (_evt, args) => {
+    const { subdomain, token } = await settings.getForApi();
+    if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
+    return syncro.getCustomer({ subdomain, token, customerId: args && args.customerId });
   });
 
   // ---- Post an Issue Scan as a comment on an existing Syncro ticket ----

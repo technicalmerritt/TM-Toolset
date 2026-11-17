@@ -155,6 +155,32 @@ async function createAsset({ subdomain, token, customerId, name, assetTypeId, se
   }
 }
 
+// Fetch one customer (for their email + name) so the Emsisoft deploy popup can
+// pre-fill the invite. Best-effort: returns ok:false with a message on failure.
+async function getCustomer({ subdomain, token, customerId }) {
+  const base = normalizeBase(subdomain);
+  if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
+  if (!token) return { ok: false, message: 'Syncro API token is not set.' };
+  const id = String(customerId || '').trim();
+  if (!/^\d+$/.test(id)) return { ok: false, message: 'No customer selected.' };
+  try {
+    const res = await apiRequest(base, token, `/customers/${id}`);
+    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Token rejected — the API token needs Customers permission.' };
+    if (res.status === 404) return { ok: false, message: `Customer ${id} not found.` };
+    if (res.status !== 200) return { ok: false, message: `Syncro returned HTTP ${res.status}.` };
+    let j = {};
+    try { j = await res.json(); } catch { /* ignore */ }
+    const c = (j && (j.customer || j.data)) || j || {};
+    const name =
+      c.business_then_name || c.business_name ||
+      [c.firstname, c.lastname].filter(Boolean).join(' ').trim() ||
+      c.fullname || c.full_name || '';
+    return { ok: true, customer: { id: c.id || Number(id), email: c.email || '', name } };
+  } catch (e) {
+    return { ok: false, message: 'Could not reach Syncro: ' + e.message };
+  }
+}
+
 async function postComment({ subdomain, token, ticketId, subject, body, hidden }) {
   const base = normalizeBase(subdomain);
   if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
@@ -240,4 +266,4 @@ function buildFindingsComment(result) {
   return out.join('\n');
 }
 
-module.exports = { testConnection, lookupTicket, listActiveTickets, postComment, listAssetTypes, createAsset, buildFindingsComment, normalizeBase };
+module.exports = { testConnection, lookupTicket, listActiveTickets, getCustomer, postComment, listAssetTypes, createAsset, buildFindingsComment, normalizeBase };

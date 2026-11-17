@@ -149,10 +149,20 @@ contextBridge.exposeInMainWorld('idevice', {
 contextBridge.exposeInMainWorld('syncro', {
   lookup: (args) => ipcRenderer.invoke('syncro:lookup', args),
   listTickets: (args) => ipcRenderer.invoke('syncro:listTickets', args),
+  getCustomer: (args) => ipcRenderer.invoke('syncro:getCustomer', args),
   postScan: (args) => ipcRenderer.invoke('syncro:postScan', args),
   postNote: (args) => ipcRenderer.invoke('syncro:postNote', args),
   assetTypes: () => ipcRenderer.invoke('syncro:assetTypes'),
   createAsset: (args) => ipcRenderer.invoke('syncro:createAsset', args),
+});
+
+contextBridge.exposeInMainWorld('emsisoft', {
+  get: () => ipcRenderer.invoke('emsisoft:get'),
+  save: (payload) => ipcRenderer.invoke('emsisoft:save', payload),
+  test: (payload) => ipcRenderer.invoke('emsisoft:test', payload),
+  products: () => ipcRenderer.invoke('emsisoft:products'),
+  listLicences: (args) => ipcRenderer.invoke('emsisoft:listLicences', args),
+  deploy: (args) => ipcRenderer.invoke('emsisoft:deploy', args),
 });
 
 contextBridge.exposeInMainWorld('agent', {

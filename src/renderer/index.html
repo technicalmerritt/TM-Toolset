@@ -37,6 +37,7 @@
             <span id="ticketSubject" class="ticket__subj"></span>
           </div>
           <button id="ticketAgent" class="ticket__agent" type="button" title="Install your Syncro agent on this PC for this ticket's customer">Install agent</button>
+          <button id="ticketDeployEms" class="ticket__agent ticket__deploy" type="button" title="Deploy Emsisoft protection for this customer">Deploy Emsisoft</button>
           <button id="ticketClear" class="ticket__clear" type="button" title="Clear ticket">&times;</button>
         </div>
         <div id="ticketPicker" class="ticket__picker" hidden>
@@ -423,6 +424,45 @@
           <button id="setTest" class="btn btn--ghost" type="button">Test connection</button>
         </div>
         <p id="setStatus" class="info-line"></p>
+      </section>
+
+      <section class="info-card settings-card">
+        <h3 class="info-card__title">Emsisoft deployment</h3>
+        <label class="field">
+          <span>Emsisoft partner API key</span>
+          <input id="emsKey" type="password" placeholder="Paste your Emsisoft API key" autocomplete="off" />
+        </label>
+        <p class="muted settings-hint">
+          Enable API access in your Emsisoft profile (<strong>MyEmsisoft → your profile → API access</strong>);
+          a partner key is requested from your Emsisoft partner manager. Stored on the USB stick (obfuscated,
+          like the Syncro token) so it travels with you — type it once.
+        </p>
+        <div class="settings-actions">
+          <button id="emsSave" class="btn btn--primary" type="button">Save</button>
+          <button id="emsTest" class="btn btn--ghost" type="button">Test connection</button>
+        </div>
+        <p id="emsStatus" class="info-line"></p>
+        <h4 class="settings-subhead">Deploy defaults</h4>
+        <div class="brand-row">
+          <label class="field"><span>Default licence option</span>
+            <select id="emsDefOption">
+              <option value="coupon">Use a licence key</option>
+              <option value="msp">Monthly MSP billing</option>
+              <option value="trial">Trial</option>
+            </select>
+          </label>
+          <label class="field"><span>Default product</span>
+            <select id="emsDefProduct"></select>
+          </label>
+          <label class="field"><span>Default monthly seats</span>
+            <input id="emsDefSeats" type="number" min="1" value="1" />
+          </label>
+        </div>
+        <label class="field field--check">
+          <input id="emsDefLog" type="checkbox" checked />
+          <span>Write a private note back to the Syncro ticket after a deploy</span>
+        </label>
+        <p id="emsDefStatus" class="info-line"></p>
       </section>
 
       <section class="info-card settings-card">
@@ -2040,6 +2080,17 @@
       </div>
     </div>
 
+    <!-- Emsisoft deploy dialog (built dynamically by emsisoft-ui.js) -->
+    <div id="emsModal" class="modal" hidden>
+      <div class="modal__panel ems-panel">
+        <div class="ems-head">
+          <h2 id="emsTitle">Deploy Emsisoft</h2>
+          <button id="emsClose" class="ticket__clear" type="button" title="Close">&times;</button>
+        </div>
+        <div id="emsBody"></div>
+      </div>
+    </div>
+
     <script src="theme.js"></script>
     <script src="activity.js"></script>
     <script src="renderer.js"></script>
@@ -2049,6 +2100,7 @@
     <script src="scanner.js"></script>
     <script src="inform.js"></script>
     <script src="settings-ui.js"></script>
+    <script src="emsisoft-ui.js"></script>
     <script src="startup-ui.js"></script>
     <script src="syncro-export.js"></script>
     <script src="drives-ui.js"></script>

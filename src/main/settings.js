@@ -116,4 +116,55 @@ async function save({ subdomain, token } = {}) {
   return { subdomain: next.subdomain || '', hasToken: !!(next.token && next.token.v) };
 }
 
-module.exports = { configure, getPublic, getForApi, save };
+// ─────────────────────────────────────────────────────────────────────────
+//  Emsisoft partner API key + non-secret deploy defaults.
+//  Stored in the SAME portable tools.json, obfuscated the same way as the
+//  Syncro token, so it travels on the USB stick. `defaults` holds no secrets
+//  (preferred product, seat count, which licence option is pre-selected).
+// ─────────────────────────────────────────────────────────────────────────
+
+async function readEmsisoft() {
+  if (!_readConfig) return {};
+  let cfg;
+  try { cfg = await _readConfig(); } catch { cfg = null; }
+  cfg = cfg && typeof cfg === 'object' ? cfg : {};
+  return (cfg.emsisoft && typeof cfg.emsisoft === 'object') ? cfg.emsisoft : {};
+}
+
+function cleanDefaults(d) {
+  d = d && typeof d === 'object' ? d : {};
+  const option = ['coupon', 'msp', 'trial'].includes(d.option) ? d.option : 'coupon';
+  const product = (typeof d.product === 'string' && d.product.trim()) ? d.product.trim() : 'EBS';
+  let seats = parseInt(d.seats, 10);
+  if (!(seats > 0)) seats = 1;
+  const logToTicket = d.logToTicket !== false; // default on
+  return { option, product, seats, logToTicket };
+}
+
+async function getEmsisoftPublic() {
+  const e = await readEmsisoft();
+  return { hasKey: !!(e && e.key && e.key.v), defaults: cleanDefaults(e && e.defaults) };
+}
+
+async function getEmsisoftForApi() {
+  const e = await readEmsisoft();
+  return { key: unpackToken(e && e.key) };
+}
+
+async function saveEmsisoft({ key, defaults } = {}) {
+  if (!_readConfig || !_writeConfig) throw new Error('Settings store not initialised.');
+  const cfg = (await _readConfig()) || {};
+  const cur = (cfg.emsisoft && typeof cfg.emsisoft === 'object') ? cfg.emsisoft : {};
+  const next = { key: cur.key || null, defaults: cleanDefaults(cur.defaults) };
+  if (key === null) next.key = null; // explicit clear
+  else if (typeof key === 'string' && key.length) next.key = packToken(key);
+  if (defaults !== undefined) next.defaults = cleanDefaults({ ...next.defaults, ...defaults });
+  cfg.emsisoft = next;
+  await _writeConfig(cfg);
+  return { hasKey: !!(next.key && next.key.v), defaults: next.defaults };
+}
+
+module.exports = {
+  configure, getPublic, getForApi, save,
+  getEmsisoftPublic, getEmsisoftForApi, saveEmsisoft,
+};
