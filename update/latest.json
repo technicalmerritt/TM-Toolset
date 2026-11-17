@@ -1,5 +1,5 @@
 {
-  "version": "0.70.15",
-  "notes": "Battery health fix: a brand-new battery sometimes reports a full charge slightly above its rated design capacity, which made the health read over 100% (e.g. 105%) and wear show as negative. Health is now capped at 100% and wear at 0%, everywhere it's shown."
-, "zip": "tmtoolset-app-0.70.15.zip"
+  "version": "0.70.16",
+  "notes": "New: Deploy Emsisoft from a ticket. In Settings, add your Emsisoft partner API key (saved on the USB stick like the Syncro token). Then pick a ticket in the top bar and click Deploy Emsisoft to create that customer's workspace using a licence key, monthly MSP billing, or a trial. You'll see the exact licence key before it's spent, the installer download links (with the activation token kept behind a reveal), and a private note is written back to the Syncro ticket. First run is worth watching — the trial and monthly field names are still being confirmed against the live Emsisoft API, and any error from Emsisoft is shown in full.",
+  "zip": "tmtoolset-app-0.70.16.zip"
 }
