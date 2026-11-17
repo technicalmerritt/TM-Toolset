@@ -284,6 +284,7 @@ $out.battery = Safe {
   $full = Get-CimInstance -Namespace root\WMI -ClassName BatteryFullChargedCapacity
   if ($stat -and $full -and $stat.DesignedCapacity) {
     $wear = [math]::Round((1 - ($full.FullChargedCapacity / $stat.DesignedCapacity)) * 100)
+    if ($wear -lt 0) { $wear = 0 }  # new packs can read full > design -> negative wear
     [ordered]@{ designedCapacity = $stat.DesignedCapacity; fullChargedCapacity = $full.FullChargedCapacity; wearPct = $wear }
   } else { $null }
 }

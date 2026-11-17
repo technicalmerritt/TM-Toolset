@@ -35,7 +35,9 @@ if (Test-Path $tmp) {
       $full   = [double](("$($b.FullChargeCapacity)") -replace '[^0-9]', '')
       $cyc    = "$($b.CycleCount)"
       $cycNum = $null; if ($cyc -match '^\d+$') { $cycNum = [int]$cyc }
-      $wear   = $null; if ($design -gt 0) { $wear = [math]::Round((1 - ($full / $design)) * 100, 1) }
+      # A brand-new pack can report full charge slightly ABOVE design capacity,
+      # which would make wear negative and health read over 100%. Clamp to 0.
+      $wear   = $null; if ($design -gt 0) { $wear = [math]::Round((1 - ($full / $design)) * 100, 1); if ($wear -lt 0) { $wear = 0 } }
       $bats += [ordered]@{
         id                 = (Clean "$($b.Id)" 90)
         manufacturer       = (Clean "$($b.Manufacturer)" 60)

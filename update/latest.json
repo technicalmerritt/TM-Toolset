@@ -1,5 +1,5 @@
 {
-  "version": "0.70.14",
-  "notes": "Syncro agent install, safer: TM Toolset now DOWNLOADS the installer from Syncro, verifies it's signed by Servably, and saves it to your Downloads folder — then you run it yourself (Open folder / Run installer). It no longer runs it silently in the background (that only unpacked files without installing the service). If a previous attempt left a C:\\Program Files\\RepairTech\\Syncro folder with no running service, you can delete that folder, then run the downloaded installer for a clean install."
-, "zip": "tmtoolset-app-0.70.14.zip"
+  "version": "0.70.15",
+  "notes": "Battery health fix: a brand-new battery sometimes reports a full charge slightly above its rated design capacity, which made the health read over 100% (e.g. 105%) and wear show as negative. Health is now capped at 100% and wear at 0%, everywhere it's shown."
+, "zip": "tmtoolset-app-0.70.15.zip"
 }

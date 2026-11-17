@@ -61,7 +61,7 @@
     card.appendChild(head);
 
     const strip = el('div', 'metric-strip');
-    strip.appendChild(metric('Wear', wear + ' %', healthClass(health)));
+    strip.appendChild(metric('Wear', Math.max(0, wear) + ' %', healthClass(health)));
     if (b.fullChargeCapacity) strip.appendChild(metric('Full charge', (b.fullChargeCapacity / 1000).toFixed(1) + ' Wh'));
     if (b.designCapacity) strip.appendChild(metric('Design capacity', (b.designCapacity / 1000).toFixed(1) + ' Wh'));
     if (b.cycleCount != null) strip.appendChild(metric('Cycle count', String(num(b.cycleCount))));
@@ -94,7 +94,7 @@
     } else {
       for (const b of arr(data.batteries)) {
         const wear = num(b.wearPct);
-        out.push('<p><strong>' + e(b.manufacturer || 'Battery') + '</strong> — health <strong>' + Math.round(100 - wear) + '%</strong>, wear ' + wear + '%' +
+        out.push('<p><strong>' + e(b.manufacturer || 'Battery') + '</strong> — health <strong>' + Math.min(100, Math.max(1, Math.round(100 - wear))) + '%</strong>, wear ' + Math.max(0, wear) + '%' +
           (b.cycleCount != null ? ', ' + e(b.cycleCount) + ' cycles' : '') +
           (b.fullChargeCapacity ? ', full charge ' + (b.fullChargeCapacity / 1000).toFixed(1) + ' Wh of ' + (b.designCapacity / 1000).toFixed(1) + ' Wh design' : '') + '</p>');
       }
