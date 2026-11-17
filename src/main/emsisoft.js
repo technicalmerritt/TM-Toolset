@@ -36,6 +36,7 @@ const API = {
   createWorkspace: '/v1/partner/workspaces',                                    // POST
   listWorkspaces: '/v1/workspaces',                                            // GET (guid fallback)
   install: (guid) => `/v1/workspaces/${encodeURIComponent(guid)}/install`,     // GET
+  setInstallToken: (pgGuid) => `/v1/protection-groups/${encodeURIComponent(pgGuid)}/set-install-token`, // PUT (creates token + returns links)
   assignLicence: (guid) => `/v1/workspaces/${encodeURIComponent(guid)}/assign-license`, // POST {key}
   // Default remote-management mode for new workspaces (enum: LocalAndRemote|LocalOnly|RemoteOnly).
   defaultSecurityManagement: 'LocalAndRemote',
@@ -183,24 +184,46 @@ async function findWorkspaceGuid({ key, name, trace }) {
   return hit ? String(hit.guid || hit.workspaceGuid || hit.id || '') : '';
 }
 
-// Get the installer download links + token for a workspace.
+function pickLinks(j) {
+  j = j || {};
+  return {
+    downloadUrl: j.downloadUrl || '',
+    downloadUrlFull: j.downloadUrlFull || '',
+    downloadUrlDirect: j.downloadUrlDirect || '',
+    downloadUrlDirectFull: j.downloadUrlDirectFull || '',
+    downloadUrlMacOsArm: j.downloadUrlMacOsArm || '',
+    downloadUrlMacOsX64: j.downloadUrlMacOsX64 || '',
+    installToken: j.installToken || '',
+    tokenExpiration: j.tokenExpiration || '',
+  };
+}
+
+// Get the installer download links + token for a workspace. A freshly created
+// workspace has no install token yet, so GET /install returns empty links; in
+// that case create the token on the default policy group (which both creates it
+// and returns the full set of download links) and use those.
 async function getInstall({ key, guid, trace }) {
   if (!key) return { ok: false, message: 'Emsisoft API key is not set.' };
   if (!guid) return { ok: false, message: 'No workspace GUID.' };
   const r = await request(key, 'GET', API.install(guid), { trace });
   if (!r.ok) return { ok: false, message: describeFail(r, 'Getting install links') };
   const j = r.json || {};
-  return {
-    ok: true,
-    links: {
-      downloadUrl: j.downloadUrl || '',
-      downloadUrlFull: j.downloadUrlFull || '',
-      downloadUrlDirect: j.downloadUrlDirect || '',
-      downloadUrlDirectFull: j.downloadUrlDirectFull || '',
-      installToken: j.installToken || '',
-      tokenExpiration: j.tokenExpiration || '',
-    },
-  };
+  let links = pickLinks(j);
+
+  // No token/links yet → create the install token on the default policy group.
+  if ((!links.downloadUrl || !links.installToken) && j.policyGroupGuid) {
+    const p = await request(key, 'PUT', API.setInstallToken(j.policyGroupGuid), {
+      body: { tokenTerm: 'Never', isAutoRenewEnabled: true },
+      trace,
+    });
+    if (!p.ok) return { ok: false, message: describeFail(p, 'Creating the install token') };
+    links = pickLinks(p.json || {});
+  }
+
+  if (!links.downloadUrl && !links.installToken) {
+    return { ok: false, message: 'The workspace was created but Emsisoft returned no install links or token. You can get them from MyEmsisoft.' };
+  }
+  return { ok: true, links };
 }
 
 // Fallback: assign a licence to an existing workspace.

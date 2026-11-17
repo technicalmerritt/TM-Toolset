@@ -320,6 +320,8 @@
         linkRow('Installer (web, full offline)', links.downloadUrlFull),
         linkRow('Direct download', links.downloadUrlDirect),
         linkRow('Direct download (full offline)', links.downloadUrlDirectFull),
+        linkRow('macOS (Apple silicon)', links.downloadUrlMacOsArm),
+        linkRow('macOS (Intel)', links.downloadUrlMacOsX64),
       ]));
       if (links.installToken) {
         var tokRow = el('div', { class: 'ems-token' });
@@ -329,6 +331,7 @@
         revealBtn.addEventListener('click', function () { revealed = !revealed; tokVal.textContent = revealed ? links.installToken : '•••••• hidden'; revealBtn.textContent = revealed ? 'Hide token' : 'Reveal install token'; });
         tokRow.appendChild(el('p', { class: 'muted ems-hint', text: 'Install token — activates software against your licence with no login. Never share it publicly.' }));
         tokRow.appendChild(el('div', { class: 'ems-token__row' }, [tokVal, revealBtn, copyBtn(links.installToken)]));
+        tokRow.appendChild(el('p', { class: 'muted ems-hint', text: links.tokenExpiration ? ('Token expires ' + fmtDate(links.tokenExpiration) + '.') : 'Token does not expire.' }));
         kids.push(tokRow);
       }
     } else if (res.message) {

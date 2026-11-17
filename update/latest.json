@@ -1,5 +1,5 @@
 {
-  "version": "0.70.18",
-  "notes": "Emsisoft deploy rebuilt against Emsisoft's live API spec. Fixes the deploy that hung/timed out: it now posts to the correct endpoint (POST /v1/partner/workspaces) with the required fields, allows up to 60 seconds for the workspace to be created and the invite emailed, and reads the real installer links (web, full offline, and direct) plus the install token. A new collapsible 'Technical detail' line on the result shows exactly which calls ran and how long they took, and the same is written to the Activity Log. Re-run a Trial deploy — it should now create the workspace and show installer links.",
-  "zip": "tmtoolset-app-0.70.18.zip"
+  "version": "0.70.19",
+  "notes": "Emsisoft deploy: installer links now appear. A brand-new workspace has no install token yet, so the download links came back empty. The deploy now creates the install token on the new workspace automatically and shows the real download links (web, full offline, direct, and macOS) plus the install token behind a reveal. Re-run a Trial deploy and you'll get working download links at the end.",
+  "zip": "tmtoolset-app-0.70.19.zip"
 }
