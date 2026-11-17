@@ -288,12 +288,21 @@
       el('div', { class: 'ems-link__b' }, [copyBtn(url), el('button', { class: 'btn btn--ghost btn--sm', type: 'button', text: 'Open', onclick: function () { if (window.sys && window.sys.openUrl) window.sys.openUrl(url); } })]),
     ]);
   }
+  // Small collapsible "what the deploy actually did" footer, for diagnosing.
+  function traceEl(res) {
+    if (!res || !res.trace || !res.trace.length) return null;
+    var d = el('details', { class: 'ems-trace' });
+    d.appendChild(el('summary', { text: 'Technical detail' }));
+    res.trace.forEach(function (line) { d.appendChild(el('div', { class: 'ems-trace__l', text: line })); });
+    return d;
+  }
 
   function stepResult(res) {
     if (!res || !res.ok) {
       titleEl.textContent = 'Deploy failed';
       fill(body, [
         el('p', { class: 'ems-warn', text: (res && res.message) || 'Something went wrong.' }),
+        traceEl(res),
         el('div', { class: 'modal__actions' }, [
           el('button', { class: 'btn btn--ghost', type: 'button', text: 'Close', onclick: closeModal }),
           el('button', { class: 'btn btn--primary', type: 'button', text: 'Back', onclick: stepForm }),
@@ -308,8 +317,9 @@
     if (res.links) {
       kids.push(el('div', { class: 'ems-links' }, [
         linkRow('Installer (web, recommended)', links.downloadUrl),
-        linkRow('64-bit installer (.msi)', links.downloadX64Url),
-        linkRow('32-bit installer (.msi)', links.downloadX32Url),
+        linkRow('Installer (web, full offline)', links.downloadUrlFull),
+        linkRow('Direct download', links.downloadUrlDirect),
+        linkRow('Direct download (full offline)', links.downloadUrlDirectFull),
       ]));
       if (links.installToken) {
         var tokRow = el('div', { class: 'ems-token' });
@@ -328,6 +338,7 @@
     // Syncro note status line.
     var noteStatus = el('p', { class: 'info-line' });
     kids.push(noteStatus);
+    kids.push(traceEl(res));
 
     kids.push(el('div', { class: 'modal__actions' }, [
       ctx.ticket && ctx.ticket.id ? el('button', { class: 'btn btn--ghost', type: 'button', text: 'Log to ticket #' + ctx.ticket.number, onclick: function () { postNote(res, noteStatus, true); } }) : null,

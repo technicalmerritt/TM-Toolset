@@ -2241,7 +2241,8 @@ function registerIpc() {
       licence: args && args.licence,
     });
     const lic = (args && args.licence) || {};
-    tmLog('emsisoft', 'deploy ' + (lic.type || '?'), res.ok ? ('created ' + (res.name || '') + (res.guid ? ' ' + res.guid : '')) : 'failed', res.message || '');
+    const traceStr = Array.isArray(res.trace) && res.trace.length ? (' | ' + res.trace.join(' ; ')) : '';
+    tmLog('emsisoft', 'deploy ' + (lic.type || '?'), res.ok ? ('created ' + (res.name || '') + (res.guid ? ' ' + res.guid : '')) : 'failed', (res.message || '') + traceStr);
     return res;
   });
 

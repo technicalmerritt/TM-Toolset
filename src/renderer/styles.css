@@ -2301,3 +2301,6 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .ems-token { margin: 12px 0; padding: 10px; border: 1px dashed var(--border); border-radius: 8px; }
 .ems-token__row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
 .ems-token__val { font-family: ui-monospace, Menlo, monospace; word-break: break-all; background: var(--bg-elev-2); padding: 4px 8px; border-radius: 6px; }
+.ems-trace { margin: 10px 0; font-size: 12px; }
+.ems-trace summary { cursor: pointer; color: var(--text-dim); }
+.ems-trace__l { font-family: ui-monospace, Menlo, monospace; color: var(--text-dim); padding: 3px 0 0 10px; word-break: break-all; }

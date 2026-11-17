@@ -1,5 +1,5 @@
 {
-  "version": "0.70.17",
-  "notes": "Emsisoft deploy: clearer errors while we pin down your account's exact API paths. A failed deploy now names the exact request that failed (method + URL + Emsisoft's own message) instead of a bare 'HTTP 404', and the workspace-create step now also tries the modern /v1/partner/workspaces path if the documented /create path isn't found. Re-run a Trial deploy and read the message on the result screen — it now says exactly what to fix.",
-  "zip": "tmtoolset-app-0.70.17.zip"
+  "version": "0.70.18",
+  "notes": "Emsisoft deploy rebuilt against Emsisoft's live API spec. Fixes the deploy that hung/timed out: it now posts to the correct endpoint (POST /v1/partner/workspaces) with the required fields, allows up to 60 seconds for the workspace to be created and the invite emailed, and reads the real installer links (web, full offline, and direct) plus the install token. A new collapsible 'Technical detail' line on the result shows exactly which calls ran and how long they took, and the same is written to the Activity Log. Re-run a Trial deploy — it should now create the workspace and show installer links.",
+  "zip": "tmtoolset-app-0.70.18.zip"
 }
