@@ -1,5 +1,5 @@
 {
-  "version": "0.70.20",
-  "notes": "Emsisoft deploy now returns working download links, plus two improvements. (1) Install links fixed: a brand-new workspace's /install endpoint hangs, so the app now creates the install token via the workspace's policy group and reads the real download links (web, direct, macOS) from that — no more timeout. (2) Deploy now checks first whether a workspace already exists for that customer; if so it offers 'Get install links' instead of creating a duplicate. Also widened the top-right ticket bar so the customer name and number aren't cut off.",
-  "zip": "tmtoolset-app-0.70.20.zip"
+  "version": "0.70.21",
+  "notes": "Runs as administrator by default. On launch the app now asks for admin rights via the normal Windows UAC prompt and runs elevated, so you no longer get the in-app 'run as administrator' banner. If you cancel the UAC prompt it still opens without admin (with the banner as a fallback), so nothing is lost.",
+  "zip": "tmtoolset-app-0.70.21.zip"
 }

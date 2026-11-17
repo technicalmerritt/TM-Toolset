@@ -41,6 +41,27 @@ function isElevated() {
   }
 }
 
+// Relaunch this app elevated via UAC. SYNCHRONOUS: blocks until the user answers
+// the UAC prompt. Returns true if elevation was accepted (an elevated copy is
+// now starting), or false if the user cancelled / it failed (stay non-elevated).
+// Called before we take the single-instance lock, so the elevated copy can take
+// the lock cleanly. The '--tm-elevated' arg marks the relaunched copy so it
+// never tries to elevate again (belt-and-braces against a loop).
+function relaunchElevatedSync() {
+  try {
+    const exe = process.execPath.replace(/'/g, "''");
+    execFileSync(
+      'powershell.exe',
+      ['-NoProfile', '-WindowStyle', 'Hidden', '-Command',
+        `Start-Process -FilePath '${exe}' -ArgumentList '--tm-elevated' -Verb RunAs`],
+      { windowsHide: true, stdio: 'ignore', timeout: 120000 }
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Portable data dir: prefer a folder NEXT TO the executable (so a USB stick
 // carries the tool list + downloaded tools with it); fall back to userData when
 // the app folder isn't writable (e.g. installed under Program Files).
@@ -2394,8 +2415,22 @@ function registerIpc() {
   });
 }
 
+// Run elevated by default: if we're not admin, relaunch via UAC BEFORE taking the
+// single-instance lock (so the elevated copy can take it cleanly). If the user
+// cancels UAC we fall through and run non-elevated — the in-app banner still
+// offers a manual retry, so nothing is lost. Wrapped so any failure here can
+// never stop the app from starting.
+let _elevating = false;
+try {
+  if (process.platform === 'win32' && !process.argv.includes('--tm-elevated') && !isElevated()) {
+    _elevating = relaunchElevatedSync();
+  }
+} catch { _elevating = false; }
+
 // Single-instance: focus the existing window instead of opening a second one.
-if (!app.requestSingleInstanceLock()) {
+if (_elevating) {
+  app.exit(0);
+} else if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', () => {
