@@ -236,20 +236,33 @@ function pickLinks(j) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Find the workspace's default (root) protection group guid. A freshly created
-// workspace can take a moment to provision it, so retry briefly.
+const ZERO_GUID = '00000000-0000-0000-0000-000000000000';
+
+// Flatten the (nested) protection-group tree into a flat list.
+function flattenGroups(groups, out) {
+  out = out || [];
+  (Array.isArray(groups) ? groups : []).forEach((g) => {
+    if (g && g.guid) out.push(g);
+    if (g && Array.isArray(g.childrenList) && g.childrenList.length) flattenGroups(g.childrenList, out);
+  });
+  return out;
+}
+
+// Find a REAL protection group guid to attach the install token to. The
+// workspace-ROOT group has an all-zeros placeholder guid and set-install-token
+// rejects it (HTTP 401), so we use the first real (non-zero) group — the default
+// device group (e.g. "New computers"). A freshly created workspace can take a
+// moment to provision it, so retry briefly.
 async function findPolicyGroupGuid({ key, guid, trace }) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const r = await request(key, 'GET', API.protectionGroups(guid), { timeoutMs: LINKS_TIMEOUT_MS, trace });
     if (!r.ok) return { ok: false, message: describeFail(r, 'Listing protection groups') };
-    const groups = Array.isArray(r.json) ? r.json : ((r.json && (r.json.data || r.json.items)) || []);
-    if (groups.length) {
-      const root = groups.find((g) => !g.parentGroupGuid) || groups[0];
-      if (root && root.guid) return { ok: true, pgGuid: String(root.guid) };
-    }
+    const raw = Array.isArray(r.json) ? r.json : ((r.json && (r.json.data || r.json.items)) || []);
+    const real = flattenGroups(raw).find((g) => g.guid && String(g.guid) !== ZERO_GUID);
+    if (real) return { ok: true, pgGuid: String(real.guid) };
     if (attempt < 2) await sleep(2000); // provisioning lag — wait and retry
   }
-  return { ok: false, message: 'The workspace has no protection group yet. Give it a moment and try “Get links” again, or open MyEmsisoft.' };
+  return { ok: false, message: 'The workspace has no usable protection group yet. Give it a moment and try “Get links” again, or open MyEmsisoft.' };
 }
 
 // Get the installer download links + token for a workspace.

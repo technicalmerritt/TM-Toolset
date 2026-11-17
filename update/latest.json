@@ -1,5 +1,5 @@
 {
-  "version": "0.70.26",
-  "notes": "Emsisoft deploy, three improvements. (1) Download installer button: on the result screen, 'Download installer to Downloads' saves the .exe straight to your Downloads folder with a progress bar and an 'Open folder' button — no browser, and it never auto-installs; you double-click to install. (2) Faster: the deploy no longer auto-searches for an existing workspace every time (that was slow when Emsisoft is busy) — there's now a 'Check for an existing workspace' button on the form to do it on demand. (3) Try again: when a deploy fails (e.g. Emsisoft's server times out), the result screen now has a Try again button that first checks whether the workspace was actually created before retrying, so you don't make duplicates.",
-  "zip": "tmtoolset-app-0.70.26.zip"
+  "version": "0.70.27",
+  "notes": "Emsisoft deploy: installer links now work. The real bug — a new workspace's root policy group has an all-zeros placeholder ID, and asking Emsisoft to make an install token on that was rejected (401). The app now uses the real device group instead, so the download links and token come through. If you already created a workspace, just open Deploy for that customer, check for the existing workspace, and hit Get install links.",
+  "zip": "tmtoolset-app-0.70.27.zip"
 }
