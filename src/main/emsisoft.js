@@ -27,6 +27,7 @@ const LINKS_TIMEOUT_MS = 55000;  // policy-group / install-token / workspace-lis
 // Product editions offered in the deploy popup (trialProduct enum is EAM/EBS/EES;
 // EBS/EES are the business editions). Adjust labels freely.
 const PRODUCTS = [
+  { code: 'EAM', label: 'Anti-Malware (Home)' },
   { code: 'EBS', label: 'Business Security' },
   { code: 'EES', label: 'Enterprise Security' },
 ];

@@ -1,5 +1,5 @@
 {
-  "version": "0.70.24",
-  "notes": "Emsisoft deploy: rides through Emsisoft's slow server. The install-token and workspace-lookup calls now allow up to 55s and retry once automatically when Emsisoft times out, and if links still don't come back there's a 'Try fetching links again' button that re-pulls them for the SAME workspace — no new workspace and no licence used. The existing-workspace check is also more reliable now. When Emsisoft's own servers are overloaded (504 / gateway timeout) the workspace and the links may simply need a retry a minute later.",
-  "zip": "tmtoolset-app-0.70.24.zip"
+  "version": "0.70.25",
+  "notes": "Emsisoft deploy: you can now choose Anti-Malware (Home) as well as Business Security and Enterprise Security. Home (EAM) is handy for the many customers who aren't businesses — it's available for trials and monthly billing just like the business editions.",
+  "zip": "tmtoolset-app-0.70.25.zip"
 }
