@@ -69,8 +69,27 @@
     var key = $('#emsKey'), save = $('#emsSave'), test = $('#emsTest'), st = $('#emsStatus');
     if (!key) return;
     var defOption = $('#emsDefOption'), defProduct = $('#emsDefProduct'), defSeats = $('#emsDefSeats'), defLog = $('#emsDefLog'), defSt = $('#emsDefStatus');
+    var defPolicy = $('#emsDefPolicy'), policyHint = $('#emsDefPolicyHint');
+    var policyTemplates = [];
 
     function setStatus(node, msg, kind) { if (!node) return; node.textContent = msg || ''; node.style.color = kind === 'error' ? 'var(--danger)' : kind === 'ok' ? '#7fd6a0' : 'var(--text-dim)'; }
+
+    async function loadPolicyTemplates() {
+      if (!defPolicy) return;
+      try {
+        var r = await window.emsisoft.listPolicyTemplates();
+        if (r && r.ok && Array.isArray(r.templates)) {
+          policyTemplates = r.templates;
+          defPolicy.innerHTML = '';
+          defPolicy.appendChild(el('option', { value: '', text: '(none — leave Emsisoft’s default)' }));
+          policyTemplates.forEach(function (t) { defPolicy.appendChild(el('option', { value: t.guid, text: t.name || t.guid })); });
+          if (defaults.policyTemplate && defaults.policyTemplate.guid) defPolicy.value = defaults.policyTemplate.guid;
+          if (policyHint) policyHint.textContent = policyTemplates.length ? 'Applied to each new deployment.' : 'No policy templates found in your Emsisoft partner account.';
+        } else if (policyHint) {
+          policyHint.textContent = (r && r.message) || 'Save your API key first to load policy templates.';
+        }
+      } catch (e) { /* ignore */ }
+    }
 
     // Populate product dropdown.
     function fillProducts(sel, chosen) {
@@ -94,6 +113,7 @@
         if (defProduct) defProduct.value = defaults.product;
         if (defSeats) defSeats.value = defaults.seats;
         if (defLog) defLog.checked = defaults.logToTicket !== false;
+        if (defPolicy && defaults.policyTemplate) defPolicy.value = defaults.policyTemplate.guid || '';
       } catch (e) { /* ignore */ }
     }
 
@@ -101,7 +121,7 @@
       var payload = {};
       if (key.value) payload.key = key.value;
       if (!key.value) { setStatus(st, 'Enter the API key to save (or it is already saved).', 'error'); return; }
-      try { await window.emsisoft.save(payload); key.value = ''; await refresh(); setStatus(st, 'Saved.', 'ok'); }
+      try { await window.emsisoft.save(payload); key.value = ''; await refresh(); loadPolicyTemplates(); setStatus(st, 'Saved.', 'ok'); }
       catch (e) { setStatus(st, 'Could not save: ' + ((e && e.message) || e), 'error'); }
     });
     test.addEventListener('click', async function () {
@@ -112,19 +132,26 @@
     });
 
     async function saveDefaults() {
+      var pt = { guid: '', name: '' };
+      if (defPolicy && defPolicy.value) {
+        pt.guid = defPolicy.value;
+        var hit = policyTemplates.filter(function (t) { return t.guid === defPolicy.value; })[0];
+        pt.name = hit ? hit.name : '';
+      }
       var d = {
         option: defOption ? defOption.value : defaults.option,
         product: defProduct ? defProduct.value : defaults.product,
         seats: defSeats ? parseInt(defSeats.value, 10) || 1 : defaults.seats,
         logToTicket: defLog ? defLog.checked : defaults.logToTicket,
+        policyTemplate: pt,
       };
       try { var r = await window.emsisoft.save({ defaults: d }); defaults = (r && r.defaults) || d; setStatus(defSt, 'Defaults saved.', 'ok'); setTimeout(function () { setStatus(defSt, ''); }, 1500); }
       catch (e) { setStatus(defSt, 'Could not save defaults.', 'error'); }
     }
-    [defOption, defProduct, defSeats, defLog].forEach(function (c) { if (c) c.addEventListener('change', saveDefaults); });
+    [defOption, defProduct, defSeats, defLog, defPolicy].forEach(function (c) { if (c) c.addEventListener('change', saveDefaults); });
 
     loadProducts();
-    refresh();
+    refresh().then(function () { loadPolicyTemplates(); });
   }
 
   // ───────────────────────── Deploy modal ─────────────────────────
@@ -405,6 +432,17 @@
         grp.appendChild(el('strong', { text: res.pgName || '—' }));
       }
       kids.push(grp);
+    }
+
+    // Policy template applied on deploy (when a default is set in Settings).
+    if (res.policyTemplate) {
+      var pt = res.policyTemplate;
+      kids.push(el('p', {
+        class: pt.applied ? 'muted ems-hint' : 'ems-warn',
+        text: pt.applied
+          ? ('Policy applied: ' + (pt.name || pt.guid))
+          : ('Couldn’t apply policy' + (pt.name ? ' “' + pt.name + '”' : '') + ': ' + (pt.message || 'unknown error')),
+      }));
     }
 
     if (res.links) {

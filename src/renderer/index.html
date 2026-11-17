@@ -462,6 +462,11 @@
           <input id="emsDefLog" type="checkbox" checked />
           <span>Write a private note back to the Syncro ticket after a deploy</span>
         </label>
+        <label class="field">
+          <span>Default policy template</span>
+          <select id="emsDefPolicy"><option value="">(none — leave Emsisoft's default)</option></select>
+        </label>
+        <p class="muted settings-hint" id="emsDefPolicyHint">Applied to each new deployment (e.g. your &ldquo;Residential customers&rdquo; policy). The list loads once your API key is saved.</p>
         <p id="emsDefStatus" class="info-line"></p>
       </section>
 

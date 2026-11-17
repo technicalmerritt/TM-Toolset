@@ -1,5 +1,5 @@
 {
-  "version": "0.70.28",
-  "notes": "Emsisoft deploy: the result screen now shows which policy group the install goes into (e.g. 'New computers', the default group Emsisoft creates for a new workspace). If a workspace has more than one group, you get a dropdown to pick which one — choosing re-issues the install token for that group. For a brand-new workspace there's only the one default group, so it just shows it.",
-  "zip": "tmtoolset-app-0.70.28.zip"
+  "version": "0.70.29",
+  "notes": "Emsisoft deploy: policy templates and a Home default. (1) New Settings option 'Default policy template' — pick your Residential customers policy (loads from your Emsisoft account once your key is saved) and it's applied automatically to each new deployment; the result screen shows which policy was applied. (2) Trial now defaults to Anti-Malware (Home) instead of Business. You can still change both per deploy and in Settings > Deploy defaults.",
+  "zip": "tmtoolset-app-0.70.29.zip"
 }

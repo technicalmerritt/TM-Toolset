@@ -2265,14 +2265,25 @@ function registerIpc() {
     tmLog('emsisoft', 'get links', res.ok ? ('ok ' + (res.guid || '')) : 'failed', (res.message || '') + traceStr);
     return res;
   });
+  ipcMain.handle('emsisoft:listPolicyTemplates', async () => {
+    const { key } = await settings.getEmsisoftForApi();
+    if (!key) return { ok: false, message: 'Add your Emsisoft API key in the Settings tab first.' };
+    return emsisoft.listPolicyTemplates({ key });
+  });
   ipcMain.handle('emsisoft:deploy', async (_evt, args) => {
     const { key } = await settings.getEmsisoftForApi();
     if (!key) return { ok: false, message: 'Add your Emsisoft API key in the Settings tab first.' };
+    // Default policy template (from Settings) unless the call overrides it.
+    let template = (args && args.template) || null;
+    if (!template) {
+      try { const pub = await settings.getEmsisoftPublic(); const pt = pub.defaults && pub.defaults.policyTemplate; if (pt && pt.guid) template = { guid: pt.guid, name: pt.name }; } catch { /* ignore */ }
+    }
     const res = await emsisoft.deploy({
       key,
       name: args && args.name,
       customerEmail: args && args.customerEmail,
       licence: args && args.licence,
+      template,
     });
     const lic = (args && args.licence) || {};
     const traceStr = Array.isArray(res.trace) && res.trace.length ? (' | ' + res.trace.join(' ; ')) : '';

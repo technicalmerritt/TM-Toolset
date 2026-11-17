@@ -308,10 +308,34 @@ async function assignLicence({ key, guid, licenceKey, trace }) {
   return { ok: true };
 }
 
+// List the partner's policy templates (e.g. "Residential customers") for the
+// Settings "default policy template" picker. The list is a tree like groups.
+async function listPolicyTemplates({ key }) {
+  if (!key) return { ok: false, message: 'Emsisoft API key is not set.' };
+  const r = await request(key, 'GET', '/v1/partner/policy-templates', { timeoutMs: LINKS_TIMEOUT_MS });
+  if (!r.ok) return { ok: false, message: describeFail(r, 'Listing policy templates') };
+  const raw = Array.isArray(r.json) ? r.json : ((r.json && (r.json.data || r.json.items)) || []);
+  const templates = flattenGroups(raw)
+    .map((g) => ({ guid: String(g.guid || ''), name: g.name || '' }))
+    .filter((t) => t.guid && t.guid !== ZERO_GUID);
+  return { ok: true, templates };
+}
+
+// Assign a policy template to a workspace's protection group.
+// POST /v1/workspaces/{wsGuid}/protection-groups/assign-template?templateGuid=..&pgGuid=..
+async function assignTemplate({ key, wsGuid, templateGuid, pgGuid, trace }) {
+  if (!templateGuid) return { ok: true, skipped: true };
+  const query = { templateGuid };
+  if (pgGuid) query.pgGuid = pgGuid;
+  const r = await request(key, 'POST', `/v1/workspaces/${encodeURIComponent(wsGuid)}/protection-groups/assign-template`, { query, timeoutMs: LINKS_TIMEOUT_MS, trace });
+  if (!r.ok) return { ok: false, message: describeFail(r, 'Applying the policy template') };
+  return { ok: true };
+}
+
 // Orchestrate a full deploy: create the workspace, resolve its GUID, fetch the
 // installer links. The caller (UI) has already shown the tech exactly which
 // licence will be used and taken an explicit confirm before calling this.
-async function deploy({ key, name, customerEmail, licence }) {
+async function deploy({ key, name, customerEmail, licence, template }) {
   const trace = [];
   const created = await createWorkspace({ key, name, customerEmail, licence, trace });
 
@@ -362,6 +386,11 @@ async function deploy({ key, name, customerEmail, licence }) {
   } else {
     out.links = inst.links;
     out.pgGuid = inst.pgGuid; out.pgName = inst.pgName; out.groups = inst.groups;
+    // Apply the default policy template (e.g. "Residential customers") to the group.
+    if (template && template.guid) {
+      const at = await assignTemplate({ key, wsGuid: guid, templateGuid: template.guid, pgGuid: inst.pgGuid, trace });
+      out.policyTemplate = { guid: template.guid, name: template.name || '', applied: at.ok, message: at.ok ? '' : at.message };
+    }
   }
   out.trace = traceLines(trace);
   return out;
@@ -377,5 +406,7 @@ module.exports = {
   getInstall,
   getLinks,
   assignLicence,
+  listPolicyTemplates,
+  assignTemplate,
   deploy,
 };

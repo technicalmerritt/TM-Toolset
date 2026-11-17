@@ -134,11 +134,14 @@ async function readEmsisoft() {
 function cleanDefaults(d) {
   d = d && typeof d === 'object' ? d : {};
   const option = ['coupon', 'msp', 'trial'].includes(d.option) ? d.option : 'coupon';
-  const product = (typeof d.product === 'string' && d.product.trim()) ? d.product.trim() : 'EBS';
+  const product = (typeof d.product === 'string' && d.product.trim()) ? d.product.trim() : 'EAM'; // Home by default
   let seats = parseInt(d.seats, 10);
   if (!(seats > 0)) seats = 1;
   const logToTicket = d.logToTicket !== false; // default on
-  return { option, product, seats, logToTicket };
+  const pt = (d.policyTemplate && typeof d.policyTemplate === 'object')
+    ? { guid: String(d.policyTemplate.guid || ''), name: String(d.policyTemplate.name || '') }
+    : { guid: '', name: '' };
+  return { option, product, seats, logToTicket, policyTemplate: pt };
 }
 
 async function getEmsisoftPublic() {
