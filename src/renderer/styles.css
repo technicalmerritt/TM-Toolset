@@ -2309,3 +2309,5 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .ems-existing .ems-hint { margin: 0; }
 .ems-dl { margin: 10px 0; display: grid; gap: 4px; }
 .ems-dl .info-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ems-group { margin: 2px 0 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ems-group__sel { width: auto; display: inline-block; }

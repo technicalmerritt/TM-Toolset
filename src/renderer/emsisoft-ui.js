@@ -391,6 +391,22 @@
     var kids = [el('p', {}, [el('strong', { text: 'Workspace “' + (res.name || ctx.name) + (res.reused ? '” (existing).' : '” created.') })])];
     if (res.recovered) kids.push(el('p', { class: 'muted ems-hint', text: 'Emsisoft’s server timed out mid-create, but the workspace had been created — recovered automatically.' }));
 
+    // Which policy group the install token is for. One group → just show it; more
+    // than one → let the tech pick (re-issues the token for the chosen group).
+    if (res.links && (res.pgName || (res.groups && res.groups.length))) {
+      var grp = el('div', { class: 'ems-group' }, [el('span', { class: 'muted ems-hint', text: 'Installs into policy group: ' })]);
+      if (res.groups && res.groups.length > 1) {
+        var gsel = el('select', { class: 'ems-select ems-group__sel' });
+        res.groups.forEach(function (g) { var o = el('option', { value: g.guid, text: g.name || g.guid }); if (String(g.guid) === String(res.pgGuid)) o.setAttribute('selected', ''); gsel.appendChild(o); });
+        gsel.addEventListener('change', function () { runGetLinks(res.guid, res.name || ctx.name, gsel.value); });
+        grp.appendChild(gsel);
+        grp.appendChild(el('span', { class: 'muted ems-hint', text: ' — changing re-issues the token for that group' }));
+      } else {
+        grp.appendChild(el('strong', { text: res.pgName || '—' }));
+      }
+      kids.push(grp);
+    }
+
     if (res.links) {
       kids.push(el('div', { class: 'ems-links' }, [
         linkRow('Installer (web, recommended)', links.downloadUrl),
@@ -494,10 +510,10 @@
     ]);
   }
 
-  function runGetLinks(guid, name) {
+  function runGetLinks(guid, name, pgGuid) {
     titleEl.textContent = 'Fetching install links…';
     fill(body, [el('p', { class: 'muted', text: 'Creating the install token and fetching the download links…' })]);
-    window.emsisoft.getLinks({ guid: guid }).then(function (r) {
+    window.emsisoft.getLinks({ guid: guid, pgGuid: pgGuid }).then(function (r) {
       r = r || {};
       r.name = name; r.reused = true;
       stepResult(r);

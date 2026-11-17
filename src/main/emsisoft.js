@@ -209,12 +209,12 @@ async function findWorkspace({ key, name, trace }) {
 
 // Get install links for a workspace already known by guid (or resolved by name).
 // Used by the deploy popup's "workspace already exists → get its links" path.
-async function getLinks({ key, name, guid }) {
+async function getLinks({ key, name, guid, pgGuid }) {
   const trace = [];
   let g = guid || '';
   if (!g && name) { const f = await findWorkspace({ key, name, trace }); if (f.ok && f.found) g = f.guid; }
   if (!g) return { ok: false, message: 'No matching workspace was found to get links for.', trace: traceLines(trace) };
-  const r = await getInstall({ key, guid: g, trace });
+  const r = await getInstall({ key, guid: g, trace, pgGuid });
   r.trace = traceLines(trace);
   r.guid = g;
   return r;
@@ -253,13 +253,17 @@ function flattenGroups(groups, out) {
 // rejects it (HTTP 401), so we use the first real (non-zero) group — the default
 // device group (e.g. "New computers"). A freshly created workspace can take a
 // moment to provision it, so retry briefly.
-async function findPolicyGroupGuid({ key, guid, trace }) {
+async function findPolicyGroupGuid({ key, guid, trace, preferGuid }) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const r = await request(key, 'GET', API.protectionGroups(guid), { timeoutMs: LINKS_TIMEOUT_MS, trace });
     if (!r.ok) return { ok: false, message: describeFail(r, 'Listing protection groups') };
     const raw = Array.isArray(r.json) ? r.json : ((r.json && (r.json.data || r.json.items)) || []);
-    const real = flattenGroups(raw).find((g) => g.guid && String(g.guid) !== ZERO_GUID);
-    if (real) return { ok: true, pgGuid: String(real.guid) };
+    const all = flattenGroups(raw).filter((g) => g.guid && String(g.guid) !== ZERO_GUID);
+    if (all.length) {
+      let chosen = preferGuid ? all.find((g) => String(g.guid) === String(preferGuid)) : null;
+      if (!chosen) chosen = all[0]; // default: the first real device group
+      return { ok: true, pgGuid: String(chosen.guid), pgName: chosen.name || '', groups: all.map((g) => ({ guid: String(g.guid), name: g.name || '' })) };
+    }
     if (attempt < 2) await sleep(2000); // provisioning lag — wait and retry
   }
   return { ok: false, message: 'The workspace has no usable protection group yet. Give it a moment and try “Get links” again, or open MyEmsisoft.' };
@@ -271,11 +275,11 @@ async function findPolicyGroupGuid({ key, guid, trace }) {
 // token yet), so we do NOT use it. Instead we find the default policy group and
 // PUT a new install token — that call CREATES the token and returns the full set
 // of download links in one go.
-async function getInstall({ key, guid, trace }) {
+async function getInstall({ key, guid, trace, pgGuid }) {
   if (!key) return { ok: false, message: 'Emsisoft API key is not set.' };
   if (!guid) return { ok: false, message: 'No workspace GUID.' };
 
-  const pg = await findPolicyGroupGuid({ key, guid, trace });
+  const pg = await findPolicyGroupGuid({ key, guid, trace, preferGuid: pgGuid });
   if (!pg.ok) return { ok: false, message: pg.message };
 
   // Create the install token (this call also returns all the download links).
@@ -293,7 +297,7 @@ async function getInstall({ key, guid, trace }) {
   if (!links.downloadUrl && !links.installToken) {
     return { ok: false, message: 'The workspace was created but Emsisoft returned no install links or token. You can get them from MyEmsisoft.' };
   }
-  return { ok: true, links };
+  return { ok: true, links, pgGuid: pg.pgGuid, pgName: pg.pgName, groups: pg.groups };
 }
 
 // Fallback: assign a licence to an existing workspace.
@@ -357,6 +361,7 @@ async function deploy({ key, name, customerEmail, licence }) {
     out.message = 'Workspace created, but fetching the installer links failed: ' + inst.message;
   } else {
     out.links = inst.links;
+    out.pgGuid = inst.pgGuid; out.pgName = inst.pgName; out.groups = inst.groups;
   }
   out.trace = traceLines(trace);
   return out;

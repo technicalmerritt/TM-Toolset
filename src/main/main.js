@@ -2260,7 +2260,7 @@ function registerIpc() {
   ipcMain.handle('emsisoft:getLinks', async (_evt, args) => {
     const { key } = await settings.getEmsisoftForApi();
     if (!key) return { ok: false, message: 'Add your Emsisoft API key in the Settings tab first.' };
-    const res = await emsisoft.getLinks({ key, name: args && args.name, guid: args && args.guid });
+    const res = await emsisoft.getLinks({ key, name: args && args.name, guid: args && args.guid, pgGuid: args && args.pgGuid });
     const traceStr = Array.isArray(res.trace) && res.trace.length ? (' | ' + res.trace.join(' ; ')) : '';
     tmLog('emsisoft', 'get links', res.ok ? ('ok ' + (res.guid || '')) : 'failed', (res.message || '') + traceStr);
     return res;

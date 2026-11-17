@@ -1,5 +1,5 @@
 {
-  "version": "0.70.27",
-  "notes": "Emsisoft deploy: installer links now work. The real bug — a new workspace's root policy group has an all-zeros placeholder ID, and asking Emsisoft to make an install token on that was rejected (401). The app now uses the real device group instead, so the download links and token come through. If you already created a workspace, just open Deploy for that customer, check for the existing workspace, and hit Get install links.",
-  "zip": "tmtoolset-app-0.70.27.zip"
+  "version": "0.70.28",
+  "notes": "Emsisoft deploy: the result screen now shows which policy group the install goes into (e.g. 'New computers', the default group Emsisoft creates for a new workspace). If a workspace has more than one group, you get a dropdown to pick which one — choosing re-issues the install token for that group. For a brand-new workspace there's only the one default group, so it just shows it.",
+  "zip": "tmtoolset-app-0.70.28.zip"
 }
