@@ -71,16 +71,19 @@ async function request(key, method, pathname, opts) {
     clearTimeout(to);
   }
   out.ms = Date.now() - started;
-  if (Array.isArray(opts.trace)) opts.trace.push({ method, pathname: pathname, status: out.status, ms: out.ms, aborted: out.aborted, networkError: out.networkError });
+  if (Array.isArray(opts.trace)) opts.trace.push({ method, pathname: pathname, status: out.status, ms: out.ms, aborted: out.aborted, networkError: out.networkError, body: String(out.text || '').slice(0, 600) });
   return out;
 }
 
 function traceLines(trace) {
   return (trace || []).map((e) => {
     const s = (e.ms / 1000).toFixed(1) + 's';
-    if (e.aborted) return `${e.method} ${e.pathname} → timed out (${s})`;
-    if (e.networkError) return `${e.method} ${e.pathname} → network error (${s})`;
-    return `${e.method} ${e.pathname} → HTTP ${e.status} (${s})`;
+    let head;
+    if (e.aborted) head = `${e.method} ${e.pathname} → timed out (${s})`;
+    else if (e.networkError) head = `${e.method} ${e.pathname} → network error (${s})`;
+    else head = `${e.method} ${e.pathname} → HTTP ${e.status} (${s})`;
+    if (e.body) head += '  ::  ' + e.body;
+    return head;
   });
 }
 

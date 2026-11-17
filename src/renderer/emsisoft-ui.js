@@ -288,11 +288,14 @@
       el('div', { class: 'ems-link__b' }, [copyBtn(url), el('button', { class: 'btn btn--ghost btn--sm', type: 'button', text: 'Open', onclick: function () { if (window.sys && window.sys.openUrl) window.sys.openUrl(url); } })]),
     ]);
   }
-  // Small collapsible "what the deploy actually did" footer, for diagnosing.
-  function traceEl(res) {
+  // Collapsible "what the deploy actually did" footer (expanded when something's
+  // wrong) — shows each call to Emsisoft with its status and raw response, so a
+  // failure is self-explanatory.
+  function traceEl(res, open) {
     if (!res || !res.trace || !res.trace.length) return null;
     var d = el('details', { class: 'ems-trace' });
-    d.appendChild(el('summary', { text: 'Technical detail' }));
+    if (open) d.setAttribute('open', '');
+    d.appendChild(el('summary', { text: 'Technical detail (what Emsisoft returned)' }));
     res.trace.forEach(function (line) { d.appendChild(el('div', { class: 'ems-trace__l', text: line })); });
     return d;
   }
@@ -302,7 +305,7 @@
       titleEl.textContent = 'Deploy failed';
       fill(body, [
         el('p', { class: 'ems-warn', text: (res && res.message) || 'Something went wrong.' }),
-        traceEl(res),
+        traceEl(res, true),
         el('div', { class: 'modal__actions' }, [
           el('button', { class: 'btn btn--ghost', type: 'button', text: 'Close', onclick: closeModal }),
           el('button', { class: 'btn btn--primary', type: 'button', text: 'Back', onclick: stepForm }),
@@ -336,13 +339,13 @@
         kids.push(tokRow);
       }
     } else if (res.message) {
-      kids.push(el('p', { class: 'muted', text: res.message }));
+      kids.push(el('p', { class: 'ems-warn', text: res.message }));
     }
 
     // Syncro note status line.
     var noteStatus = el('p', { class: 'info-line' });
     kids.push(noteStatus);
-    kids.push(traceEl(res));
+    kids.push(traceEl(res, !res.links)); // expand the detail when no links came back
 
     kids.push(el('div', { class: 'modal__actions' }, [
       ctx.ticket && ctx.ticket.id ? el('button', { class: 'btn btn--ghost', type: 'button', text: 'Log to ticket #' + ctx.ticket.number, onclick: function () { postNote(res, noteStatus, true); } }) : null,

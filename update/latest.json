@@ -1,5 +1,5 @@
 {
-  "version": "0.70.22",
-  "notes": "Emsisoft deploy: handles Emsisoft server timeouts gracefully. If creating the workspace times out on Emsisoft's side (a 504/gateway timeout — their server being slow, not yours), the deploy now checks whether the workspace was created anyway and, if so, carries on to its install links instead of failing. If it genuinely wasn't created, you get a clear 'their server was slow, try again' message, and a retry won't create a duplicate.",
-  "zip": "tmtoolset-app-0.70.22.zip"
+  "version": "0.70.23",
+  "notes": "Emsisoft deploy diagnostics: when installer links don't come back, the result screen now shows exactly what Emsisoft returned for each call (status + raw response), expanded automatically, so the problem is visible instead of silent. No behaviour change otherwise — this is to pinpoint why links aren't appearing.",
+  "zip": "tmtoolset-app-0.70.23.zip"
 }
