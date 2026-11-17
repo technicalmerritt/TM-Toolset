@@ -77,6 +77,17 @@ async function request(key, method, pathname, opts) {
   return out;
 }
 
+// GET with one automatic retry on a timeout / network error / 5xx — Emsisoft's
+// read endpoints (coupons, policy templates) can be transiently slow.
+async function getWithRetry(key, pathname, opts) {
+  let r = await request(key, 'GET', pathname, opts);
+  if (!r.ok && (r.aborted || r.networkError || (r.status >= 500 && r.status < 600))) {
+    await new Promise((res) => setTimeout(res, 2000));
+    r = await request(key, 'GET', pathname, opts);
+  }
+  return r;
+}
+
 function traceLines(trace) {
   return (trace || []).map((e) => {
     const s = (e.ms / 1000).toFixed(1) + 's';
@@ -120,7 +131,7 @@ function describeFail(r, verb) {
 // Cheap read to confirm the key works (also used by "Test connection").
 async function testConnection({ key }) {
   if (!key) return { ok: false, message: 'Enter your Emsisoft API key.' };
-  const r = await request(key, 'GET', API.listLicences.path, { query: API.listLicences.query });
+  const r = await getWithRetry(key, API.listLicences.path, { query: API.listLicences.query, timeoutMs: 30000 });
   if (r.ok) return { ok: true, message: 'Connected to Emsisoft.' };
   return { ok: false, message: describeFail(r, 'Test connection') };
 }
@@ -128,7 +139,7 @@ async function testConnection({ key }) {
 // List the partner's unused licence coupons for the licence-key dropdown.
 async function listLicences({ key, product }) {
   if (!key) return { ok: false, message: 'Emsisoft API key is not set.' };
-  const r = await request(key, 'GET', API.listLicences.path, { query: API.listLicences.query });
+  const r = await getWithRetry(key, API.listLicences.path, { query: API.listLicences.query, timeoutMs: LINKS_TIMEOUT_MS });
   if (!r.ok) return { ok: false, message: describeFail(r, 'Listing licences') };
   const data = (r.json && (r.json.data || r.json.coupons || r.json.items)) || (Array.isArray(r.json) ? r.json : []);
   let licences = (Array.isArray(data) ? data : []).map((c) => ({
@@ -312,7 +323,7 @@ async function assignLicence({ key, guid, licenceKey, trace }) {
 // Settings "default policy template" picker. The list is a tree like groups.
 async function listPolicyTemplates({ key }) {
   if (!key) return { ok: false, message: 'Emsisoft API key is not set.' };
-  const r = await request(key, 'GET', '/v1/partner/policy-templates', { timeoutMs: LINKS_TIMEOUT_MS });
+  const r = await getWithRetry(key, '/v1/partner/policy-templates', { timeoutMs: LINKS_TIMEOUT_MS });
   if (!r.ok) return { ok: false, message: describeFail(r, 'Listing policy templates') };
   const raw = Array.isArray(r.json) ? r.json : ((r.json && (r.json.data || r.json.items)) || []);
   const templates = flattenGroups(raw)

@@ -149,6 +149,8 @@
       catch (e) { setStatus(defSt, 'Could not save defaults.', 'error'); }
     }
     [defOption, defProduct, defSeats, defLog, defPolicy].forEach(function (c) { if (c) c.addEventListener('change', saveDefaults); });
+    var policyReload = $('#emsDefPolicyReload');
+    if (policyReload) policyReload.addEventListener('click', function () { if (policyHint) policyHint.textContent = 'Loading…'; loadPolicyTemplates(); });
 
     loadProducts();
     refresh().then(function () { loadPolicyTemplates(); });
