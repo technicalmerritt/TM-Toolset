@@ -313,6 +313,7 @@
     titleEl.textContent = res.reused ? 'Install links' : 'Emsisoft deployed';
     var links = res.links || {};
     var kids = [el('p', {}, [el('strong', { text: 'Workspace “' + (res.name || ctx.name) + (res.reused ? '” (existing).' : '” created.') })])];
+    if (res.recovered) kids.push(el('p', { class: 'muted ems-hint', text: 'Emsisoft’s server timed out mid-create, but the workspace had been created — recovered automatically.' }));
 
     if (res.links) {
       kids.push(el('div', { class: 'ems-links' }, [

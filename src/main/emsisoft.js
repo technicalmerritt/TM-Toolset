@@ -287,12 +287,39 @@ async function assignLicence({ key, guid, licenceKey, trace }) {
 async function deploy({ key, name, customerEmail, licence }) {
   const trace = [];
   const created = await createWorkspace({ key, name, customerEmail, licence, trace });
-  if (!created.ok) { created.trace = traceLines(trace); return created; }
 
-  let guid = created.guid;
-  if (!guid) guid = await findWorkspaceGuid({ key, name: created.name, trace });
+  let guid = '';
+  let wsName = (created && created.name) || name;
+  let recovered = false;
 
-  const out = { ok: true, name: created.name, guid: guid || '', guidResolved: !!guid, licence };
+  if (created.ok) {
+    guid = created.guid;
+  } else {
+    // A gateway timeout (504/502/503/524) or an aborted request is AMBIGUOUS —
+    // Emsisoft's server may have created the workspace anyway. Before reporting
+    // failure, wait a moment and look it up by name; if it exists, carry on.
+    const ambiguous = created.status === 0 || (created.status >= 500 && created.status < 600);
+    if (ambiguous) {
+      await sleep(3000);
+      const existing = await findWorkspace({ key, name, trace });
+      if (existing.ok && existing.found && existing.guid) {
+        guid = existing.guid;
+        wsName = existing.name || wsName;
+        recovered = true;
+      }
+    }
+    if (!guid) {
+      created.trace = traceLines(trace);
+      if (ambiguous) {
+        created.message = 'Emsisoft’s server was too slow and timed out before creating the workspace (HTTP ' + (created.status || 'timeout') + ' — their side, not yours). It may not have been created. Wait a moment and click Deploy again; if it did get created, you’ll be offered its install links instead of a duplicate.';
+      }
+      return created;
+    }
+  }
+
+  if (!guid) guid = await findWorkspaceGuid({ key, name: wsName, trace });
+
+  const out = { ok: true, name: wsName, guid: guid || '', guidResolved: !!guid, licence, recovered };
 
   if (!guid) {
     out.links = null;
