@@ -1,5 +1,5 @@
 {
-  "version": "0.70.16",
-  "notes": "New: Deploy Emsisoft from a ticket. In Settings, add your Emsisoft partner API key (saved on the USB stick like the Syncro token). Then pick a ticket in the top bar and click Deploy Emsisoft to create that customer's workspace using a licence key, monthly MSP billing, or a trial. You'll see the exact licence key before it's spent, the installer download links (with the activation token kept behind a reveal), and a private note is written back to the Syncro ticket. First run is worth watching — the trial and monthly field names are still being confirmed against the live Emsisoft API, and any error from Emsisoft is shown in full.",
-  "zip": "tmtoolset-app-0.70.16.zip"
+  "version": "0.70.17",
+  "notes": "Emsisoft deploy: clearer errors while we pin down your account's exact API paths. A failed deploy now names the exact request that failed (method + URL + Emsisoft's own message) instead of a bare 'HTTP 404', and the workspace-create step now also tries the modern /v1/partner/workspaces path if the documented /create path isn't found. Re-run a Trial deploy and read the message on the result screen — it now says exactly what to fix.",
+  "zip": "tmtoolset-app-0.70.17.zip"
 }

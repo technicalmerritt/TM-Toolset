@@ -89,7 +89,7 @@ async function request(key, method, pathname, { query, body } = {}) {
   const text = await res.text().catch(() => '');
   let json = null;
   try { json = text ? JSON.parse(text) : null; } catch { /* non-JSON */ }
-  return { status: res.status, ok: res.status >= 200 && res.status < 300, json, text };
+  return { status: res.status, ok: res.status >= 200 && res.status < 300, json, text, method, pathname };
 }
 
 // Pull Emsisoft's real error out of a failed response.
@@ -107,12 +107,17 @@ function readError(r) {
   return '';
 }
 
-function authMessage(r, verb) {
+// Failure message that names the exact call (method + path) so a 404/400 points
+// straight at the problem instead of being an anonymous "HTTP 404".
+function describeFail(r, verb) {
   if (r.status === 401) return `Emsisoft rejected the API key (HTTP 401). Check the key and that API access is enabled in your Emsisoft profile.`;
   if (r.status === 403) return `Not permitted (HTTP 403). ${verb} needs a registered Emsisoft partner key.`;
   const detail = readError(r);
-  return `Emsisoft returned HTTP ${r.status}.${detail ? ' ' + detail : ''}`;
+  const where = (r.method && r.pathname) ? ` for ${r.method} ${r.pathname}` : '';
+  return `${verb} failed — Emsisoft returned HTTP ${r.status}${where}.${detail ? ' ' + detail : ''}`;
 }
+// Back-compat alias.
+const authMessage = describeFail;
 
 // ---- public operations ----
 
@@ -181,11 +186,24 @@ async function createWorkspace({ key, name, customerEmail, licence }) {
   }
   Object.assign(body, build(lic));
 
+  // The 2022 docs use POST /v1/partner/workspaces/create; the modern RESTful
+  // path is likely POST /v1/partner/workspaces. Try the documented one first and
+  // fall back ONLY on 404 (path not found ⇒ nothing was created, safe to retry).
+  // A 400/409/etc. means the path exists but the request was wrong — stop there.
+  const CREATE_PATHS = ['/v1/partner/workspaces/create', '/v1/partner/workspaces'];
   try {
-    const r = await request(key, 'POST', '/v1/partner/workspaces/create', { body });
+    let r = null;
+    const tried = [];
+    for (let i = 0; i < CREATE_PATHS.length; i++) {
+      r = await request(key, 'POST', CREATE_PATHS[i], { body });
+      tried.push('POST ' + CREATE_PATHS[i]);
+      if (r.status !== 404) break; // 404 only ⇒ try the next candidate path
+    }
     if (!r.ok) {
       // Surface Emsisoft's real reason (e.g. WorkspaceNameAlreadyInUse).
-      return { ok: false, message: authMessage(r, 'Creating a workspace'), status: r.status };
+      let message = authMessage(r, 'Creating a workspace');
+      if (r.status === 404 && tried.length > 1) message = `Creating a workspace failed — HTTP 404 (none of these paths exist: ${tried.join(', ')}). The create endpoint differs on your account.`;
+      return { ok: false, message, status: r.status };
     }
     // Try to find the GUID in the create response.
     let guid = '';
