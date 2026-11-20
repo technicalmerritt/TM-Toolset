@@ -37,7 +37,28 @@ function parseInstallerLink(input) {
   if (u.protocol !== 'https:' || !ALLOWED_HOSTS.test(u.hostname)) {
     return { ok: false, message: 'That link is not on a Syncro address (' + u.hostname + '). Copy it from Syncro: New Asset, Command Line.' };
   }
-  return { ok: true, url: u.href };
+  const info = decodeInstaller(u.href);
+  return { ok: true, url: u.href, customerId: info ? info.customerId : null };
+}
+
+// The token after /dl/rs/ is base64 of "v1-<customerId>-<timestamp>-<accountId>-<folderId>".
+// Decoding it tells us which CUSTOMER an installer enrols a machine to, so we can
+// (a) file a link against the right customer and (b) refuse to install a link whose
+// customer doesn't match the ticket — never silently enrol the wrong customer.
+function decodeInstaller(url) {
+  try {
+    const u = new URL(String(url));
+    const seg = (u.pathname.split('/').filter(Boolean).pop() || '');
+    if (!seg) return null;
+    let b64 = seg.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const decoded = Buffer.from(b64, 'base64').toString('utf8');
+    const m = /^v\d+-(\d+)-(\d+)-(\d+)-(\d+)/.exec(decoded);
+    if (!m) return null;
+    return { customerId: m[1], generatedAt: m[2], accountId: m[3], folderId: m[4], raw: decoded };
+  } catch {
+    return null;
+  }
 }
 
 function isId(v) { return /^\d{1,12}$/.test(String(v == null ? '' : v)); }
@@ -108,12 +129,14 @@ function signature(file) {
 // technician to run themselves. We do NOT run it silently — the earlier
 // --console auto-run only unpacked files without registering the service, so
 // handing over the official installer (run interactively) is safer and reliable.
-async function prepare({ url, destDir, onProgress }) {
+async function prepare({ url, destDir, onProgress, label }) {
   if (process.platform !== 'win32') return { ok: false, message: 'The Syncro agent installer only runs on Windows.' };
   const link = parseInstallerLink(url);
   if (!link.ok) return link;
   await fsp.mkdir(destDir, { recursive: true });
-  const exe = path.join(destDir, 'Syncro-Agent-Setup.exe');
+  // Name the file after the customer so the tech can always see who it is for.
+  const safe = String(label || '').replace(/[^\w.() -]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').trim();
+  const exe = path.join(destDir, safe ? ('Syncro-Agent-' + safe + '.exe') : 'Syncro-Agent-Setup.exe');
   try { fs.unlinkSync(exe); } catch { /* ignore — overwrite any old copy */ }
   try {
     if (onProgress) onProgress('Downloading the installer from Syncro…');
@@ -147,4 +170,4 @@ function launch(exe) {
   });
 }
 
-module.exports = { parseInstallerLink, buildArgs, isInstalled, prepare, launch };
+module.exports = { parseInstallerLink, decodeInstaller, buildArgs, isInstalled, prepare, launch };

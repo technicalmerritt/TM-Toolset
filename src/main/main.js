@@ -200,6 +200,18 @@ async function writeConfig(config) {
 // credentials travel on the USB stick) using the serialized atomic writer.
 settings.configure({ readConfig, writeConfig });
 
+// Syncro agent installer links, keyed by Syncro customer id (so each customer
+// enrols to the RIGHT account). Migrates a legacy single `url` into the map.
+function getAgentStore(cfg) {
+  const a = (cfg.syncroAgent && typeof cfg.syncroAgent === 'object') ? cfg.syncroAgent : {};
+  if (!a.links || typeof a.links !== 'object') a.links = {};
+  if (a.url) {
+    try { const info = syncroAgent.decodeInstaller(a.url); if (info && info.customerId && !a.links[info.customerId]) a.links[info.customerId] = a.url; } catch { /* ignore */ }
+    delete a.url;
+  }
+  return a;
+}
+
 // Point the Apple-device tool runner at the portable data dir, so installed
 // libimobiledevice tools live on the USB stick and travel with it.
 idevice.configure({ dataDir: getDataDir() });
@@ -2387,32 +2399,63 @@ function registerIpc() {
   // ---- Install the Syncro RMM agent on this PC for the active ticket's customer ----
   ipcMain.handle('agent:get', async () => {
     const cfg = await readConfig();
-    const a = (cfg.syncroAgent && typeof cfg.syncroAgent === 'object') ? cfg.syncroAgent : {};
-    let host = '';
-    try { if (a.url) host = new URL(a.url).hostname; } catch { /* ignore */ }
-    return { hasLink: !!a.url, host, installed: syncroAgent.isInstalled(), folders: a.folders || {} };
+    const a = getAgentStore(cfg);
+    return { installed: syncroAgent.isInstalled(), savedCount: Object.keys(a.links).length };
   });
+  // Is a saved installer link on file for THIS ticket's customer?
+  ipcMain.handle('agent:forCustomer', async (_evt, args) => {
+    const custId = String((args && args.customerId) || '').trim();
+    const cfg = await readConfig();
+    const a = getAgentStore(cfg);
+    const url = custId ? a.links[custId] : '';
+    let host = '';
+    try { if (url) host = new URL(url).hostname; } catch { /* ignore */ }
+    return { hasLink: !!url, host, customerId: custId, installed: syncroAgent.isInstalled(), savedCount: Object.keys(a.links).length };
+  });
+  // Save an installer link, FILED UNDER THE CUSTOMER IT IS FOR (decoded from the
+  // link). When a ticket customer is supplied, refuse a link for anyone else.
   ipcMain.handle('agent:setLink', async (_evt, args) => {
     const raw = String((args && args.link) || '').trim();
+    const forCustomer = String((args && args.customerId) || '').trim();
     const cfg = await readConfig();
-    const a = (cfg.syncroAgent && typeof cfg.syncroAgent === 'object') ? cfg.syncroAgent : {};
-    if (!raw) { delete a.url; cfg.syncroAgent = a; await writeConfig(cfg); return { ok: true, cleared: true }; }
+    const a = getAgentStore(cfg);
+    if (args && args.clearAll) { a.links = {}; cfg.syncroAgent = a; await writeConfig(cfg); return { ok: true, cleared: true }; }
+    if (!raw) {
+      if (forCustomer) delete a.links[forCustomer];
+      cfg.syncroAgent = a; await writeConfig(cfg);
+      return { ok: true, cleared: true };
+    }
     const link = syncroAgent.parseInstallerLink(raw);
     if (!link.ok) return link;
-    a.url = link.url; cfg.syncroAgent = a;
-    await writeConfig(cfg);
-    return { ok: true, host: new URL(link.url).hostname };
+    if (!link.customerId) return { ok: false, message: 'That link could not be read as a Syncro per-customer installer. In Syncro, open the customer and copy their RMM agent installer link.' };
+    if (forCustomer && link.customerId !== forCustomer) {
+      return { ok: false, mismatch: true, linkCustomerId: link.customerId, message: 'That installer is for a DIFFERENT customer (ID ' + link.customerId + '), not the ticket customer (ID ' + forCustomer + '). It was not saved — grab this customer’s own installer link.' };
+    }
+    a.links[link.customerId] = link.url;
+    cfg.syncroAgent = a; await writeConfig(cfg);
+    return { ok: true, host: new URL(link.url).hostname, customerId: link.customerId };
   });
-  // Download + signature-verify the installer, then leave it in Downloads for
-  // the tech to run. (No silent --console run — that only unpacked files.)
-  ipcMain.handle('agent:prepare', async () => {
+  // Download + signature-verify the installer for the ticket's customer, verifying
+  // the link really belongs to that customer first, then leave it in Downloads
+  // named after the customer for the tech to run.
+  ipcMain.handle('agent:prepare', async (_evt, args) => {
+    const custId = String((args && args.customerId) || '').trim();
+    const custName = String((args && args.customerName) || '').trim();
+    if (!custId) return { ok: false, message: 'Pick a ticket first so the agent enrols the right customer.' };
     const cfg = await readConfig();
-    const a = (cfg.syncroAgent && typeof cfg.syncroAgent === 'object') ? cfg.syncroAgent : {};
-    if (!a.url) return { ok: false, message: 'Add your Syncro agent installer link in Settings first.' };
+    const a = getAgentStore(cfg);
+    const url = a.links[custId];
+    if (!url) return { ok: false, needsLink: true, message: 'No installer link saved for this customer yet. Paste their Syncro installer link to save it.' };
+    const info = syncroAgent.decodeInstaller(url);
+    if (!info || info.customerId !== custId) {
+      return { ok: false, message: 'Safety check failed: the saved link is not for this customer. Re-paste the correct installer link.' };
+    }
     const onProgress = (msg) => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('agent:progress', msg); };
     let destDir; try { destDir = app.getPath('downloads'); } catch { destDir = app.getPath('temp'); }
-    const res = await syncroAgent.prepare({ url: a.url, destDir, onProgress });
-    tmLog('syncro-agent', 'prepare installer', res.ok ? ('verified, signed by ' + (res.signer || '?')) : 'failed', res.message || '');
+    const label = custName || ('Customer-' + custId);
+    const res = await syncroAgent.prepare({ url, destDir, onProgress, label });
+    tmLog('syncro-agent', 'prepare installer', res.ok ? ('verified for ' + label + ' (cust ' + custId + '), signed by ' + (res.signer || '?')) : 'failed', res.message || '');
+    if (res.ok) { res.customerName = custName; res.customerId = custId; }
     return res;
   });
   ipcMain.handle('agent:reveal', async (_evt, args) => {

@@ -177,8 +177,9 @@ contextBridge.exposeInMainWorld('emsisoft', {
 
 contextBridge.exposeInMainWorld('agent', {
   get: () => ipcRenderer.invoke('agent:get'),
-  setLink: (link) => ipcRenderer.invoke('agent:setLink', { link }),
-  prepare: () => ipcRenderer.invoke('agent:prepare'),
+  forCustomer: (args) => ipcRenderer.invoke('agent:forCustomer', args),
+  setLink: (args) => ipcRenderer.invoke('agent:setLink', args),
+  prepare: (args) => ipcRenderer.invoke('agent:prepare', args),
   reveal: (path) => ipcRenderer.invoke('agent:reveal', { path }),
   run: (path) => ipcRenderer.invoke('agent:run', { path }),
   onProgress: (cb) => {

@@ -23,6 +23,7 @@ window.addEventListener('DOMContentLoaded', () => {
     repairs: document.getElementById('panel-repairs'),
     disktools: document.getElementById('panel-disktools'),
     debloat: document.getElementById('panel-debloat'),
+    privacy: document.getElementById('panel-privacy'),
     board: document.getElementById('panel-board'),
     logs: document.getElementById('panel-logs'),
     backup: document.getElementById('panel-backup'),

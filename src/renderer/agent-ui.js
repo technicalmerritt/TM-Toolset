@@ -18,18 +18,21 @@
 
   async function open() {
     const t = window.activeTicket && window.activeTicket.get();
-    if (!t || !t.customerId) return;
-    try { state = await window.agent.get(); } catch { state = { hasLink: false, installed: false }; }
+    if (!t || !t.customerId) { toast('Pick a ticket first so the agent enrols the right customer.'); return; }
+    try { state = await window.agent.forCustomer({ customerId: t.customerId }); } catch { state = { hasLink: false, installed: false }; }
     readyPath = null;
     els.target.textContent = 'Customer: ' + (t.customerName || t.customerId) + '   ·   Ticket #' + t.number;
     show(els.warn, state.installed);
     show(els.setup, !state.hasLink);
     if (els.link) els.link.value = '';
     els.go.disabled = false;
-    els.go.textContent = 'Download & verify';
+    els.go.textContent = state.hasLink ? 'Download & verify' : 'Save link & download';
     show(els.reveal, false);
     show(els.run, false);
-    status(state.hasLink ? 'Downloads your installer from Syncro and checks it is signed by Servably, then you run it.' : 'Paste your installer link once to get started.');
+    const who = t.customerName || 'this customer';
+    status(state.hasLink
+      ? 'Downloads ' + who + '’s installer, checks it is signed by Servably AND is for this customer, then you run it.'
+      : 'Paste ' + who + '’s own Syncro installer link (open the customer in Syncro, copy their RMM installer link). It’s saved for next time and only ever used for them.');
     els.modal.hidden = false;
   }
   function close() { if (!busy) els.modal.hidden = true; }
@@ -41,22 +44,23 @@
     const key = 'syncro-agent';
     try {
       if (!state.hasLink) {
-        const saved = await window.agent.setLink(els.link.value);
+        const saved = await window.agent.setLink({ link: els.link.value, customerId: t.customerId });
         if (!saved || !saved.ok || saved.cleared) { status((saved && saved.message) || 'Paste the installer link from Syncro.', 'error'); els.go.disabled = false; return; }
         state.hasLink = true; show(els.setup, false);
-        refreshSettings();
       }
       status('Starting…');
       window.TMActivity && window.TMActivity.start(key, 'Fetching Syncro agent installer');
-      const res = await window.agent.prepare();
+      const res = await window.agent.prepare({ customerId: t.customerId, customerName: t.customerName });
       if (res && res.ok) {
         readyPath = res.path;
-        status('Downloaded and verified (signed by ' + (res.signer || 'Servably') + '). Saved to your Downloads as Syncro-Agent-Setup.exe. Click Run installer, then follow Syncro’s prompts — or Open folder to run it yourself.', 'ok');
+        const fname = String(res.path || '').split(/[\\/]/).pop();
+        status('Downloaded and verified for ' + (t.customerName || 'this customer') + ' (signed by ' + (res.signer || 'Servably') + '). Saved to Downloads as ' + fname + '. Click Run installer, then follow Syncro’s prompts — or Open folder to run it yourself.', 'ok');
         els.go.textContent = 'Re-download';
         els.go.disabled = false;
         show(els.reveal, true);
         show(els.run, true);
       } else {
+        if (res && res.needsLink) { state.hasLink = false; show(els.setup, true); els.go.textContent = 'Save link & download'; }
         status((res && res.message) || 'Download failed.', 'error');
         els.go.disabled = false;
       }
@@ -74,7 +78,8 @@
     try {
       const s = await window.agent.get();
       els.setLink.value = '';
-      els.setLink.placeholder = s.hasLink ? 'Saved (' + s.host + ') - paste a new link to replace it' : 'https://rmm.syncromsp.com/dl/rs/…';
+      els.setLink.placeholder = 'https://rmm.syncromsp.com/dl/rs/…  (filed under its customer automatically)';
+      if (els.setStatus) { els.setStatus.textContent = (s.savedCount || 0) + ' per-customer installer link(s) saved.'; els.setStatus.style.color = 'var(--text-dim)'; }
     } catch { /* ignore */ }
   }
   function setStatus(msg, ok) { els.setStatus.textContent = msg || ''; els.setStatus.style.color = ok ? '#7fd6a0' : 'var(--danger)'; }
@@ -112,11 +117,14 @@
 
     if (els.setSave) {
       els.setSave.addEventListener('click', async () => {
-        const r = await window.agent.setLink(els.setLink.value);
-        if (r && r.ok && !r.cleared) { setStatus('Saved.', true); refreshSettings(); }
-        else setStatus((r && r.message) || 'Paste the installer link from Syncro.', false);
+        const r = await window.agent.setLink({ link: els.setLink.value });
+        if (r && r.ok && !r.cleared) { setStatus('Saved for customer ID ' + (r.customerId || '?') + '.', true); refreshSettings(); }
+        else setStatus((r && r.message) || 'Paste a customer’s installer link from Syncro.', false);
       });
-      els.setClear.addEventListener('click', async () => { await window.agent.setLink(''); setStatus('Removed.', true); refreshSettings(); });
+      els.setClear.addEventListener('click', async () => {
+        if (!window.confirm('Remove ALL saved per-customer installer links?')) return;
+        await window.agent.setLink({ clearAll: true }); setStatus('All saved links removed.', true); refreshSettings();
+      });
       refreshSettings();
     }
   });

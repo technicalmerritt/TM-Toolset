@@ -1,5 +1,5 @@
 {
-  "version": "0.70.31",
-  "notes": "New Privacy & telemetry tab: scans Windows for telemetry, advertising ID, lock-screen/Start suggestions, web-search tracking, activity history and more, shows each as Private or Exposed, and applies the recommended hardening in one click (with a System Restore point taken first). It also trims background noise that slows older PCs, and can post a summary to the ticket. Plus: the Drivers 'install all matching' job now shows a real progress bar and percentage instead of just 'Running', so you can see how far along it is.",
-  "zip": "tmtoolset-app-0.70.31.zip"
+  "version": "0.70.32",
+  "notes": "Two fixes. (1) Privacy tab was blank — it wasn't registered in the tab switcher; it opens properly now. (2) IMPORTANT Syncro agent fix: 'Install agent' now enrols the RIGHT customer. The installer link carries the customer ID, so TM Toolset files each customer's link under that customer, uses the correct one for the ticket automatically, names the downloaded file with the customer, and REFUSES to install if a link's customer doesn't match the ticket — so it can never silently enrol the wrong customer again. Paste each customer's own Syncro installer link once (the ticket-bar Install agent button, or Settings), and it's reused and verified after that.",
+  "zip": "tmtoolset-app-0.70.32.zip"
 }
