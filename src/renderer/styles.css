@@ -2316,6 +2316,9 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .pv-cat { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); margin: 16px 0 6px; padding-top: 8px; border-top: 1px solid var(--border); }
 .pv-cat:first-child { border-top: 0; padding-top: 0; margin-top: 4px; }
 .pv-chip--ok { background: rgba(62,192,122,0.16); color: #3ec07a; }
+.pv-chip--warn { background: rgba(255,153,60,0.18); color: #ff9a3c; }
+.pv-warn { color: #ff9a3c; font-size: 12px; font-weight: 600; margin-top: 4px; }
+.pv-row--warn { border-left: 3px solid #ff9a3c; padding-left: 9px; }
 
 /* Live-job progress bar (drivers install, etc.) */
 .run-bar { height: 10px; border-radius: 999px; background: var(--bg-elev-2); overflow: hidden; margin: 8px 0 10px; border: 1px solid var(--border); }

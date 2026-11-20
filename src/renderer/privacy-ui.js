@@ -49,7 +49,7 @@
       if (!group.length) continue;
       els.list.appendChild(el('div', 'pv-cat', cat));
       for (const it of group) {
-        const row = el('label', 'db-row');
+        const row = el('label', 'db-row' + (it.warn ? ' pv-row--warn' : ''));
         const cb = el('input'); cb.type = 'checkbox'; cb.dataset.id = it.id;
         if (it.state === 'na') cb.disabled = true;
         else if (it.rec && it.state === 'exposed') cb.checked = true;
@@ -59,8 +59,10 @@
         const title = el('div', 'db-row__name', it.name);
         title.appendChild(stateChip(it.state));
         if (it.rec) title.appendChild(el('span', 'db-tag', 'Recommended'));
+        if (it.warn) title.appendChild(el('span', 'db-tag pv-chip--warn', '⚠ Check first'));
         info.appendChild(title);
         info.appendChild(el('div', 'db-row__meta muted', it.desc));
+        if (it.warn) info.appendChild(el('div', 'pv-warn', '⚠ ' + it.warn));
         row.appendChild(info);
         els.list.appendChild(row);
       }

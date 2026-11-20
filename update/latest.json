@@ -1,5 +1,5 @@
 {
-  "version": "0.70.32",
-  "notes": "Two fixes. (1) Privacy tab was blank — it wasn't registered in the tab switcher; it opens properly now. (2) IMPORTANT Syncro agent fix: 'Install agent' now enrols the RIGHT customer. The installer link carries the customer ID, so TM Toolset files each customer's link under that customer, uses the correct one for the ticket automatically, names the downloaded file with the customer, and REFUSES to install if a link's customer doesn't match the ticket — so it can never silently enrol the wrong customer again. Paste each customer's own Syncro installer link once (the ticket-bar Install agent button, or Settings), and it's reused and verified after that.",
-  "zip": "tmtoolset-app-0.70.32.zip"
+  "version": "0.70.33",
+  "notes": "Privacy tab: the optional settings that have a trade-off are now flagged clearly in orange with a '⚠ Check first' tag and a plain-English warning (e.g. 'Turn off location tracking' shows it also disables Find My Device). These are the ones left un-ticked — the pre-ticked Recommended items are all safe and reversible. Also added a 'Turn off Windows Copilot' option for Windows 11 (separate from Cortana — turning off Cortana does not affect Copilot).",
+  "zip": "tmtoolset-app-0.70.33.zip"
 }
