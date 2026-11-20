@@ -1,5 +1,5 @@
 {
-  "version": "0.70.33",
-  "notes": "Privacy tab: the optional settings that have a trade-off are now flagged clearly in orange with a '⚠ Check first' tag and a plain-English warning (e.g. 'Turn off location tracking' shows it also disables Find My Device). These are the ones left un-ticked — the pre-ticked Recommended items are all safe and reversible. Also added a 'Turn off Windows Copilot' option for Windows 11 (separate from Cortana — turning off Cortana does not affect Copilot).",
-  "zip": "tmtoolset-app-0.70.33.zip"
+  "version": "0.70.34",
+  "notes": "Privacy tab now shows a privacy rating — after a scan you get a big percentage and a word (Excellent / Good / Fair / Needs attention) based on how many settings are already private. That same privacy rating is now included in the customer report: building a report runs a quick privacy scan and adds a 'Privacy & telemetry' section with the score and how many settings are private, so the customer can see it was looked after.",
+  "zip": "tmtoolset-app-0.70.34.zip"
 }

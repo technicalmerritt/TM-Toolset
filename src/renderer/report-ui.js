@@ -101,6 +101,21 @@
       ? probs + ' device' + (probs === 1 ? '' : 's') + ' had a driver problem that we looked at.'
       : 'All hardware is installed correctly with no driver problems.';
 
+    // Privacy & telemetry
+    const privD = (data.priv && data.priv.ok && data.priv.data) || {};
+    const privItems = arr(privD.items);
+    let privacySec = '';
+    if (privItems.length) {
+      const appl = privItems.filter((i) => i.state !== 'na');
+      const privCnt = appl.filter((i) => i.state === 'private').length;
+      const pct = appl.length ? Math.round((privCnt / appl.length) * 100) : 100;
+      if (pct < 55) issues.push('privacy');
+      privacySec = '<div class="rep-sec"><h2>Privacy &amp; telemetry</h2><div class="rep-kv">' +
+        '<div class="k">Privacy rating</div><div class="v">' + pct + '% <span class="rep-pill rep-pill--' + pillCls(pct) + '">' + healthWord(pct) + '</span></div>' +
+        '<div class="k">Settings private</div><div class="v">' + privCnt + ' of ' + appl.length + '</div>' +
+        '</div><p class="rep-line" style="margin-top:8px">We reviewed this PC&rsquo;s Windows privacy and telemetry settings &mdash; turning off usage tracking, advertising IDs and unnecessary background data collection where appropriate.</p></div>';
+    }
+
     // Verdict
     const verdictLevel = issues.length ? 'warn' : 'good';
     const verdict = issues.length
@@ -138,6 +153,8 @@
       '<div class="rep-sec"><h2>Stability</h2><p class="rep-line">' + esc(stabilityLine) + '</p></div>' +
       '<div class="rep-sec"><h2>Hardware &amp; drivers</h2><p class="rep-line">' + esc(deviceLine) + '</p></div>' +
 
+      privacySec +
+
       (notes ? '<div class="rep-sec"><h2>Work performed</h2><div class="rep-notes">' + esc(notes) + '</div></div>' : '') +
 
       '<div class="report__foot"><span>Technical Merritt Computer Services</span><span>Prepared with TM Toolset &middot; ' + esc(dateStr) + '</span></div>' +
@@ -154,14 +171,15 @@
     els.preview.innerHTML = '';
     els.build.disabled = true;
     try {
-      const [inf, dr, bat, cr, dev] = await Promise.all([
+      const [inf, dr, bat, cr, dev, priv] = await Promise.all([
         safe(window.inform && window.inform.run()),
         safe(window.drives && window.drives.list()),
         safe(window.battery && window.battery.list()),
         safe(window.crash && window.crash.list()),
         safe(window.devices && window.devices.list()),
+        safe(window.privacy && window.privacy.scan()),
       ]);
-      const r = buildReport({ inf, dr, bat, cr, dev });
+      const r = buildReport({ inf, dr, bat, cr, dev, priv });
       els.preview.innerHTML = r.body;
       standaloneHtml = r.standalone;
       els.print.disabled = false; els.save.disabled = false; els.syncro.disabled = false;

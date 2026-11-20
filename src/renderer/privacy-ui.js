@@ -27,6 +27,14 @@
     }).catch((e) => { els.status.hidden = true; els.summary.hidden = false; els.summary.textContent = 'Scan failed: ' + ((e && e.message) || e); });
   }
 
+  function scoreOf(list) {
+    const appl = list.filter((i) => i.state !== 'na');
+    const priv = appl.filter((i) => i.state === 'private').length;
+    const pct = appl.length ? Math.round((priv / appl.length) * 100) : 100;
+    const rating = pct >= 90 ? 'Excellent' : pct >= 75 ? 'Good' : pct >= 50 ? 'Fair' : 'Needs attention';
+    return { pct, rating, priv, total: appl.length };
+  }
+
   function stateChip(state) {
     if (state === 'private') return el('span', 'db-tag pv-chip--ok', 'Private');
     if (state === 'na') return el('span', 'db-tag', 'Not applicable');
@@ -39,7 +47,15 @@
     const exposedOnly = els.exposedOnly.checked;
     const exposed = items.filter((i) => i.state === 'exposed').length;
     els.summary.hidden = false;
-    els.summary.textContent = exposed ? (exposed + ' setting(s) are not private yet. Recommended ones are pre-ticked.') : 'All scanned settings are already private. 👍';
+    els.summary.textContent = '';
+    els.summary.className = 'info-line pv-scoreline';
+    const sc = scoreOf(items);
+    const badge = sc.pct >= 90 ? 'pv-score--ok' : sc.pct >= 50 ? 'pv-score--warn' : 'pv-score--bad';
+    els.summary.appendChild(el('span', 'pv-score ' + badge, sc.pct + '%'));
+    const lbl = el('span', 'pv-score__lbl');
+    lbl.appendChild(el('strong', null, 'Privacy rating: ' + sc.rating));
+    lbl.appendChild(el('span', 'muted', '  ·  ' + sc.priv + ' of ' + sc.total + ' settings private' + (exposed ? '  ·  ' + exposed + ' to review (recommended pre-ticked)' : ' — all done 👍')));
+    els.summary.appendChild(lbl);
     els.count.textContent = items.length + ' settings · ' + exposed + ' not private';
 
     const cats = [], byCat = {};
