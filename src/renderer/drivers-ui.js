@@ -53,10 +53,26 @@
     if (titleEl) titleEl.textContent = title;
     logEl.parentElement.hidden = false;
     logEl.textContent = '';
+    const oldBar = logEl.parentElement.querySelector('.run-bar'); if (oldBar) oldBar.remove();
     stateEl.textContent = 'Running…';
     stateEl.className = 'repairs-state repairs-state--run';
     appendLog('Starting…');
     logEl.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  // Render/update a progress bar inside the active runner from PROGRESS lines.
+  function setProgress(done, total, pct) {
+    if (!activeLog) return;
+    const container = activeLog.parentElement;
+    let bar = container.querySelector('.run-bar');
+    if (!bar) {
+      bar = document.createElement('div'); bar.className = 'run-bar';
+      const f = document.createElement('div'); f.className = 'run-bar__fill'; bar.appendChild(f);
+      container.insertBefore(bar, activeLog);
+    }
+    const fill = bar.querySelector('.run-bar__fill');
+    const p = Math.max(0, Math.min(100, pct));
+    fill.style.width = p + '%';
+    if (activeState) { activeState.textContent = p + '%  ·  ' + done + ' / ' + total; activeState.className = 'repairs-state repairs-state--run'; }
   }
   function appendLog(line) {
     if (!activeLog || line == null) return;
@@ -534,7 +550,11 @@
 
     for (const b of document.querySelectorAll('#panel-drivers [data-openurl]')) b.addEventListener('click', () => window.sys && window.sys.openUrl(b.dataset.openurl));
 
-    if (window.drivers && window.drivers.onProgress) window.drivers.onProgress((msg) => appendLog(msg));
+    if (window.drivers && window.drivers.onProgress) window.drivers.onProgress((msg) => {
+      const m = /^PROGRESS\|(\d+)\|(\d+)\|(\d+)$/.exec(String(msg || ''));
+      if (m) { setProgress(+m[1], +m[2], +m[3]); return; }
+      appendLog(msg);
+    });
 
     const tab = document.querySelector('.tab[data-tab="drivers"]');
     if (tab) tab.addEventListener('click', () => { if (!loadedOnce) { loadedOnce = true; refreshLibPath().then(loadScan); } });

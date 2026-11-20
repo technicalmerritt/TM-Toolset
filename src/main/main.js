@@ -1711,6 +1711,24 @@ function registerIpc() {
     } catch (err) { return { ok: false, error: (err && err.message) || String(err) }; }
   });
 
+  // ---- Privacy & telemetry hardening (scan + apply) ----
+  const privacyProgress = (msg) => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('privacy:progress', msg); };
+  ipcMain.handle('privacy:scan', async () => {
+    try { return { ok: true, data: await runPowerShellScript({ scriptPath: path.join(__dirname, 'privacy', 'privacy.ps1'), scriptArgs: ['-Action', 'scan'], onProgress: privacyProgress, timeoutMs: 120000 }) }; }
+    catch (err) { return { ok: false, error: (err && err.message) || String(err) }; }
+  });
+  ipcMain.handle('privacy:apply', async (_evt, args) => {
+    const ids = Array.isArray(args && args.ids) ? args.ids.filter((x) => /^[a-z]+$/i.test(String(x))).join(',') : '';
+    if (!ids) return { ok: false, error: 'No settings were selected.' };
+    const scriptArgs = ['-Action', 'apply', '-Ids', ids];
+    if (args && args.restorePoint) scriptArgs.push('-RestorePoint');
+    try {
+      const data = await runPowerShellScript({ scriptPath: path.join(__dirname, 'privacy', 'privacy.ps1'), scriptArgs, onProgress: privacyProgress, timeoutMs: 600000 });
+      tmLog('privacy', 'apply', (data && data.ok) ? ('applied ' + ((data.applied || []).length) + ', failed ' + ((data.failed || []).length)) : 'err', ids);
+      return { ok: true, data };
+    } catch (err) { return { ok: false, error: (err && err.message) || String(err) }; }
+  });
+
   // Launch the bundled UEFITool GUI (optionally on a dump).
   ipcMain.handle('bios:openUefiTool', async (_evt, args) => {
     const inPath = String((args && args.path) || '');

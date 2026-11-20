@@ -68,6 +68,7 @@
           <button class="tab" data-tab="startup"><span class="nav-ico">🚀</span>Startup Items</button>
           <button class="tab" data-tab="drivers"><span class="nav-ico">🧩</span>Drivers</button>
           <button class="tab" data-tab="debloat"><span class="nav-ico">🧼</span>Debloat</button>
+          <button class="tab" data-tab="privacy"><span class="nav-ico">🔒</span>Privacy</button>
           <button class="tab" data-tab="repairs"><span class="nav-ico">🛠️</span>Repairs</button>
           <div class="nav-label">Advanced</div>
           <button class="tab" data-tab="bios"><span class="nav-ico">🧬</span>BIOS / UEFI</button>
@@ -1432,6 +1433,38 @@
     </main>
 
     <!-- ================= DEBLOAT ================= -->
+    <!-- ================= PRIVACY ================= -->
+    <main id="panel-privacy" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Privacy &amp; telemetry</h1>
+          <p class="muted">Turns off Windows telemetry, the advertising ID, lock-screen &amp; Start suggestions, web search tracking and more — the same hardening a privacy clean-up does. It also trims background chatter that slows older PCs. <strong>Run as administrator.</strong> Recommended items are pre-ticked; review before applying.</p>
+        </div>
+        <div class="info-top__actions">
+          <button id="pvScan" class="btn btn--primary" type="button">Scan privacy settings</button>
+        </div>
+      </div>
+      <div id="pvStatus" class="scan-status" hidden><div class="spinner" aria-hidden="true"></div><p class="muted">Reading privacy settings…</p></div>
+      <div id="pvSummary" class="info-line" hidden></div>
+      <div class="bk-actions" id="pvTools" hidden>
+        <button id="pvSelRec" class="btn btn--ghost" type="button">Select recommended</button>
+        <button id="pvSelNone" class="btn btn--ghost" type="button">Clear all</button>
+        <label class="drv-auto"><input id="pvExposedOnly" type="checkbox" /> <span>Show only settings that aren’t private yet</span></label>
+        <span id="pvCount" class="dt-total"></span>
+      </div>
+      <div id="pvList" class="db-list" hidden></div>
+      <div class="bk-actions" id="pvApplyRow" hidden>
+        <label class="drv-auto"><input id="pvRestore" type="checkbox" checked /> <span>Create a System Restore point first (recommended)</span></label>
+        <button id="pvApply" class="btn btn--primary" type="button">Apply selected</button>
+        <button id="pvSyncro" class="btn btn--ghost" type="button" hidden>Post summary to ticket</button>
+      </div>
+      <div id="pvRunner" class="repairs-runner" hidden>
+        <div class="repairs-runner__head"><h3>Applying privacy settings</h3><span id="pvState" class="repairs-state"></span></div>
+        <pre id="pvLog" class="repairs-log"></pre>
+      </div>
+    </main>
+
+    <!-- ================= DEBLOAT ================= -->
     <main id="panel-debloat" class="panel" hidden>
       <div class="info-top">
         <div class="info-top__text">
@@ -2122,6 +2155,7 @@
     <script src="bios-ui.js"></script>
     <script src="diagnose-ui.js"></script>
     <script src="debloat-ui.js"></script>
+    <script src="privacy-ui.js"></script>
     <script src="logs-ui.js"></script>
     <script src="board-ui.js"></script>
     <script src="board-power-ui.js"></script>

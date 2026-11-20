@@ -2311,3 +2311,12 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .ems-dl .info-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ems-group { margin: 2px 0 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ems-group__sel { width: auto; display: inline-block; }
+
+/* Privacy tab */
+.pv-cat { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); margin: 16px 0 6px; padding-top: 8px; border-top: 1px solid var(--border); }
+.pv-cat:first-child { border-top: 0; padding-top: 0; margin-top: 4px; }
+.pv-chip--ok { background: rgba(62,192,122,0.16); color: #3ec07a; }
+
+/* Live-job progress bar (drivers install, etc.) */
+.run-bar { height: 10px; border-radius: 999px; background: var(--bg-elev-2); overflow: hidden; margin: 8px 0 10px; border: 1px solid var(--border); }
+.run-bar__fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width .3s ease; }

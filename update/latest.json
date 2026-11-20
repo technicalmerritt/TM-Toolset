@@ -1,5 +1,5 @@
 {
-  "version": "0.70.30",
-  "notes": "Emsisoft deploy: more tolerant of Emsisoft's slow server. Test connection, licence listing and policy-template loading now wait longer and automatically retry once if Emsisoft doesn't answer, and there's a 'Reload templates' button in Settings. Note: if these keep timing out, Emsisoft's own API is overloaded right now (the error says 'no reply from Emsisoft') — it's their side, so try again later or check with your Emsisoft partner manager.",
-  "zip": "tmtoolset-app-0.70.30.zip"
+  "version": "0.70.31",
+  "notes": "New Privacy & telemetry tab: scans Windows for telemetry, advertising ID, lock-screen/Start suggestions, web-search tracking, activity history and more, shows each as Private or Exposed, and applies the recommended hardening in one click (with a System Restore point taken first). It also trims background noise that slows older PCs, and can post a summary to the ticket. Plus: the Drivers 'install all matching' job now shows a real progress bar and percentage instead of just 'Running', so you can see how far along it is.",
+  "zip": "tmtoolset-app-0.70.31.zip"
 }

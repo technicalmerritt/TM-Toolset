@@ -297,6 +297,16 @@ contextBridge.exposeInMainWorld('diag', {
   events: () => ipcRenderer.invoke('diag:events'),
 });
 
+contextBridge.exposeInMainWorld('privacy', {
+  scan: () => ipcRenderer.invoke('privacy:scan'),
+  apply: (args) => ipcRenderer.invoke('privacy:apply', args),
+  onProgress: (cb) => {
+    const handler = (_e, msg) => cb(msg);
+    ipcRenderer.on('privacy:progress', handler);
+    return () => ipcRenderer.removeListener('privacy:progress', handler);
+  },
+});
+
 contextBridge.exposeInMainWorld('debloat', {
   list: () => ipcRenderer.invoke('debloat:list'),
   uninstall: (kind, key) => ipcRenderer.invoke('debloat:uninstall', { kind, key }),

@@ -161,8 +161,35 @@ switch ($Action) {
       if (-not (Test-Path $Inf)) { $out.error = 'inf-missing'; ($out | ConvertTo-Json -Compress); exit 0 }
       $code = Run-Cli 'pnputil.exe' @('/add-driver', $Inf, '/install')
     } else {
-      Step 'Adding every matching driver in the library and installing it on present hardware...'
-      $code = Run-Cli 'pnputil.exe' @('/add-driver', (Join-Path $Lib '*.inf'), '/subdirs', '/install')
+      # Count the packages so we can report real progress (pnputil processes
+      # every .inf in the library), then stream pnputil's output and emit a
+      # PROGRESS|done|total|pct line each time a package starts processing.
+      $total = @(Get-ChildItem -Path $Lib -Recurse -Filter *.inf -File -ErrorAction SilentlyContinue).Count
+      if ($total -lt 1) { $total = 1 }
+      Step "Installing matching drivers from the library - $total package(s) to process. This can take a while."
+      Step ("PROGRESS|0|$total|0")
+      $exe = 'pnputil.exe'
+      $cliArgs = @('/add-driver', (Join-Path $Lib '*.inf'), '/subdirs', '/install')
+      Step ("> $exe " + ($cliArgs -join ' '))
+      $done = 0
+      $code = 0
+      try {
+        & $exe @cliArgs 2>&1 | ForEach-Object {
+          $l = "$_"
+          if ($l.Trim().Length -gt 0) {
+            if ($l -match '(?i)^\s*(adding driver package|processing inf)') {
+              $done++
+              if ($done -gt $total) { $total = $done }
+              $pct = [int](($done / $total) * 100)
+              Step ("PROGRESS|$done|$total|$pct")
+            }
+            Step $l
+          }
+        }
+        $code = $LASTEXITCODE
+      } catch { Step ('Error: ' + $_.Exception.Message); $code = -1 }
+      if ($null -eq $code) { $code = 0 }
+      Step ("PROGRESS|$total|$total|100")
     }
     $out.ok = ($code -eq 0 -or $code -eq 259 -or $code -eq 3010); $out.exitCode = $code
     $out.restartRecommended = ($code -eq 3010)
