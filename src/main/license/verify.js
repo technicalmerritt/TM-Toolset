@@ -5,7 +5,7 @@
 // "<base64url(payload JSON)>.<base64url(ed25519 signature)>".
 const crypto = require('node:crypto');
 
-const PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA7S5JAd346gZMkslovUgFmCzphmUDiNGnFgRJ2qXG/wo=\n-----END PUBLIC KEY-----\n';
+const PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEANiYuPTrZ/jniifhvzhIlKWJY4tR2r29om8LA8oi4YrY=\n-----END PUBLIC KEY-----\n';
 
 function b64urlDecode(s) {
   s = ('' + s).replace(/-/g, '+').replace(/_/g, '/');

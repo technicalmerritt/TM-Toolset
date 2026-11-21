@@ -1,5 +1,5 @@
 {
-  "version": "0.70.35",
-  "notes": "New Parts & Quotes tab. Pick an iPhone (or search laptop screens) and get an instant customer price with your fitting fee, markup and VAT already built in — plus the bench gotchas for that exact model, which supplier to buy the part from with a buy link, a battery option, and what the shops down the road are charging so you can price against them. All the trade prices and buy links are yours to edit and they save onto the stick, so every machine you plug into shows your numbers. 'Add quote to ticket' drops the screen + battery quote straight onto whichever Syncro ticket is loaded in the top bar as a private note.",
-  "zip": "tmtoolset-app-0.70.35.zip"
+  "version": "0.70.36",
+  "notes": "Maintenance update: rotated the licence signing key. The app now verifies licences against a new signing key. Existing activations are unaffected; any new licence must be generated with the current key. No visible changes to features.",
+  "zip": "tmtoolset-app-0.70.36.zip"
 }
