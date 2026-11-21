@@ -1,5 +1,5 @@
 {
-  "version": "0.70.34",
-  "notes": "Privacy tab now shows a privacy rating — after a scan you get a big percentage and a word (Excellent / Good / Fair / Needs attention) based on how many settings are already private. That same privacy rating is now included in the customer report: building a report runs a quick privacy scan and adds a 'Privacy & telemetry' section with the score and how many settings are private, so the customer can see it was looked after.",
-  "zip": "tmtoolset-app-0.70.34.zip"
+  "version": "0.70.35",
+  "notes": "New Parts & Quotes tab. Pick an iPhone (or search laptop screens) and get an instant customer price with your fitting fee, markup and VAT already built in — plus the bench gotchas for that exact model, which supplier to buy the part from with a buy link, a battery option, and what the shops down the road are charging so you can price against them. All the trade prices and buy links are yours to edit and they save onto the stick, so every machine you plug into shows your numbers. 'Add quote to ticket' drops the screen + battery quote straight onto whichever Syncro ticket is loaded in the top bar as a private note.",
+  "zip": "tmtoolset-app-0.70.35.zip"
 }

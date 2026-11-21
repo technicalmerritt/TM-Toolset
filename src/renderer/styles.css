@@ -2329,3 +2329,67 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 /* Live-job progress bar (drivers install, etc.) */
 .run-bar { height: 10px; border-radius: 999px; background: var(--bg-elev-2); overflow: hidden; margin: 8px 0 10px; border: 1px solid var(--border); }
 .run-bar__fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width .3s ease; }
+
+/* ================= PARTS & QUOTES ================= */
+.parts-input { background: var(--bg-elev-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; outline: none; }
+.parts-input:focus { border-color: var(--accent); }
+.parts-pricing { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin: 14px 0 4px; }
+.parts-field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--text-dim); }
+.parts-field > span { font-weight: 600; }
+.parts-field .parts-input { min-width: 120px; }
+.parts-field--check { flex-direction: row; align-items: center; gap: 7px; padding-bottom: 9px; }
+.parts-field--check span { color: var(--text); }
+.parts-pricing__hint { flex: 1 1 180px; text-align: right; align-self: center; font-size: 12px; }
+
+.parts-view { display: block; }
+.parts-head { display: grid; grid-template-columns: 1.1fr 1.2fr auto; gap: 18px; align-items: center; margin: 16px 0; }
+.parts-head__col { display: flex; flex-direction: column; gap: 8px; }
+.parts-lbl { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+.parts-note { font-size: 12px; margin: 0; }
+.parts-model { min-width: 220px; }
+.parts-head__prices { flex-direction: row; gap: 12px; }
+.parts-price { flex: 1; background: var(--bg-elev-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.parts-price__lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .4px; }
+.parts-price__val { font-size: 26px; font-weight: 800; color: var(--accent); line-height: 1.1; margin-top: 2px; }
+.parts-head__actions { flex-direction: column; gap: 8px; align-items: stretch; }
+
+.parts-gotcha { display: flex; gap: 10px; background: rgba(255,153,60,0.1); border: 1px solid rgba(255,153,60,0.35); border-left: 3px solid #ff9a3c; border-radius: 10px; padding: 11px 13px; margin: 14px 0; }
+.parts-gotcha--sm { margin: 8px 0; padding: 8px 10px; }
+.parts-gotcha__ico { color: #ff9a3c; font-weight: 700; }
+.parts-gotcha strong { display: block; margin-bottom: 2px; }
+.parts-gotcha p { margin: 0; font-size: 13px; }
+
+.parts-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 10px; }
+.parts-h3 { margin: 0; font-size: 16px; }
+.parts-seg { display: flex; gap: 6px; }
+
+.parts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.parts-card { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px; display: flex; flex-direction: column; gap: 8px; }
+.parts-card--pref { border-color: rgba(255,153,60,0.5); box-shadow: 0 0 0 1px rgba(255,153,60,0.18) inset; }
+.parts-card__head { display: flex; justify-content: space-between; }
+.parts-card__tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.parts-tag { font-size: 11px; font-weight: 700; background: var(--bg-elev-2); color: var(--text-dim); border-radius: 999px; padding: 3px 9px; }
+.parts-tag--pref { background: rgba(255,153,60,0.18); color: #ff9a3c; }
+.parts-card__name { margin: 0; font-size: 14px; }
+.parts-card__kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 12.5px; }
+.parts-card__k { color: var(--text-dim); }
+.parts-card__v { text-align: right; font-weight: 600; }
+.parts-card__v.good { color: #4ade80; }
+.parts-bar { height: 6px; border-radius: 999px; background: var(--bg-elev-2); overflow: hidden; border: 1px solid var(--border); }
+.parts-bar__fill { height: 100%; background: var(--accent); border-radius: 999px; }
+.parts-card__foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 6px; border-top: 1px solid var(--border); }
+.parts-card__trade { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.parts-card__quote { font-size: 15px; font-weight: 800; color: var(--accent); margin-top: 3px; }
+.parts-card__buy { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+.parts-custom { color: #ff9a3c; }
+
+.parts-comp { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+.parts-comp__cell { background: var(--bg-elev-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
+.parts-comp__name { font-weight: 700; font-size: 13px; }
+.parts-comp__loc { font-size: 11px; color: var(--text-dim); margin: 2px 0 6px; }
+.parts-comp__price { font-size: 18px; font-weight: 800; }
+
+@media (max-width: 860px) {
+  .parts-head { grid-template-columns: 1fr; }
+  .parts-head__prices { flex-direction: row; }
+}

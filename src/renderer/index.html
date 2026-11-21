@@ -70,6 +70,7 @@
           <button class="tab" data-tab="debloat"><span class="nav-ico">🧼</span>Debloat</button>
           <button class="tab" data-tab="privacy"><span class="nav-ico">🔒</span>Privacy</button>
           <button class="tab" data-tab="repairs"><span class="nav-ico">🛠️</span>Repairs</button>
+          <button class="tab" data-tab="parts"><span class="nav-ico">💷</span>Parts &amp; Quotes</button>
           <div class="nav-label">Advanced</div>
           <button class="tab" data-tab="bios"><span class="nav-ico">🧬</span>BIOS / UEFI</button>
           <button class="tab" data-tab="board"><span class="nav-ico">🔧</span>Board Repair</button>
@@ -1464,6 +1465,23 @@
       </div>
     </main>
 
+    <!-- ================= PARTS & QUOTES ================= -->
+    <main id="panel-parts" class="panel" hidden>
+      <div class="info-top">
+        <div class="info-top__text">
+          <h1>Parts &amp; Quotes</h1>
+          <p class="muted">Pick a device and get an instant customer price with fitting, markup and VAT built in — plus the bench gotchas, the suppliers to buy from and what the shops down the road charge. Trade prices and buy links are yours to edit and travel on the stick. Quotes drop straight onto the Syncro ticket in the top bar.</p>
+        </div>
+      </div>
+      <div id="partsPricing" class="parts-pricing"></div>
+      <div class="subnav" id="partsSub">
+        <button class="subtab subtab--active" type="button" data-sub="phone">iPhone</button>
+        <button class="subtab" type="button" data-sub="laptops">Laptop screens</button>
+        <button class="subtab" type="button" data-sub="suppliers">Suppliers</button>
+      </div>
+      <div id="partsBody"></div>
+    </main>
+
     <!-- ================= DEBLOAT ================= -->
     <main id="panel-debloat" class="panel" hidden>
       <div class="info-top">
@@ -2156,6 +2174,8 @@
     <script src="diagnose-ui.js"></script>
     <script src="debloat-ui.js"></script>
     <script src="privacy-ui.js"></script>
+    <script src="parts-data.js"></script>
+    <script src="parts-ui.js"></script>
     <script src="logs-ui.js"></script>
     <script src="board-ui.js"></script>
     <script src="board-power-ui.js"></script>

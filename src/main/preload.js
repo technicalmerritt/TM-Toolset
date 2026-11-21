@@ -156,6 +156,11 @@ contextBridge.exposeInMainWorld('syncro', {
   createAsset: (args) => ipcRenderer.invoke('syncro:createAsset', args),
 });
 
+contextBridge.exposeInMainWorld('parts', {
+  get: () => ipcRenderer.invoke('parts:get'),
+  save: (args) => ipcRenderer.invoke('parts:save', args),
+});
+
 contextBridge.exposeInMainWorld('emsisoft', {
   get: () => ipcRenderer.invoke('emsisoft:get'),
   save: (payload) => ipcRenderer.invoke('emsisoft:save', payload),

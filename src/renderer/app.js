@@ -24,6 +24,7 @@ window.addEventListener('DOMContentLoaded', () => {
     disktools: document.getElementById('panel-disktools'),
     debloat: document.getElementById('panel-debloat'),
     privacy: document.getElementById('panel-privacy'),
+    parts: document.getElementById('panel-parts'),
     board: document.getElementById('panel-board'),
     logs: document.getElementById('panel-logs'),
     backup: document.getElementById('panel-backup'),

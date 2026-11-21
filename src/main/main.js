@@ -2268,6 +2268,30 @@ function registerIpc() {
     return syncro.testConnection({ subdomain, token });
   });
 
+  // ---- Parts & Quotes: shop pricing + per-shop price/URL overrides (portable) ----
+  ipcMain.handle('parts:get', async () => {
+    const cfg = await readConfig();
+    const p = (cfg.parts && typeof cfg.parts === 'object') ? cfg.parts : {};
+    return {
+      settings: Object.assign({ shopFee: 35, markupValue: 15, markupType: 'amount', includeVat: true }, p.settings || {}),
+      prices: (p.prices && typeof p.prices === 'object') ? p.prices : {},
+      urls: (p.urls && typeof p.urls === 'object') ? p.urls : {},
+      laptopCost: (p.laptopCost && typeof p.laptopCost === 'object') ? p.laptopCost : {},
+    };
+  });
+  ipcMain.handle('parts:save', async (_evt, args) => {
+    const cfg = await readConfig();
+    const p = (cfg.parts && typeof cfg.parts === 'object') ? cfg.parts : {};
+    const a = args || {};
+    if (a.settings && typeof a.settings === 'object') p.settings = Object.assign(p.settings || {}, a.settings);
+    if (a.prices && typeof a.prices === 'object') p.prices = a.prices;      // full map (handles deletes)
+    if (a.urls && typeof a.urls === 'object') p.urls = a.urls;
+    if (a.laptopCost && typeof a.laptopCost === 'object') p.laptopCost = a.laptopCost;
+    cfg.parts = p;
+    await writeConfig(cfg);
+    return { ok: true };
+  });
+
   // ---- Emsisoft deploy (partner API: create workspace + installer links) ----
   ipcMain.handle('emsisoft:get', async () => emsisoft && settings.getEmsisoftPublic());
   ipcMain.handle('emsisoft:save', async (_evt, payload) => settings.saveEmsisoft(payload || {}));
