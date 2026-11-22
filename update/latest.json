@@ -1,5 +1,5 @@
 {
-  "version": "0.70.45",
-  "notes": "The laptop finder now does any part, not just screens and batteries. A 'Part' dropdown lets you pick what you need — charge port / DC jack, keyboard, palmrest, hinges, lid/back cover, bezel, bottom case, fan/heatsink, trackpad, speakers, webcam, Wi-Fi card, charger/PSU, SSD, RAM, or 'other' — and each one carries the bench gotchas that matter for it. The charge port, for instance, tells you to work out whether it's soldered (a board-repair job), a modular daughterboard, or a USB-C board before you order. It searches your suppliers by the laptop model + the right keyword so you get the actual part, not accessories, and 'Find for THIS PC' works for every part type. Screens and batteries keep their exact part-number matching, price compare and history; the other parts are searched live and logged to your history too (so you'll see things like 'charge port for this model — searched 5 times').",
-  "zip": "tmtoolset-app-0.70.45.zip"
+  "version": "0.70.46",
+  "notes": "Model-aware part gotchas. When the finder recognises the laptop, it now shows a note specific to THAT model and THAT part at the top — e.g. a ThinkPad T14s tells you its RAM is soldered (not upgradable) and its charge port is soldered to the board (a board-repair job), while an Inspiron 15 tells you its charge port is a modular DC jack on a cable (quick swap). Covers charge port, RAM and storage across the common Dell / HP / Lenovo / Asus / Acer / Apple / Surface / MSI models, plus a few keyboard notes. Figures are trade-typical and hedged where builds vary — always confirm against the machine in front of you.",
+  "zip": "tmtoolset-app-0.70.46.zip"
 }

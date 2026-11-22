@@ -654,9 +654,26 @@
     return row;
   }
 
+  function modelNoteBox(rm, note) {
+    const box = el('div', 'parts-modelnote');
+    box.appendChild(el('span', 'parts-modelnote__ico', '📌'));
+    const t = el('div', 'parts-modelnote__t');
+    t.appendChild(el('strong', null, rm.brand + ' ' + rm.model + ' — ' + ptDef().short));
+    t.appendChild(el('p', 'parts-modelnote__p', note));
+    box.appendChild(t);
+    return box;
+  }
+
   function drawLaptopResults(container) {
     container.innerHTML = '';
     const q = lq.trim();
+
+    // Model-specific part gotcha (e.g. "this T14s has soldered RAM").
+    if (q) {
+      const rm = resolveModel(q);
+      const notes = rm && D.partNotesByModel && D.partNotesByModel[rm.id];
+      if (notes && notes[ptype]) container.appendChild(modelNoteBox(rm, notes[ptype]));
+    }
 
     const se = el('div', 'parts-searchrow');
     const seHead = el('div', 'parts-searchrow__head');

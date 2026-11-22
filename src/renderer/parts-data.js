@@ -231,6 +231,35 @@ window.TM_PARTS = {
     { id: 'other', label: '🔧 Other part…', short: 'Part', search: '', gotchas: 'Type exactly what you need in the search box (e.g. “flex cable”, “CMOS battery”, “power button board”) and it’ll search your suppliers for it.' }
   ],
 
+  // Model-specific part gotchas, keyed by laptop id then part-type id. Shown at
+  // the top of the finder when a known model is matched. Trade-typical — hedged
+  // where builds vary; always confirm against the machine in front of you.
+  partNotesByModel: {
+    'dell-lat-5520': { chargeport: 'Charges over USB-C — the port is soldered to the motherboard, so a dead port is a board-level job, not a modular swap.', ram: '2× SO-DIMM DDR4 slots — socketed and upgradable.', ssd: 'Single M.2 2280 NVMe slot.' },
+    'dell-xps-15-95xx': { chargeport: 'USB-C charging — port soldered to the board.', ram: '2× SO-DIMM slots — socketed.', ssd: 'M.2 2280 NVMe (two slots on some builds).' },
+    'dell-insp-15-3000': { chargeport: 'Round barrel DC jack on a short cable — MODULAR, a quick swap, no soldering.', ram: 'SO-DIMM (one or two slots by build) — socketed.', ssd: 'M.2 2280 NVMe; some builds also have a 2.5" SATA bay.' },
+    'hp-probook-450': { chargeport: 'Blue-tip barrel DC jack on a cable — MODULAR. G9 also charges over USB-C.', ram: '2× SO-DIMM slots — socketed.', ssd: 'M.2 2280 NVMe.' },
+    'hp-elitebook-840': { chargeport: 'USB-C charging — port soldered to the board.', ram: 'Usually one SO-DIMM slot; some configs have soldered memory — check before quoting an upgrade.', ssd: 'M.2 2280 NVMe.' },
+    'hp-pavilion-15': { chargeport: 'Blue-tip barrel DC jack on a cable — MODULAR.', ram: 'Often 1 soldered + 1 SO-DIMM slot — check the config.', ssd: 'M.2 2280 NVMe.' },
+    'hp-250-g8': { chargeport: 'Barrel DC jack on a cable on most builds (modular) — verify it isn’t board-mounted on yours.', ram: '1–2 SO-DIMM slots — socketed.', ssd: 'M.2 2280 NVMe (+ 2.5" SATA on some).' },
+    'lenovo-thinkpad-t14': { chargeport: 'Charges over USB-C — the port is soldered to the board, so a dead port is a board-repair job.', ram: 'The T14s has SOLDERED RAM (not upgradable). The standard T14 has soldered memory PLUS one SO-DIMM slot — confirm which you’ve got before quoting an upgrade.', ssd: 'M.2 NVMe — 2280 on the T14; the T14s Gen 1 uses the shorter 2242.', keyboard: 'ThinkPad keyboard is its own replaceable part (not fused to the palmrest) — match the exact FRU and backlit vs non-backlit.' },
+    'lenovo-ideapad-3': { chargeport: 'Round barrel DC jack on a short cable — MODULAR. Some newer builds use USB-C.', ram: 'Usually 4–8GB soldered plus one SO-DIMM slot — check the config.', ssd: 'M.2 2280 NVMe.' },
+    'lenovo-legion-5': { chargeport: 'Slim rectangular-tip barrel on a cable (MODULAR) plus USB-C PD — note it needs the big (≥230W) brick under gaming load.', ram: '2× SO-DIMM slots — socketed.', ssd: 'Two M.2 2280 NVMe slots.' },
+    'lenovo-x1-carbon': { chargeport: 'USB-C charging — port soldered to the board.', ram: 'SOLDERED — not upgradable.', ssd: 'M.2 2280 NVMe (2242 on some gens).', keyboard: 'Separate replaceable keyboard — match the FRU and backlight.' },
+    'asus-vivobook-15': { chargeport: 'Barrel DC jack on a cable — MODULAR.', ram: 'Often 4–8GB soldered plus one SO-DIMM slot — check before quoting.', ssd: 'M.2 2280 NVMe (some have a 2.5" SATA bay).' },
+    'asus-rog-strix-g15': { chargeport: 'Proprietary barrel on a cable (MODULAR) + USB-C PD — gaming load needs the big brick.', ram: '2× SO-DIMM slots.', ssd: 'Two M.2 2280 NVMe slots.' },
+    'asus-tuf-f15': { chargeport: 'Barrel DC jack on a cable — MODULAR.', ram: 'Typically 8GB soldered + one SO-DIMM slot.', ssd: 'M.2 2280 NVMe (+ 2.5" on older builds).' },
+    'acer-aspire-5': { chargeport: 'Barrel DC jack on a cable — MODULAR.', ram: 'Often one soldered + one SO-DIMM slot — check.', ssd: 'M.2 2280 NVMe (+ 2.5" SATA on some).' },
+    'acer-nitro-5': { chargeport: 'Barrel on a cable (MODULAR) + a large PSU — match the wattage.', ram: '2× SO-DIMM slots.', ssd: 'Two M.2 slots (+ 2.5" bay on some).' },
+    'acer-swift-3': { chargeport: 'USB-C charging on recent models (soldered port); older ones use a barrel jack.', ram: 'SOLDERED — not upgradable.', ssd: 'M.2 2280 NVMe.' },
+    'apple-mba-m1-m2': { chargeport: 'M1: USB-C; M2: MagSafe 3 + USB-C. Charge circuitry is on the logic board.', ram: 'Unified memory inside the chip — SOLDERED, not upgradable.', ssd: 'Soldered to the logic board — not user-replaceable.' },
+    'apple-mbp-13-a2338': { chargeport: 'USB-C charging via the logic board.', ram: 'Unified, SOLDERED — not upgradable.', ssd: 'Soldered — not replaceable.' },
+    'apple-mbp-14-16': { chargeport: 'MagSafe 3 + USB-C (Thunderbolt).', ram: 'Unified, SOLDERED.', ssd: 'Soldered — not replaceable.' },
+    'ms-surface-laptop': { chargeport: 'Charges via the Surface Connect port (and USB-C on 4/5).', ram: 'SOLDERED — not upgradable.', ssd: 'Removable M.2 2230 SSD under the keyboard (SL3/4/5) — one of the few Surface parts you can actually swap.' },
+    'ms-surface-pro': { chargeport: 'Surface Connect port (USB-C charging on 8/9).', ram: 'SOLDERED.', ssd: 'Removable M.2 2230 SSD under the kickstand.' },
+    'msi-gf63': { chargeport: 'Barrel DC jack on a cable — MODULAR.', ram: '2× SO-DIMM slots.', ssd: 'M.2 2280 NVMe (+ 2.5" SATA on some).' }
+  },
+
   // Catalogue search URL builders per supplier (used for Buy links when no exact
   // product URL has been saved).
   searchUrl: {
