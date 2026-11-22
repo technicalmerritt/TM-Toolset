@@ -2277,6 +2277,8 @@ function registerIpc() {
       prices: (p.prices && typeof p.prices === 'object') ? p.prices : {},
       urls: (p.urls && typeof p.urls === 'object') ? p.urls : {},
       laptopCost: (p.laptopCost && typeof p.laptopCost === 'object') ? p.laptopCost : {},
+      // Supplier toggles: only the ones the tech has turned OFF are stored (default on).
+      laptopSuppliers: (p.laptopSuppliers && typeof p.laptopSuppliers === 'object') ? p.laptopSuppliers : {},
     };
   });
   ipcMain.handle('parts:save', async (_evt, args) => {
@@ -2287,6 +2289,7 @@ function registerIpc() {
     if (a.prices && typeof a.prices === 'object') p.prices = a.prices;      // full map (handles deletes)
     if (a.urls && typeof a.urls === 'object') p.urls = a.urls;
     if (a.laptopCost && typeof a.laptopCost === 'object') p.laptopCost = a.laptopCost;
+    if (a.laptopSuppliers && typeof a.laptopSuppliers === 'object') p.laptopSuppliers = a.laptopSuppliers;
     cfg.parts = p;
     await writeConfig(cfg);
     return { ok: true };
