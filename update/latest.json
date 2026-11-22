@@ -1,5 +1,5 @@
 {
-  "version": "0.70.41",
-  "notes": "Much smarter laptop part finding. It no longer just searches the model name (which threw up chargers and keyboards) — it now matches the laptop to its actual panel/battery part numbers and searches those, so you get the right screen straight away. 'Find for THIS PC' resolves your machine to its compatible panels and prices them all at once, cheapest first, so you can pick the best-value compatible one. New 'Manufacturer (direct)' supplier that links to the brand's own parts site — and for Dell it deep-links to your exact machine by its service tag. Optional eBay developer keys (set them under ⚙ Suppliers) turn on reliable live eBay prices via eBay's official API; without them eBay stays a best-effort read.",
-  "zip": "tmtoolset-app-0.70.41.zip"
+  "version": "0.70.42",
+  "notes": "Clearer live-price results for laptops. When a model resolves to its panels, there's now a summary at the top telling you how many DIFFERENT panels that laptop takes and who makes each — if it's just one, it says you can order without opening it up; if there are several, it flags that you should check the number on the back. Each distinct panel gets its own colour and its cheapest price. The live listings are now grouped under each panel number (with its maker) instead of one long mixed list, and near-identical listings at the same price from the same shop are collapsed to one with a '+N more' note, so you're not scrolling past the same thing over and over.",
+  "zip": "tmtoolset-app-0.70.42.zip"
 }

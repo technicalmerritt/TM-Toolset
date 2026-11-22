@@ -2479,3 +2479,22 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .parts-ebay__hd { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
 .parts-ebay__row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .parts-ebay__status { font-size: 12px; margin-right: 4px; }
+
+/* Live-price panel summary + grouping by panel */
+.parts-psum { margin: 2px 0 12px; }
+.parts-psum__hd { font-size: 13px; font-weight: 600; border-radius: 8px; padding: 8px 11px; margin-bottom: 9px; }
+.parts-psum__hd--ok { background: rgba(74,222,128,0.12); color: #7ee6a0; border: 1px solid rgba(74,222,128,0.3); }
+.parts-psum__hd--warn { background: rgba(255,153,60,0.1); color: #ffb063; border: 1px solid rgba(255,153,60,0.3); }
+.parts-psum__row { display: flex; flex-wrap: wrap; gap: 9px; }
+.parts-psum__chip { display: flex; flex-direction: column; gap: 2px; background: var(--bg-elev-2); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 9px; padding: 8px 12px; min-width: 150px; }
+.parts-psum__mk { font-size: 11px; color: var(--text-dim); }
+.parts-psum__price { font-size: 13px; font-weight: 700; color: var(--accent); }
+/* per-panel accent hues so the different panels stand apart */
+.hue0 { border-left-color: #7cc4ff; }
+.hue1 { border-left-color: #ffb063; }
+.hue2 { border-left-color: #a78bfa; }
+.hue3 { border-left-color: #4ade80; }
+.parts-grp { border-left: 3px solid var(--border); padding-left: 11px; margin: 0 0 12px; }
+.parts-grp__hd { display: flex; align-items: center; gap: 10px; margin: 6px 0 7px; }
+.parts-grp__mk { font-size: 11.5px; color: var(--text-dim); background: var(--bg-elev-2); border-radius: 999px; padding: 2px 9px; }
+.parts-grp__none { font-size: 12.5px; margin: 2px 0 6px; }
