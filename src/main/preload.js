@@ -162,6 +162,7 @@ contextBridge.exposeInMainWorld('parts', {
   get: () => ipcRenderer.invoke('parts:get'),
   save: (args) => ipcRenderer.invoke('parts:save', args),
   thisPc: () => ipcRenderer.invoke('parts:thisPc'),
+  search: (args) => ipcRenderer.invoke('parts:search', args),
 });
 
 contextBridge.exposeInMainWorld('emsisoft', {

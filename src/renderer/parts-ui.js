@@ -11,6 +11,7 @@
   let store = { settings: { shopFee: 35, markupValue: 15, markupType: 'amount', includeVat: true }, prices: {}, urls: {}, laptopCost: {}, laptopSuppliers: {} };
   let sub = 'phone', tier = 'preferred', lq = '', lkind = 'screen';
   let detect = null; // last "this PC" detection, for the banner
+  let liveResults = null; // { query, loading, items, perSupplier } for in-app price compare
   const EDID_MAKERS = { AUO: 'AU Optronics', BOE: 'BOE', LGD: 'LG Display', SHP: 'Sharp', CMN: 'Innolux', CMO: 'Innolux', INL: 'Innolux', SDC: 'Samsung', SEC: 'Samsung', SAM: 'Samsung', IVO: 'InfoVision', PnP: '', APP: 'Apple', LEN: 'Lenovo' };
   let phoneModel = '14pm';
   let ipadModel = (D.ipads && D.ipads[0] ? D.ipads[0].id : '');
@@ -348,6 +349,63 @@
     d.appendChild(body); return d;
   }
 
+  function liveSupplierPayload() {
+    return enabledSuppliers(lkind).filter((s) => s.live).map((s) => ({ id: s.id, name: s.name, live: s.live, base: s.base || '' }));
+  }
+  async function runLiveCompare(query) {
+    const q = String(query || '').trim();
+    if (!q) { toast('Type a model or part number first.'); return; }
+    if (!(window.parts && window.parts.search)) { toast('Update the app to use this.'); return; }
+    const sups = liveSupplierPayload();
+    if (!sups.length) { toast('No readable suppliers ticked (AJ Parts / eBay).'); return; }
+    liveResults = { query: q, loading: true, items: [], perSupplier: [] };
+    if (els.lresults) drawLaptopResults(els.lresults);
+    let r = null;
+    try { r = await window.parts.search({ query: q, suppliers: sups }); } catch (e) { /* ignore */ }
+    liveResults = { query: q, loading: false, items: (r && r.items) || [], perSupplier: (r && r.perSupplier) || [] };
+    if (els.lresults) drawLaptopResults(els.lresults);
+  }
+
+  function livePanel() {
+    const wrap = el('div', 'parts-live');
+    wrap.appendChild(el('h3', 'parts-h3', 'Live prices — “' + liveResults.query + '”'));
+    if (liveResults.loading) {
+      const ld = el('div', 'parts-live__loading'); ld.appendChild(el('span', 'spinner', '')); ld.appendChild(el('span', 'muted', 'Fetching prices from your suppliers…'));
+      wrap.appendChild(ld); return wrap;
+    }
+    const status = el('div', 'parts-live__status');
+    (liveResults.perSupplier || []).forEach((ps) => {
+      const lbl = ps.name + (ps.status === 'ok' ? ' · ' + ps.count : ps.status === 'blocked' ? ' · couldn’t read' : ' · open only');
+      status.appendChild(el('span', 'parts-live__stat parts-live__stat--' + ps.status, lbl));
+    });
+    wrap.appendChild(status);
+    if (!liveResults.items.length) {
+      wrap.appendChild(el('p', 'muted', 'No live results came back. Use the “open on site” buttons below — some suppliers (eBay included) block apps from reading them, especially on a VPN.'));
+      return wrap;
+    }
+    const list = el('div', 'parts-live__list');
+    liveResults.items.forEach((it) => list.appendChild(liveRow(it)));
+    wrap.appendChild(list);
+    return wrap;
+  }
+  function liveRow(it) {
+    const r = el('div', 'parts-live__row' + (it.inStock ? '' : ' parts-live__row--oos'));
+    r.appendChild(el('span', 'parts-tag', it.supplier));
+    const mid = el('div', 'parts-live__mid');
+    mid.appendChild(el('div', 'parts-live__title', it.title));
+    mid.appendChild(el('div', 'muted parts-live__stock', it.stock));
+    r.appendChild(mid);
+    const price = el('div', 'parts-live__price');
+    price.appendChild(el('div', 'parts-live__cost', it.price));
+    if (it.priceNum != null) price.appendChild(el('div', 'muted parts-live__cust', 'sell ' + money(quote(it.priceNum))));
+    r.appendChild(price);
+    const acts = el('div', 'parts-live__acts');
+    const buy = el('button', 'btn btn--primary btn--sm', 'Buy ↗'); buy.addEventListener('click', () => openUrl(it.url)); acts.appendChild(buy);
+    const tk = el('button', 'btn btn--ghost btn--sm', '＋ Ticket'); tk.addEventListener('click', () => addPartToTicket({ id: 'live', name: liveResults.query }, lkind === 'screen' ? 'Screen replacement' : 'Battery replacement', { supplier: it.supplier, product: it.title.slice(0, 70) }, it.priceNum || 0)); acts.appendChild(tk);
+    r.appendChild(acts);
+    return r;
+  }
+
   async function findThisPc(btn) {
     if (!(window.parts && window.parts.thisPc)) { toast('Update the app to use this.'); return; }
     const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Detecting…';
@@ -359,6 +417,7 @@
     lq = (r.query || '').trim();
     if (!r.isLaptop) toast('This looks like a desktop — no built-in screen, but I’ll search by model.');
     renderBody();
+    runLiveCompare(lq);
   }
   function detectBanner() {
     const d = detect || {};
@@ -404,6 +463,7 @@
     wrap.appendChild(supplierChooser(redraw));
     wrap.appendChild(identifyHelp());
     wrap.appendChild(results);
+    els.lresults = results;
     els.body.innerHTML = ''; els.body.appendChild(wrap);
     drawLaptopResults(results);
   }
@@ -426,9 +486,17 @@
     const q = lq.trim();
 
     const se = el('div', 'parts-searchrow');
-    se.appendChild(el('div', 'parts-searchrow__lbl', q ? ('Search ' + (lkind === 'screen' ? 'screens' : 'batteries') + ' for “' + q + '” at:') : 'Type a model or part number, then search these suppliers:'));
+    const seHead = el('div', 'parts-searchrow__head');
+    seHead.appendChild(el('div', 'parts-searchrow__lbl', q ? ('Compare “' + q + '” in-app, or open a supplier’s own search:') : 'Type a model or part number, then compare prices in-app:'));
+    const cmp = el('button', 'btn btn--primary btn--sm', '💷 Compare prices in-app');
+    if (!q) cmp.disabled = true;
+    cmp.addEventListener('click', () => runLiveCompare(q));
+    seHead.appendChild(cmp);
+    se.appendChild(seHead);
     se.appendChild(supplierChips(q));
     container.appendChild(se);
+
+    if (liveResults && liveResults.query === q) container.appendChild(livePanel());
 
     const ql = q.toLowerCase();
     const items = (D.laptops || []).filter((lp) => {

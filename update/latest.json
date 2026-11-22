@@ -1,5 +1,5 @@
 {
-  "version": "0.70.39",
-  "notes": "New 'Find for THIS PC' button in the Laptops tab. One click reads the make and model of the laptop the app is running on (and, where Windows exposes it, the fitted panel's maker and EDID code), drops it into the search and finds the matching screen or battery straight away — then search your suppliers or add it to the ticket. Works for screens or batteries depending on which you're viewing; on a desktop it says so and searches by model anyway. Always confirm against the sticker.",
-  "zip": "tmtoolset-app-0.70.39.zip"
+  "version": "0.70.40",
+  "notes": "In-app price comparison for laptop parts — no more leaving the app. Hit 'Compare prices in-app' (or Find for THIS PC) and it pulls live prices straight into a sortable list, cheapest first, in-stock first, with the stock status, your sell price alongside each trade price, a Buy button and Add-to-ticket on every row. AJ Parts comes in live and reliably; eBay is attempted (it sometimes blocks apps from reading it, more so on a VPN). Suppliers that can't be read in-app stay as one-click 'open on site' buttons, and a status line tells you exactly which came back and which didn't.",
+  "zip": "tmtoolset-app-0.70.40.zip"
 }

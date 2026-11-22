@@ -178,8 +178,8 @@ window.TM_PARTS = {
   // untick any. `kinds` = which searches it appears in. Unverified sites are
   // routed via a site-scoped Google search so the link always lands.
   laptopSuppliers: [
-    { id: 'ajparts', name: 'AJ Parts', kinds: 'both', note: 'UK · Dell partner 10+ yrs · 6-mo warranty', url: (q) => 'https://www.ajparts.co.uk/search?q=' + encodeURIComponent(q) },
-    { id: 'ebay', name: 'eBay UK', kinds: 'both', note: 'Huge new/used pool — match the exact part number', url: (q) => 'https://www.ebay.co.uk/sch/i.html?_nkw=' + encodeURIComponent(q) },
+    { id: 'ajparts', name: 'AJ Parts', kinds: 'both', note: 'UK · Dell partner 10+ yrs · 6-mo warranty', live: 'shopify', base: 'https://www.ajparts.co.uk', url: (q) => 'https://www.ajparts.co.uk/search?q=' + encodeURIComponent(q) },
+    { id: 'ebay', name: 'eBay UK', kinds: 'both', note: 'Huge new/used pool — match the exact part number', live: 'ebay', url: (q) => 'https://www.ebay.co.uk/sch/i.html?_nkw=' + encodeURIComponent(q) },
     { id: 'laptopscreen', name: 'LaptopScreen UK', kinds: 'screen', note: 'Panel compatibility database', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:laptopscreen.co.uk OR site:laptopscreen.com ' + q) },
     { id: 'screensuk', name: 'Screens.uk', kinds: 'screen', note: 'UK screen specialist', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:screens.uk ' + q) },
     { id: 'newmodeus', name: 'NewModeUS', kinds: 'screen', note: 'Panel part-number database', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:newmodeus.com ' + q) },

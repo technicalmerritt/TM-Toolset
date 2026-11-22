@@ -2281,6 +2281,16 @@ function registerIpc() {
       laptopSuppliers: (p.laptopSuppliers && typeof p.laptopSuppliers === 'object') ? p.laptopSuppliers : {},
     };
   });
+  // In-app live supplier price comparison for the Parts tab.
+  ipcMain.handle('parts:search', async (_evt, args) => {
+    try {
+      const partsSuppliers = require('./parts/suppliers');
+      return await partsSuppliers.searchAll((args && args.suppliers) || [], (args && args.query) || '');
+    } catch (e) {
+      return { ok: false, items: [], perSupplier: [], message: (e && e.message) || 'Search failed.' };
+    }
+  });
+
   // Detect THIS machine's make/model (+ internal panel EDID) for "find the part for this PC".
   ipcMain.handle('parts:thisPc', async () => {
     try {
