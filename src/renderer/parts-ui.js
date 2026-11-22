@@ -10,6 +10,8 @@
   const els = {};
   let store = { settings: { shopFee: 35, markupValue: 15, markupType: 'amount', includeVat: true }, prices: {}, urls: {}, laptopCost: {}, laptopSuppliers: {} };
   let sub = 'phone', tier = 'preferred', lq = '', lkind = 'screen';
+  let detect = null; // last "this PC" detection, for the banner
+  const EDID_MAKERS = { AUO: 'AU Optronics', BOE: 'BOE', LGD: 'LG Display', SHP: 'Sharp', CMN: 'Innolux', CMO: 'Innolux', INL: 'Innolux', SDC: 'Samsung', SEC: 'Samsung', SAM: 'Samsung', IVO: 'InfoVision', PnP: '', APP: 'Apple', LEN: 'Lenovo' };
   let phoneModel = '14pm';
   let ipadModel = (D.ipads && D.ipads[0] ? D.ipads[0].id : '');
   let loaded = false;
@@ -346,6 +348,38 @@
     d.appendChild(body); return d;
   }
 
+  async function findThisPc(btn) {
+    if (!(window.parts && window.parts.thisPc)) { toast('Update the app to use this.'); return; }
+    const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Detecting…';
+    let r = null;
+    try { r = await window.parts.thisPc(); } catch (e) { /* ignore */ }
+    btn.disabled = false; btn.textContent = orig;
+    if (!r || !r.ok) { toast('Couldn’t read this PC’s model.'); return; }
+    detect = r;
+    lq = (r.query || '').trim();
+    if (!r.isLaptop) toast('This looks like a desktop — no built-in screen, but I’ll search by model.');
+    renderBody();
+  }
+  function detectBanner() {
+    const d = detect || {};
+    const b = el('div', 'parts-detect');
+    b.appendChild(el('span', 'parts-detect__ico', '💻'));
+    const t = el('div', 'parts-detect__t');
+    const title = el('div', 'parts-detect__title');
+    title.appendChild(el('strong', null, 'This PC: ' + (d.brand ? d.brand + ' ' : '') + (d.friendly || d.model || 'Unknown')));
+    if (!d.isLaptop) title.appendChild(el('span', 'parts-tag parts-detect__badge', 'desktop — no internal screen'));
+    t.appendChild(title);
+    const bits = [];
+    if (lkind === 'screen' && d.panelMaker) { const mk = EDID_MAKERS[d.panelMaker] || d.panelMaker; bits.push('Fitted panel: ' + mk + (d.panelCode ? (' ' + d.panelCode) : '') + (d.panelName ? (' “' + d.panelName + '”') : '')); }
+    bits.push('Searching “' + (d.query || '') + '” below — always confirm against the sticker.');
+    t.appendChild(el('div', 'muted parts-detect__sub', bits.join(' · ')));
+    b.appendChild(t);
+    const x = el('button', 'btn btn--ghost btn--sm', 'Clear');
+    x.addEventListener('click', () => { detect = null; renderBody(); });
+    b.appendChild(x);
+    return b;
+  }
+
   function renderLaptops() {
     const wrap = el('div', 'parts-view');
     const results = el('div');
@@ -362,8 +396,11 @@
     search.placeholder = lkind === 'screen' ? 'Laptop model or panel part number — e.g. Dell Latitude 5520, or N156HGA-EA3' : 'Laptop model or battery part number — e.g. HP 250 G8, or AP18C8K';
     search.value = lq;
     search.addEventListener('input', () => { lq = search.value; redraw(); });
-    bar.appendChild(seg); bar.appendChild(search);
+    const thisBtn = el('button', 'btn btn--primary btn--sm parts-thispc', '💻 Find for THIS PC');
+    thisBtn.addEventListener('click', () => findThisPc(thisBtn));
+    bar.appendChild(seg); bar.appendChild(search); bar.appendChild(thisBtn);
     wrap.appendChild(bar);
+    if (detect) wrap.appendChild(detectBanner());
     wrap.appendChild(supplierChooser(redraw));
     wrap.appendChild(identifyHelp());
     wrap.appendChild(results);

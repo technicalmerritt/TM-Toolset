@@ -1,5 +1,5 @@
 {
-  "version": "0.70.38",
-  "notes": "Laptop tab rebuilt into a proper finder — screens AND batteries. Switch between Screens and Batteries, then type a laptop model OR a part number. It searches your chosen suppliers directly (AJ Parts, eBay UK, LaptopScreen, Screens.uk, NewModeUS, MobileSentrix, Maxbhi, Google) — all on by default, untick any you don't buy from (saved on the stick). A much bigger built-in database of common UK-repair laptops lists the interchangeable panels/batteries for each, with a '£ compare' button that opens them all so you grab the cheapest. Part numbers are now colour-coded — letters in blue, digits in amber — so B and 8, or O and 0, can't be mixed up, with a warning on the ones that are easy to misread. Revision gotchas throughout: HD vs FHD, 60 vs 144/165Hz, 30 vs 40-pin, touch panels needing a matching firmware/controller revision, swollen-battery safety and more. Every result has Copy, direct supplier search and Add-to-ticket.",
-  "zip": "tmtoolset-app-0.70.38.zip"
+  "version": "0.70.39",
+  "notes": "New 'Find for THIS PC' button in the Laptops tab. One click reads the make and model of the laptop the app is running on (and, where Windows exposes it, the fitted panel's maker and EDID code), drops it into the search and finds the matching screen or battery straight away — then search your suppliers or add it to the ticket. Works for screens or batteries depending on which you're viewing; on a desktop it says so and searches by model anyway. Always confirm against the sticker.",
+  "zip": "tmtoolset-app-0.70.39.zip"
 }

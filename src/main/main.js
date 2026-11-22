@@ -2281,6 +2281,14 @@ function registerIpc() {
       laptopSuppliers: (p.laptopSuppliers && typeof p.laptopSuppliers === 'object') ? p.laptopSuppliers : {},
     };
   });
+  // Detect THIS machine's make/model (+ internal panel EDID) for "find the part for this PC".
+  ipcMain.handle('parts:thisPc', async () => {
+    try {
+      return await runPowerShellScript({ scriptPath: path.join(__dirname, 'parts', 'thispc.ps1'), timeoutMs: 20000 });
+    } catch (e) {
+      return { ok: false, message: (e && e.message) || 'Could not read this PC.' };
+    }
+  });
   ipcMain.handle('parts:save', async (_evt, args) => {
     const cfg = await readConfig();
     const p = (cfg.parts && typeof cfg.parts === 'object') ? cfg.parts : {};
