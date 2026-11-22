@@ -2522,3 +2522,8 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .dd-switch__btn { appearance: none; border: 0; background: transparent; color: var(--text-dim); font: inherit; font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 7px; cursor: pointer; }
 .dd-switch__btn:hover { color: var(--text); }
 .dd-switch__btn--active { background: var(--accent); color: #20120a; }
+
+/* Part-type picker in the laptop finder */
+.parts-ptype { display: inline-flex; align-items: center; gap: 8px; }
+.parts-ptype__lbl { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+.parts-ptype__sel { min-width: 190px; }

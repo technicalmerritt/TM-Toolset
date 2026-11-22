@@ -9,7 +9,10 @@
   const D = window.TM_PARTS || {};
   const els = {};
   let store = { settings: { shopFee: 35, markupValue: 15, markupType: 'amount', includeVat: true }, prices: {}, urls: {}, laptopCost: {}, laptopSuppliers: {} };
-  let sub = 'phone', tier = 'preferred', lq = '', lkind = 'screen';
+  let sub = 'phone', tier = 'preferred', lq = '', lkind = 'screen', ptype = 'screen';
+  function ptDef() { return (D.partTypes || []).find((t) => t.id === ptype) || { id: ptype, label: ptype, short: 'Part', search: ptype, gotchas: '' }; }
+  function isDb() { return ptype === 'screen' || ptype === 'battery'; }
+  function setPtype(v) { ptype = v; lkind = (v === 'screen') ? 'screen' : 'battery'; }
   let detect = null; // last "this PC" detection, for the banner
   let liveResults = null; // { query, loading, items, perSupplier } for in-app price compare
   const EDID_MAKERS = { AUO: 'AU Optronics', BOE: 'BOE', LGD: 'LG Display', SHP: 'Sharp', CMN: 'Innolux', CMO: 'Innolux', INL: 'Innolux', SDC: 'Samsung', SEC: 'Samsung', SAM: 'Samsung', IVO: 'InfoVision', PnP: '', APP: 'Apple', LEN: 'Lenovo' };
@@ -314,14 +317,24 @@
   // the model with a category keyword so suppliers don't return chargers/keyboards.
   function liveTermsFor(query) {
     const q = String(query || '').trim();
-    if (isPartNumber(q)) return { terms: [q], resolved: null };
-    const lp = resolveModel(q);
-    if (lp && lp[lkind]) {
-      const pns = (lkind === 'screen' ? lp[lkind].panels : lp[lkind].parts) || [];
-      const terms = pns.map(partTerm).filter((t) => t && !/\s/.test(t)).slice(0, 3);
-      if (terms.length) return { terms, resolved: lp };
+    // Screen / battery: resolve a model to its exact part numbers.
+    if (isDb()) {
+      if (isPartNumber(q)) return { terms: [q], resolved: null };
+      const lp = resolveModel(q);
+      if (lp && lp[lkind]) {
+        const pns = (lkind === 'screen' ? lp[lkind].panels : lp[lkind].parts) || [];
+        const terms = pns.map(partTerm).filter((t) => t && !/\s/.test(t)).slice(0, 3);
+        if (terms.length) return { terms, resolved: lp };
+      }
+      return { terms: [q + (lkind === 'screen' ? ' laptop screen' : ' laptop battery')], resolved: lp || null };
     }
-    return { terms: [q + (lkind === 'screen' ? ' laptop screen' : ' laptop battery')], resolved: lp || null };
+    // Other part types: search the model + the part keyword so suppliers return
+    // the right category, not accessories.
+    const lp = resolveModel(q);
+    const base = (lp ? (lp.brand + ' ' + lp.model) : q);
+    const kw = ptDef().search;
+    const term = (kw ? (base + ' ' + kw) : base).trim();
+    return { terms: [term], resolved: lp || null };
   }
 
   // Part number with letters vs digits colour-coded, so B/8 and O/0 can't be mixed up.
@@ -410,11 +423,13 @@
     if (!sups.length) { toast('No readable suppliers ticked (AJ Parts / eBay).'); return; }
     const { terms, resolved } = liveTermsFor(q);
     liveResults = { query: q, terms, resolved, loading: true, items: [], perSupplier: [] };
-    // Log the lookup for the parts-history intelligence (only real part numbers).
-    if (terms.every(isPartNumber) && window.parts && window.parts.historyLog) {
+    // Log the lookup for the parts-history intelligence.
+    if (window.parts && window.parts.historyLog) {
       const model = resolved ? (resolved.brand + ' ' + resolved.model) : q;
-      const items = terms.map((t) => ({ pn: t, maker: lkind === 'screen' ? panelMaker(t) : '' }));
-      window.parts.historyLog({ kind: lkind, model, items }).catch(() => {});
+      let items;
+      if (isDb() && terms.every(isPartNumber)) items = terms.map((t) => ({ pn: t, maker: ptype === 'screen' ? panelMaker(t) : '' }));
+      else if (model) items = [{ pn: (model + ' · ' + ptDef().short), maker: '' }];
+      if (items) window.parts.historyLog({ kind: ptype, model, items }).catch(() => {});
     }
     if (els.lresults) drawLaptopResults(els.lresults);
     let r = null;
@@ -534,7 +549,7 @@
     r.appendChild(price);
     const acts = el('div', 'parts-live__acts');
     const buy = el('button', 'btn btn--primary btn--sm', 'Buy ↗'); buy.addEventListener('click', () => openUrl(it.url)); acts.appendChild(buy);
-    const tk = el('button', 'btn btn--ghost btn--sm', '＋ Ticket'); tk.addEventListener('click', () => addPartToTicket({ id: 'live', name: (it.term || liveResults.query) }, lkind === 'screen' ? 'Screen replacement' : 'Battery replacement', { supplier: it.supplier, product: it.title.slice(0, 70) }, it.priceNum || 0)); acts.appendChild(tk);
+    const tk = el('button', 'btn btn--ghost btn--sm', '＋ Ticket'); tk.addEventListener('click', () => addPartToTicket({ id: 'live', name: (it.term || liveResults.query) }, ptDef().short + ' replacement', { supplier: it.supplier, product: it.title.slice(0, 70) }, it.priceNum || 0)); acts.appendChild(tk);
     r.appendChild(acts);
     return r;
   }
@@ -572,29 +587,42 @@
     return b;
   }
 
+  function partTypeGotcha() {
+    const d = ptDef();
+    const box = el('details', 'parts-help'); box.open = true;
+    box.appendChild(el('summary', null, '⚠ ' + d.short + ' — read this first'));
+    const body = el('div', 'parts-help__body');
+    body.appendChild(el('p', null, d.gotchas || 'Enter the laptop model below and it’ll search your suppliers for this part.'));
+    box.appendChild(body);
+    return box;
+  }
+
   function renderLaptops() {
     const wrap = el('div', 'parts-view');
     const results = el('div');
     const redraw = () => drawLaptopResults(results);
 
     const bar = el('div', 'parts-toolbar parts-ltoolbar');
-    const seg = el('div', 'parts-seg');
-    const sBtn = el('button', 'btn btn--sm' + (lkind === 'screen' ? ' btn--primary' : ' btn--ghost'), '🖥 Screens');
-    sBtn.addEventListener('click', () => { lkind = 'screen'; renderBody(); });
-    const bBtn = el('button', 'btn btn--sm' + (lkind === 'battery' ? ' btn--primary' : ' btn--ghost'), '🔋 Batteries');
-    bBtn.addEventListener('click', () => { lkind = 'battery'; renderBody(); });
-    seg.appendChild(sBtn); seg.appendChild(bBtn);
+    const ptWrap = el('label', 'parts-ptype');
+    ptWrap.appendChild(el('span', 'parts-ptype__lbl', 'Part'));
+    const psel = el('select', 'parts-input parts-ptype__sel');
+    (D.partTypes || []).forEach((t) => { const o = el('option', null, t.label); o.value = t.id; if (t.id === ptype) o.selected = true; psel.appendChild(o); });
+    psel.addEventListener('change', () => { setPtype(psel.value); renderBody(); });
+    ptWrap.appendChild(psel);
     const search = el('input', 'parts-input parts-search'); search.type = 'search';
-    search.placeholder = lkind === 'screen' ? 'Laptop model or panel part number — e.g. Dell Latitude 5520, or N156HGA-EA3' : 'Laptop model or battery part number — e.g. HP 250 G8, or AP18C8K';
+    search.placeholder = ptype === 'screen' ? 'Laptop model or panel part number — e.g. Dell Latitude 5520, or N156HGA-EA3'
+      : ptype === 'battery' ? 'Laptop model or battery part number — e.g. HP 250 G8, or AP18C8K'
+        : ptype === 'other' ? 'Model + the part you need — e.g. Dell Latitude 5520 CMOS battery'
+          : 'Laptop model — e.g. Dell Latitude 5520 (searches ' + ptDef().short.toLowerCase() + ')';
     search.value = lq;
     search.addEventListener('input', () => { lq = search.value; redraw(); });
     const thisBtn = el('button', 'btn btn--primary btn--sm parts-thispc', '💻 Find for THIS PC');
     thisBtn.addEventListener('click', () => findThisPc(thisBtn));
-    bar.appendChild(seg); bar.appendChild(search); bar.appendChild(thisBtn);
+    bar.appendChild(ptWrap); bar.appendChild(search); bar.appendChild(thisBtn);
     wrap.appendChild(bar);
     if (detect) wrap.appendChild(detectBanner());
     wrap.appendChild(supplierChooser(redraw));
-    wrap.appendChild(identifyHelp());
+    wrap.appendChild(isDb() ? identifyHelp() : partTypeGotcha());
     wrap.appendChild(results);
     els.lresults = results;
     els.body.innerHTML = ''; els.body.appendChild(wrap);
@@ -644,6 +672,9 @@
 
     if (liveResults && liveResults.query === q) container.appendChild(livePanel());
 
+    // Curated panel/battery cards only exist for screens & batteries. For other
+    // part types the gotcha box + live compare + supplier buttons do the job.
+    if (!isDb()) return;
     const ql = q.toLowerCase();
     const items = (D.laptops || []).filter((lp) => {
       const part = lp[lkind]; if (!part) return false;
@@ -725,7 +756,7 @@
 
     const act = el('div', 'parts-card__act');
     const tbtn = el('button', 'btn btn--ghost btn--sm parts-ticketbtn', '＋ Add to ticket');
-    tbtn.addEventListener('click', (e) => { e.preventDefault(); addPartToTicket({ id: lp.id, name: lp.brand + ' ' + lp.model }, lkind === 'screen' ? 'Screen replacement' : 'Battery replacement', { supplier: (enabledSuppliers(lkind)[0] || {}).name || '', product: t0 || '' }, cost); });
+    tbtn.addEventListener('click', (e) => { e.preventDefault(); addPartToTicket({ id: lp.id, name: lp.brand + ' ' + lp.model }, ptDef().short + ' replacement', { supplier: (enabledSuppliers(lkind)[0] || {}).name || '', product: t0 || '' }, cost); });
     act.appendChild(tbtn); card.appendChild(act);
     return card;
   }
@@ -818,7 +849,8 @@
 
     const kv = el('div', 'parts-card__kv');
     const row = (k, v) => { if (!v) return; kv.appendChild(el('span', 'parts-card__k', k)); kv.appendChild(el('span', 'parts-card__v', v)); };
-    row('Type', r.kind === 'battery' ? 'Battery' : 'Screen panel');
+    const ptd = (D.partTypes || []).find((t) => t.id === r.kind);
+    row('Type', ptd ? ptd.short : (r.kind === 'battery' ? 'Battery' : 'Screen panel'));
     row('All time', String(r.count));
     row('Last 12 mo', String(c));
     row('Last looked', fmtDate(r.last));
@@ -833,7 +865,7 @@
       r.compat.forEach((pn) => {
         const chip = el('button', 'parts-chip', pn);
         chip.title = 'Look this one up';
-        chip.addEventListener('click', () => { sub = 'laptops'; lkind = r.kind || 'screen'; lq = pn; renderBody(); runLiveCompare(pn); syncSubtabs(); });
+        chip.addEventListener('click', () => { sub = 'laptops'; setPtype(r.kind || 'screen'); lq = pn; renderBody(); runLiveCompare(pn); syncSubtabs(); });
         chips.appendChild(chip);
       });
       box.appendChild(chips); card.appendChild(box);
@@ -841,7 +873,7 @@
 
     const act = el('div', 'parts-card__act');
     const again = el('button', 'btn btn--primary btn--sm parts-ticketbtn', '🔎 Look up again');
-    again.addEventListener('click', () => { sub = 'laptops'; lkind = r.kind || 'screen'; lq = r.pn; renderBody(); runLiveCompare(r.pn); syncSubtabs(); });
+    again.addEventListener('click', () => { sub = 'laptops'; setPtype(r.kind || 'screen'); const q = (r.kind === 'screen' || r.kind === 'battery') ? r.pn : (r.pn.split(' · ')[0] || r.pn); lq = q; renderBody(); runLiveCompare(q); syncSubtabs(); });
     act.appendChild(again); card.appendChild(act);
     return card;
   }

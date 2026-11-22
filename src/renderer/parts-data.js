@@ -207,6 +207,30 @@ window.TM_PARTS = {
   ],
   oemFor: function (text) { const s = String(text || ''); for (const o of this.oem) { if (o.re.test(s)) return o; } return null; },
 
+  // Which part do you need? Screen & battery are database-backed (exact part
+  // numbers); the rest search your suppliers by model + keyword and carry the
+  // bench gotchas that matter for that part.
+  partTypes: [
+    { id: 'screen', label: '🖥 Screen / panel', short: 'Screen', search: 'screen', gotchas: '' },
+    { id: 'battery', label: '🔋 Battery', short: 'Battery', search: 'battery', gotchas: '' },
+    { id: 'chargeport', label: '🔌 Charge port / DC jack', short: 'Charge port', search: 'charging port dc jack', gotchas: 'First decide how it mounts: SOLDERED to the motherboard (a micro-soldering job — see the Board Repair tab), a MODULAR daughterboard / DC-jack-on-a-cable (quick swap), or a USB-C board. Match the pin count and the cable length/connector. A USB-C port handles charging negotiation, so a failed port often shows as “won’t charge” — and the charging IC may need checking or programming.' },
+    { id: 'keyboard', label: '⌨ Keyboard', short: 'Keyboard', search: 'keyboard UK', gotchas: 'Match UK (ISO) layout, backlit vs non-backlit, and the ribbon/connector. Many are now only sold as part of the top case/palmrest — check before quoting a bare keyboard. Some need the old metal frame transferred.' },
+    { id: 'palmrest', label: '🖐 Palmrest / top case', short: 'Palmrest', search: 'palmrest top cover keyboard', gotchas: 'Usually includes the keyboard and trackpad. Colour/finish must match. The fingerprint reader and power button often have to be moved over from the old one.' },
+    { id: 'hinges', label: '🔩 Hinges', short: 'Hinge set', search: 'hinge set hinges', gotchas: 'A stiff hinge has usually already cracked the lid or bottom case — check BOTH covers before quoting, or it comes straight back. Sold as left+right sets. If the hinge mount in the plastic is stripped, a new hinge alone won’t hold.' },
+    { id: 'lcdback', label: '🔲 Lid / LCD back cover (A)', short: 'LCD back cover', search: 'LCD back cover rear lid', gotchas: 'Match colour/finish and touch vs non-touch. The Wi-Fi antenna cables usually run inside the lid — transfer them.' },
+    { id: 'bezel', label: '🖼 Screen bezel (B)', short: 'Bezel', search: 'screen bezel surround', gotchas: 'Clip + adhesive; the camera cut-out position varies by SKU. Narrow-bezel models are fragile — warm the adhesive before prying.' },
+    { id: 'bottom', label: '📦 Bottom case (D)', short: 'Bottom case', search: 'bottom base cover', gotchas: 'Transfer the rubber feet; screw lengths vary around the case. Some have an integrated SSD/Wi-Fi access door.' },
+    { id: 'cooling', label: '🌀 Fan / heatsink', short: 'Cooling fan', search: 'cooling fan heatsink', gotchas: 'Fan-only vs a combined fan+heatsink assembly differ — check which you need. Re-paste the CPU/GPU and replace the thermal pads. Dual-fan models have separate CPU and GPU fans.' },
+    { id: 'trackpad', label: '🖲 Trackpad', short: 'Trackpad', search: 'trackpad touchpad', gotchas: 'Often part of the palmrest and not sold separately. Match the connector and mounting bracket.' },
+    { id: 'speakers', label: '🔊 Speakers', short: 'Speaker set', search: 'speaker set left right', gotchas: 'Usually a left+right pair; check the connector and cable routing.' },
+    { id: 'webcam', label: '📷 Webcam / camera', short: 'Webcam', search: 'webcam camera module', gotchas: 'Often built into the screen assembly and not separately replaceable. Match IR (Windows Hello) vs standard.' },
+    { id: 'wifi', label: '📶 Wi-Fi card', short: 'Wi-Fi card', search: 'wifi card m.2 ngff', gotchas: 'M.2 2230 (NGFF) vs older half-mini PCIe. Some older HP/Lenovo have a BIOS WHITELIST that blocks non-approved cards — check before fitting. Transfer the MAIN/AUX antenna leads.' },
+    { id: 'charger', label: '⚡ Charger / PSU', short: 'Charger', search: 'charger ac adapter', gotchas: 'Match the WATTAGE (or higher) and the tip — barrel size or USB-C PD. Under-wattage causes slow/no charge and brown-outs under load. USB-C chargers must support the right PD profile.' },
+    { id: 'ssd', label: '💽 SSD / storage', short: 'SSD', search: 'ssd m.2 nvme', gotchas: 'M.2 NVMe vs M.2 SATA vs soldered eMMC — not every slot takes NVMe. Size 2280 vs 2242. Some ultrabooks have soldered storage (no upgrade).' },
+    { id: 'ram', label: '🧠 RAM / memory', short: 'RAM', search: 'ram memory so-dimm', gotchas: 'Lots of modern laptops have SOLDERED RAM — confirm it’s actually upgradable before quoting. Match DDR4 vs DDR5 and the speed; SO-DIMM only if it’s socketed.' },
+    { id: 'other', label: '🔧 Other part…', short: 'Part', search: '', gotchas: 'Type exactly what you need in the search box (e.g. “flex cable”, “CMOS battery”, “power button board”) and it’ll search your suppliers for it.' }
+  ],
+
   // Catalogue search URL builders per supplier (used for Buy links when no exact
   // product URL has been saved).
   searchUrl: {
