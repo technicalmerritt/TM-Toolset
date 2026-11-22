@@ -110,6 +110,7 @@
   const STORAGE_NAME = { drives: 'Drive Health', disktools: 'Disk Tools', backup: 'Backup & Clone' };
   function tabName(tab) {
     if (STORAGE_NAME[tab]) return STORAGE_NAME[tab];
+    if (tab === 'devices') return 'Drivers & Devices';
     const b = document.querySelector('.tab[data-tab="' + tab + '"]');
     return b ? b.textContent.trim() : tab;
   }
@@ -122,6 +123,11 @@
   }
   function go(it) {
     close();
+    if (it.tab === 'devices') { // merged under Drivers & Devices
+      const b = document.querySelector('.tab[data-tab="drivers"]'); if (b) b.click();
+      setTimeout(() => { const d = document.querySelector('[data-dd="devices"]'); if (d) d.click(); }, 30);
+      return;
+    }
     if (STORAGE_SUB[it.tab] && window.tmStorage) {
       const s = document.querySelector('.tab[data-tab="storage"]');
       if (s) s.click();

@@ -34,14 +34,41 @@ window.addEventListener('DOMContentLoaded', () => {
     settings: document.getElementById('panel-settings'),
   };
 
+  // Some panels share one sidebar entry (e.g. Problem Devices sits under Drivers & Devices).
+  const alias = { devices: 'drivers' };
+  const ddBtns = Array.from(document.querySelectorAll('[data-dd]'));
+
   function select(name) {
-    tabs.forEach((t) => t.classList.toggle('tab--active', t.dataset.tab === name));
-    Object.entries(panels).forEach(([key, el]) => {
-      if (el) el.hidden = key !== name;
-    });
+    const hl = alias[name] || name;
+    tabs.forEach((t) => t.classList.toggle('tab--active', t.dataset.tab === hl));
+    Object.entries(panels).forEach(([key, el]) => { if (el) el.hidden = key !== name; });
+    if (name === 'drivers' || name === 'devices') ddBtns.forEach((b) => b.classList.toggle('dd-switch__btn--active', b.dataset.dd === name));
+    expandGroupOf(hl);
   }
 
   tabs.forEach((t) => t.addEventListener('click', () => select(t.dataset.tab)));
+  // Drivers / Problem-devices switcher (both panels carry the same bar).
+  ddBtns.forEach((b) => b.addEventListener('click', () => select(b.dataset.dd)));
+
+  // ---- Collapsible sidebar groups (remembered) ----
+  const labels = Array.from(document.querySelectorAll('.sidebar .nav-label'));
+  const CKEY = 'tmNavCollapsed';
+  let collapsed = {};
+  try { collapsed = JSON.parse(localStorage.getItem(CKEY) || '{}') || {}; } catch (e) { collapsed = {}; }
+  function groupKey(label) { return label.dataset.group || label.textContent.trim(); }
+  function groupButtons(label) { const out = []; let n = label.nextElementSibling; while (n && !n.classList.contains('nav-label')) { if (n.classList && n.classList.contains('tab')) out.push(n); n = n.nextElementSibling; } return out; }
+  function applyCollapse(label) { const c = !!collapsed[groupKey(label)]; label.classList.toggle('nav-label--collapsed', c); groupButtons(label).forEach((b) => b.classList.toggle('tab--hidden', c)); }
+  function saveCollapse() { try { localStorage.setItem(CKEY, JSON.stringify(collapsed)); } catch (e) { /* ignore */ } }
+  function expandGroupOf(tabKey) {
+    const btn = document.querySelector('.tab[data-tab="' + tabKey + '"]'); if (!btn) return;
+    let n = btn.previousElementSibling; while (n && !n.classList.contains('nav-label')) n = n.previousElementSibling;
+    if (n && collapsed[groupKey(n)]) { collapsed[groupKey(n)] = false; saveCollapse(); applyCollapse(n); }
+  }
+  labels.forEach((label) => {
+    label.classList.add('nav-label--toggle');
+    applyCollapse(label);
+    label.addEventListener('click', () => { const k = groupKey(label); collapsed[k] = !collapsed[k]; saveCollapse(); applyCollapse(label); });
+  });
 
   // Show the running build number so the installed version is always verifiable.
   const verEl = document.getElementById('appVersion');

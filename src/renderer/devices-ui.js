@@ -151,5 +151,7 @@
     });
     const tab = document.querySelector('.tab[data-tab="devices"]');
     if (tab) tab.addEventListener('click', () => { if (!loaded) load(); });
+    // Devices now lives under the Drivers & Devices entry — load when its switcher is opened.
+    document.querySelectorAll('[data-dd="devices"]').forEach((b) => b.addEventListener('click', () => { if (!loaded) load(); }));
   });
 })();
