@@ -167,7 +167,41 @@ async function saveEmsisoft({ key, defaults } = {}) {
   return { hasKey: !!(next.key && next.key.v), defaults: next.defaults };
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+//  eBay developer API credentials (App ID / Cert ID) for live price lookups.
+//  Stored obfuscated in the portable tools.json, same as the other secrets.
+// ─────────────────────────────────────────────────────────────────────────
+async function readEbay() {
+  if (!_readConfig) return {};
+  let cfg;
+  try { cfg = await _readConfig(); } catch { cfg = null; }
+  cfg = cfg && typeof cfg === 'object' ? cfg : {};
+  return (cfg.ebay && typeof cfg.ebay === 'object') ? cfg.ebay : {};
+}
+async function getEbayPublic() {
+  const e = await readEbay();
+  return { hasKeys: !!(e && e.appId && e.appId.v && e.certId && e.certId.v) };
+}
+async function getEbayForApi() {
+  const e = await readEbay();
+  return { appId: unpackToken(e && e.appId), certId: unpackToken(e && e.certId) };
+}
+async function saveEbay({ appId, certId } = {}) {
+  if (!_readConfig || !_writeConfig) throw new Error('Settings store not initialised.');
+  const cfg = (await _readConfig()) || {};
+  const cur = (cfg.ebay && typeof cfg.ebay === 'object') ? cfg.ebay : {};
+  const next = { appId: cur.appId || null, certId: cur.certId || null };
+  if (appId === null) next.appId = null;
+  else if (typeof appId === 'string' && appId.length) next.appId = packToken(appId.trim());
+  if (certId === null) next.certId = null;
+  else if (typeof certId === 'string' && certId.length) next.certId = packToken(certId.trim());
+  cfg.ebay = next;
+  await _writeConfig(cfg);
+  return { hasKeys: !!(next.appId && next.appId.v && next.certId && next.certId.v) };
+}
+
 module.exports = {
   configure, getPublic, getForApi, save,
   getEmsisoftPublic, getEmsisoftForApi, saveEmsisoft,
+  getEbayPublic, getEbayForApi, saveEbay,
 };

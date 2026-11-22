@@ -1,5 +1,5 @@
 {
-  "version": "0.70.40",
-  "notes": "In-app price comparison for laptop parts — no more leaving the app. Hit 'Compare prices in-app' (or Find for THIS PC) and it pulls live prices straight into a sortable list, cheapest first, in-stock first, with the stock status, your sell price alongside each trade price, a Buy button and Add-to-ticket on every row. AJ Parts comes in live and reliably; eBay is attempted (it sometimes blocks apps from reading it, more so on a VPN). Suppliers that can't be read in-app stay as one-click 'open on site' buttons, and a status line tells you exactly which came back and which didn't.",
-  "zip": "tmtoolset-app-0.70.40.zip"
+  "version": "0.70.41",
+  "notes": "Much smarter laptop part finding. It no longer just searches the model name (which threw up chargers and keyboards) — it now matches the laptop to its actual panel/battery part numbers and searches those, so you get the right screen straight away. 'Find for THIS PC' resolves your machine to its compatible panels and prices them all at once, cheapest first, so you can pick the best-value compatible one. New 'Manufacturer (direct)' supplier that links to the brand's own parts site — and for Dell it deep-links to your exact machine by its service tag. Optional eBay developer keys (set them under ⚙ Suppliers) turn on reliable live eBay prices via eBay's official API; without them eBay stays a best-effort read.",
+  "zip": "tmtoolset-app-0.70.41.zip"
 }

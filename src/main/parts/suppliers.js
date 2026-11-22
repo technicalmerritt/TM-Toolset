@@ -44,6 +44,44 @@ async function shopify(base, name, query, limit = 12) {
   return { ok: true, items };
 }
 
+// ---- eBay Browse API (reliable; needs the tech's eBay developer keys) ----
+let _ebayTok = { token: '', exp: 0 };
+async function ebayToken(appId, certId) {
+  if (_ebayTok.token && Date.now() < _ebayTok.exp - 60000) return _ebayTok.token;
+  const basic = Buffer.from(appId + ':' + certId).toString('base64');
+  const body = 'grant_type=client_credentials&scope=' + encodeURIComponent('https://api.ebay.com/oauth/api_scope');
+  const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 12000);
+  try {
+    const res = await fetch('https://api.ebay.com/identity/v1/oauth2/token', {
+      method: 'POST', headers: { Authorization: 'Basic ' + basic, 'Content-Type': 'application/x-www-form-urlencoded' }, body, signal: ac.signal,
+    });
+    let j = {}; try { j = await res.json(); } catch { /* ignore */ }
+    if (!res.ok || !j.access_token) throw new Error((j && (j.error_description || j.error)) || ('token HTTP ' + res.status));
+    _ebayTok = { token: j.access_token, exp: Date.now() + ((j.expires_in || 7200) * 1000) };
+    return _ebayTok.token;
+  } finally { clearTimeout(t); }
+}
+async function ebayBrowse(name, query, creds, limit = 15) {
+  const token = await ebayToken(creds.appId, creds.certId);
+  const u = 'https://api.ebay.com/buy/browse/v1/item_summary/search?q=' + encodeURIComponent(query) + '&limit=' + limit + '&sort=price&filter=' + encodeURIComponent('deliveryCountry:GB');
+  const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 12000);
+  let res;
+  try { res = await fetch(u, { headers: { Authorization: 'Bearer ' + token, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_GB', Accept: 'application/json' }, signal: ac.signal }); }
+  finally { clearTimeout(t); }
+  if (!res.ok) return { ok: false, status: res.status };
+  let j = {}; try { j = await res.json(); } catch { /* ignore */ }
+  const sums = j.itemSummaries || [];
+  const items = sums.map((s) => {
+    const pr = s.price && toNum(s.price.value);
+    return { supplier: name, title: decode(s.title), priceNum: pr, price: pr != null ? gbp(pr) : '—', url: s.itemWebUrl || 'https://www.ebay.co.uk', inStock: true, stock: s.condition || 'eBay', image: (s.image && s.image.imageUrl) || '' };
+  }).filter((x) => x.title);
+  return { ok: true, items };
+}
+async function testEbay(creds) {
+  try { await ebayToken(creds.appId, creds.certId); return { ok: true, message: 'eBay keys verified — live prices are on.' }; }
+  catch (e) { return { ok: false, message: 'eBay rejected the keys: ' + ((e && e.message) || 'failed') + '. Check the App ID and Cert ID (Production keys).' }; }
+}
+
 // ---- eBay UK (best-effort HTML; works best on a residential connection) ----
 async function ebay(name, query, limit = 14) {
   const u = 'https://www.ebay.co.uk/sch/i.html?_nkw=' + encodeURIComponent(query) + '&_sop=15'; // lowest price + postage
@@ -66,36 +104,45 @@ async function ebay(name, query, limit = 14) {
 }
 
 // Per-supplier dispatch. `sup` = { id, name, live, base }.
-async function searchOne(sup, query) {
+async function searchOne(sup, query, opts) {
   try {
     if (sup.live === 'shopify' && sup.base) return await shopify(sup.base, sup.name, query);
-    if (sup.live === 'ebay') return await ebay(sup.name, query);
+    if (sup.live === 'ebay') {
+      const c = opts && opts.ebay;
+      if (c && c.appId && c.certId) { try { return await ebayBrowse(sup.name, query, c); } catch (e) { /* fall through to HTML */ } }
+      return await ebay(sup.name, query);
+    }
     return { ok: false, status: 0, unsupported: true };
   } catch (e) {
     return { ok: false, error: (e && e.message) || 'fetch failed' };
   }
 }
 
-// Run every requested supplier in parallel; aggregate + sort by price.
-async function searchAll(suppliers, query) {
-  const q = String(query || '').trim();
-  if (!q) return { ok: false, items: [], perSupplier: [], message: 'No search term.' };
+// Run every supplier × every term in parallel; aggregate, dedupe, sort by price.
+// `queries` may be one string or several (e.g. the compatible panel part numbers).
+async function searchAll(suppliers, queries, opts) {
+  const terms = (Array.isArray(queries) ? queries : [queries]).map((x) => String(x || '').trim()).filter(Boolean).slice(0, 4);
+  if (!terms.length) return { ok: false, items: [], perSupplier: [], message: 'No search term.' };
   const live = (suppliers || []).filter((s) => s.live === 'shopify' || s.live === 'ebay');
-  const settled = await Promise.allSettled(live.map((s) => searchOne(s, q)));
-  const items = []; const perSupplier = [];
+  const jobs = [];
+  live.forEach((s) => terms.forEach((term) => jobs.push({ s, term })));
+  const settled = await Promise.allSettled(jobs.map((j) => searchOne(j.s, j.term, opts || {})));
+  const items = []; const perMap = {};
   settled.forEach((res, i) => {
-    const s = live[i];
+    const { s, term } = jobs[i];
+    if (!perMap[s.id]) perMap[s.id] = { id: s.id, name: s.name, status: 'blocked', count: 0 };
     if (res.status === 'fulfilled' && res.value && res.value.ok) {
-      res.value.items.forEach((it) => { it.supplierId = s.id; items.push(it); });
-      perSupplier.push({ id: s.id, name: s.name, status: 'ok', count: res.value.items.length });
-    } else {
-      const v = res.value || {};
-      perSupplier.push({ id: s.id, name: s.name, status: v.unsupported ? 'open' : 'blocked', count: 0 });
+      perMap[s.id].status = 'ok';
+      res.value.items.forEach((it) => { it.supplierId = s.id; it.term = term; items.push(it); });
+      perMap[s.id].count += res.value.items.length;
+    } else if (res.value && res.value.unsupported && perMap[s.id].status !== 'ok') {
+      perMap[s.id].status = 'open';
     }
   });
-  // sort cheapest first; in-stock before out-of-stock
-  items.sort((a, b) => (a.inStock === b.inStock ? 0 : a.inStock ? -1 : 1) || ((a.priceNum || 1e9) - (b.priceNum || 1e9)));
-  return { ok: true, items, perSupplier };
+  const seen = new Set(); const dedup = [];
+  for (const it of items) { const k = it.url || (it.supplier + it.title); if (seen.has(k)) continue; seen.add(k); dedup.push(it); }
+  dedup.sort((a, b) => (a.inStock === b.inStock ? 0 : a.inStock ? -1 : 1) || ((a.priceNum || 1e9) - (b.priceNum || 1e9)));
+  return { ok: true, items: dedup, perSupplier: Object.values(perMap), terms };
 }
 
-module.exports = { searchAll };
+module.exports = { searchAll, testEbay };

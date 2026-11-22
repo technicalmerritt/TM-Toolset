@@ -2285,10 +2285,21 @@ function registerIpc() {
   ipcMain.handle('parts:search', async (_evt, args) => {
     try {
       const partsSuppliers = require('./parts/suppliers');
-      return await partsSuppliers.searchAll((args && args.suppliers) || [], (args && args.query) || '');
+      let ebay = null;
+      try { const c = await settings.getEbayForApi(); if (c && c.appId && c.certId) ebay = c; } catch { /* no keys */ }
+      const queries = (args && (args.queries || args.query)) || '';
+      return await partsSuppliers.searchAll((args && args.suppliers) || [], queries, { ebay });
     } catch (e) {
       return { ok: false, items: [], perSupplier: [], message: (e && e.message) || 'Search failed.' };
     }
+  });
+  // eBay developer keys (for reliable live eBay prices)
+  ipcMain.handle('ebay:get', async () => settings.getEbayPublic());
+  ipcMain.handle('ebay:save', async (_evt, a) => settings.saveEbay(a || {}));
+  ipcMain.handle('ebay:test', async () => {
+    const c = await settings.getEbayForApi();
+    if (!c.appId || !c.certId) return { ok: false, message: 'Enter both the App ID and Cert ID first.' };
+    return require('./parts/suppliers').testEbay(c);
   });
 
   // Detect THIS machine's make/model (+ internal panel EDID) for "find the part for this PC".

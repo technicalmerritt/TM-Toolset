@@ -180,6 +180,7 @@ window.TM_PARTS = {
   laptopSuppliers: [
     { id: 'ajparts', name: 'AJ Parts', kinds: 'both', note: 'UK · Dell partner 10+ yrs · 6-mo warranty', live: 'shopify', base: 'https://www.ajparts.co.uk', url: (q) => 'https://www.ajparts.co.uk/search?q=' + encodeURIComponent(q) },
     { id: 'ebay', name: 'eBay UK', kinds: 'both', note: 'Huge new/used pool — match the exact part number', live: 'ebay', url: (q) => 'https://www.ebay.co.uk/sch/i.html?_nkw=' + encodeURIComponent(q) },
+    { id: 'oem', name: 'Manufacturer (direct)', kinds: 'both', note: 'The laptop brand’s own parts / support site', oem: true },
     { id: 'laptopscreen', name: 'LaptopScreen UK', kinds: 'screen', note: 'Panel compatibility database', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:laptopscreen.co.uk OR site:laptopscreen.com ' + q) },
     { id: 'screensuk', name: 'Screens.uk', kinds: 'screen', note: 'UK screen specialist', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:screens.uk ' + q) },
     { id: 'newmodeus', name: 'NewModeUS', kinds: 'screen', note: 'Panel part-number database', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:newmodeus.com ' + q) },
@@ -187,6 +188,24 @@ window.TM_PARTS = {
     { id: 'maxbhi', name: 'Maxbhi UK', kinds: 'both', note: 'Large catalogue incl. batteries', url: (q) => 'https://www.maxbhi.co.uk/search?q=' + encodeURIComponent(q) },
     { id: 'google', name: 'Google', kinds: 'both', note: 'Catch-all web search', url: (q) => 'https://www.google.co.uk/search?q=' + encodeURIComponent(q) }
   ],
+
+  // Manufacturer-direct links, chosen by brand. Dell deep-links to a specific
+  // machine's own parts page by its service tag (serial) when we have it.
+  oem: [
+    { re: /dell/i, name: 'Dell', url: (q, serial) => serial ? ('https://www.dell.com/support/home/en-uk/product-support/servicetag/' + encodeURIComponent(serial) + '/parts') : 'https://www.dell.com/support/home/en-uk?app=parts' },
+    { re: /\bhp\b|hewlett|probook|elitebook|pavilion|spectre|envy|omen|victus/i, name: 'HP PartSurfer', url: (q) => 'https://partsurfer.hp.com/Search.aspx?SearchText=' + encodeURIComponent(q) },
+    { re: /lenovo|thinkpad|ideapad|legion|yoga|thinkbook/i, name: 'Lenovo', url: (q) => 'https://pcsupport.lenovo.com/gb/en/search?query=' + encodeURIComponent(q) },
+    { re: /acer|aspire|nitro|swift|predator|spin|travelmate/i, name: 'Acer', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:acer.com OR site:spareparts.acer.com ' + q + ' screen') },
+    { re: /asus|vivobook|zenbook|\brog\b|\btuf\b|zephyrus/i, name: 'Asus', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:asus.com ' + q + ' LCD panel') },
+    { re: /\bmsi\b|katana|stealth|modern|prestige|sword|cyborg|bravo/i, name: 'MSI', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:msi.com ' + q + ' panel') },
+    { re: /apple|macbook/i, name: 'Apple Self Service Repair', url: () => 'https://selfservicerepair.co.uk/en-GB/home' },
+    { re: /microsoft|surface/i, name: 'Microsoft Surface', url: () => 'https://support.microsoft.com/en-gb/surface' },
+    { re: /samsung|galaxy book/i, name: 'Samsung', url: () => 'https://www.samsung.com/uk/support/' },
+    { re: /toshiba|dynabook/i, name: 'Dynabook', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:dynabook.com ' + q + ' screen') },
+    { re: /huawei|matebook/i, name: 'Huawei', url: () => 'https://consumer.huawei.com/uk/support/' },
+    { re: /razer/i, name: 'Razer', url: (q) => 'https://www.google.com/search?q=' + encodeURIComponent('site:razer.com ' + q + ' panel') }
+  ],
+  oemFor: function (text) { const s = String(text || ''); for (const o of this.oem) { if (o.re.test(s)) return o; } return null; },
 
   // Catalogue search URL builders per supplier (used for Buy links when no exact
   // product URL has been saved).

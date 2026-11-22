@@ -293,8 +293,36 @@
   function lScreenCost(lp) { const k = 's:' + lp.id; return store.laptopCost[k] != null ? Number(store.laptopCost[k]) : (lp.screen ? lp.screen.cost : 0); }
   function lBattCost(lp) { const k = 'b:' + lp.id; return store.laptopCost[k] != null ? Number(store.laptopCost[k]) : (lp.battery ? lp.battery.cost : 0); }
   // Pull the clean part-number token out of an annotated string.
-  function partTerm(pn) { const m = String(pn).match(/[A-Z0-9]{2,}(?:-[A-Z0-9]+)+|[A-Z]{1,3}\d[A-Z0-9]{2,}|[A-Z0-9]{5,}/); return m ? m[0] : String(pn).replace(/\s*[([=].*$/, '').trim(); }
+  function partTerm(pn) { const m = String(pn).match(/[A-Z0-9]{2,}(?:[-.][A-Z0-9]+)+|[A-Z]{1,3}\d[A-Z0-9]{2,}(?:\.\d+)?|[A-Z0-9]{5,}/); return m ? m[0] : String(pn).replace(/\s*[([=].*$/, '').trim(); }
   function looksAmbiguous(code) { return /[B8O0I1S5Z2G6]/.test(code) && /[A-Z]/.test(code) && /\d/.test(code); }
+  function isPartNumber(q) { const s = String(q || '').trim(); return !/\s/.test(s) && /\d/.test(s) && /[A-Za-z]/.test(s) && s.length >= 5; }
+  // Token-match a free model string (e.g. "Lenovo ThinkPad T14 Gen 3") to a curated entry.
+  function resolveModel(query) {
+    const ql = String(query || '').toLowerCase();
+    const toks = ql.split(/[^a-z0-9]+/).filter((t) => t.length > 1);
+    if (!toks.length) return null;
+    let best = null, bestScore = 0;
+    (D.laptops || []).forEach((lp) => {
+      const hay = (lp.brand + ' ' + lp.model + ' ' + (lp.aliases || '')).toLowerCase();
+      let score = 0; toks.forEach((t) => { if (hay.includes(t)) score += 1; });
+      if (score > bestScore) { bestScore = score; best = lp; }
+    });
+    return (best && bestScore >= Math.min(2, toks.length)) ? best : null;
+  }
+  // Turn whatever the tech searched into the best supplier query terms: a bare part
+  // number as-is; a known model → its compatible panel/battery numbers; otherwise
+  // the model with a category keyword so suppliers don't return chargers/keyboards.
+  function liveTermsFor(query) {
+    const q = String(query || '').trim();
+    if (isPartNumber(q)) return { terms: [q], resolved: null };
+    const lp = resolveModel(q);
+    if (lp && lp[lkind]) {
+      const pns = (lkind === 'screen' ? lp[lkind].panels : lp[lkind].parts) || [];
+      const terms = pns.map(partTerm).filter((t) => t && !/\s/.test(t)).slice(0, 3);
+      if (terms.length) return { terms, resolved: lp };
+    }
+    return { terms: [q + (lkind === 'screen' ? ' laptop screen' : ' laptop battery')], resolved: lp || null };
+  }
 
   // Part number with letters vs digits colour-coded, so B/8 and O/0 can't be mixed up.
   function pnEl(pn) {
@@ -323,6 +351,27 @@
       lab.appendChild(t); grid.appendChild(lab);
     });
     panel.appendChild(grid);
+
+    // eBay developer keys (optional) for reliable live eBay prices
+    const eb = el('div', 'parts-ebay');
+    eb.appendChild(el('div', 'parts-ebay__hd', 'eBay live prices (optional): add free eBay developer keys for reliable in-app eBay results. Without them, eBay is a best-effort web read.'));
+    const erow = el('div', 'parts-ebay__row');
+    const status = el('span', 'muted parts-ebay__status', 'checking…');
+    const setBtn = el('button', 'btn btn--ghost btn--sm', 'Set keys');
+    const testBtn = el('button', 'btn btn--ghost btn--sm', 'Test');
+    const helpBtn = el('button', 'btn btn--ghost btn--sm', 'Get keys ↗');
+    erow.appendChild(status); erow.appendChild(setBtn); erow.appendChild(testBtn); erow.appendChild(helpBtn);
+    eb.appendChild(erow); panel.appendChild(eb);
+    if (window.ebay && window.ebay.get) window.ebay.get().then((s) => { status.textContent = (s && s.hasKeys) ? '✓ eBay keys saved — live eBay on' : 'Not set'; }).catch(() => { status.textContent = ''; });
+    setBtn.addEventListener('click', async () => {
+      const appId = window.prompt('eBay App ID (Client ID) — from your eBay developer account, Production keyset:');
+      if (appId === null) return;
+      const certId = window.prompt('eBay Cert ID (Client Secret) — Production keyset:');
+      if (certId === null) return;
+      try { const r = await window.ebay.save({ appId: appId.trim(), certId: certId.trim() }); status.textContent = (r && r.hasKeys) ? '✓ eBay keys saved — live eBay on' : 'Not set'; toast((r && r.hasKeys) ? 'eBay keys saved. Hit Test.' : 'Keys not saved.'); } catch (e) { toast('Save failed.'); }
+    });
+    testBtn.addEventListener('click', async () => { testBtn.disabled = true; testBtn.textContent = 'Testing…'; try { const r = await window.ebay.test(); toast((r && r.message) || (r && r.ok ? 'OK' : 'Failed')); } catch (e) { toast('Test failed.'); } testBtn.disabled = false; testBtn.textContent = 'Test'; });
+    helpBtn.addEventListener('click', () => openUrl('https://developer.ebay.com/join'));
     return panel;
   }
 
@@ -358,17 +407,23 @@
     if (!(window.parts && window.parts.search)) { toast('Update the app to use this.'); return; }
     const sups = liveSupplierPayload();
     if (!sups.length) { toast('No readable suppliers ticked (AJ Parts / eBay).'); return; }
-    liveResults = { query: q, loading: true, items: [], perSupplier: [] };
+    const { terms, resolved } = liveTermsFor(q);
+    liveResults = { query: q, terms, resolved, loading: true, items: [], perSupplier: [] };
     if (els.lresults) drawLaptopResults(els.lresults);
     let r = null;
-    try { r = await window.parts.search({ query: q, suppliers: sups }); } catch (e) { /* ignore */ }
-    liveResults = { query: q, loading: false, items: (r && r.items) || [], perSupplier: (r && r.perSupplier) || [] };
+    try { r = await window.parts.search({ queries: terms, suppliers: sups }); } catch (e) { /* ignore */ }
+    liveResults = { query: q, terms, resolved, loading: false, items: (r && r.items) || [], perSupplier: (r && r.perSupplier) || [] };
     if (els.lresults) drawLaptopResults(els.lresults);
   }
 
   function livePanel() {
     const wrap = el('div', 'parts-live');
     wrap.appendChild(el('h3', 'parts-h3', 'Live prices — “' + liveResults.query + '”'));
+    if (liveResults.resolved) {
+      wrap.appendChild(el('div', 'parts-live__note', '✓ Matched ' + liveResults.resolved.brand + ' ' + liveResults.resolved.model + ' → pricing its ' + (lkind === 'screen' ? 'panels' : 'batteries') + ': ' + (liveResults.terms || []).join(', ')));
+    } else if (liveResults.terms) {
+      wrap.appendChild(el('div', 'parts-live__note', 'Searching: ' + liveResults.terms.join(', ')));
+    }
     if (liveResults.loading) {
       const ld = el('div', 'parts-live__loading'); ld.appendChild(el('span', 'spinner', '')); ld.appendChild(el('span', 'muted', 'Fetching prices from your suppliers…'));
       wrap.appendChild(ld); return wrap;
@@ -468,14 +523,26 @@
     drawLaptopResults(results);
   }
 
-  function supplierChips(term, cls) {
+  function supplierChips(term, cls, ctx) {
+    ctx = ctx || {};
     const row = el('div', 'parts-chips' + (cls ? ' ' + cls : ''));
     const sups = enabledSuppliers(lkind);
     if (!sups.length) { row.appendChild(el('span', 'muted', 'No suppliers ticked — open ⚙ Suppliers above.')); return row; }
     sups.forEach((s) => {
-      const c = el('button', 'parts-chip', s.name); c.title = s.note || '';
-      if (!term) c.classList.add('parts-chip--off');
-      c.addEventListener('click', (e) => { e.preventDefault(); if (term) openUrl(s.url(term)); });
+      let label = s.name, href = null, off = false;
+      if (s.oem) {
+        const o = D.oemFor(ctx.brand || ctx.model || term || '');
+        label = o ? ('Maker: ' + o.name) : 'Manufacturer ↗';
+        const oq = ctx.model || term || '';
+        if (o) href = o.url(oq, ctx.serial);
+        else if (oq) href = 'https://www.google.com/search?q=' + encodeURIComponent(oq + ' laptop screen manufacturer parts');
+        if (!href) off = true;
+      } else {
+        href = term ? s.url(term) : null;
+        off = !term;
+      }
+      const c = el('button', 'parts-chip' + (off ? ' parts-chip--off' : ''), label); c.title = s.note || '';
+      c.addEventListener('click', (e) => { e.preventDefault(); if (href) openUrl(href); });
       row.appendChild(c);
     });
     return row;
@@ -493,7 +560,8 @@
     cmp.addEventListener('click', () => runLiveCompare(q));
     seHead.appendChild(cmp);
     se.appendChild(seHead);
-    se.appendChild(supplierChips(q));
+    const seCtx = (detect && detect.query === q) ? { brand: detect.brand, model: detect.query, serial: detect.serial } : { model: q };
+    se.appendChild(supplierChips(q, null, seCtx));
     container.appendChild(se);
 
     if (liveResults && liveResults.query === q) container.appendChild(livePanel());
@@ -505,6 +573,7 @@
       const pns = (part.panels || part.parts || []).join(' ');
       return (lp.brand + ' ' + lp.model + ' ' + (lp.aliases || '') + ' ' + pns).toLowerCase().includes(ql);
     });
+    if (!items.length && q) { const rm = resolveModel(q); if (rm && rm[lkind]) items.push(rm); }
     const grid = el('div', 'parts-grid');
     if (!items.length) {
       grid.appendChild(el('p', 'muted', q ? ('No saved match for “' + q + '” — use the supplier buttons above to search it directly.') : 'No models.'));
@@ -574,7 +643,7 @@
 
     const t0 = pns[0] ? partTerm(pns[0]) : '';
     const cardTerm = (t0 && !/\s/.test(t0)) ? t0 : (lp.brand + ' ' + lp.model);
-    card.appendChild(supplierChips(cardTerm, 'parts-chips--card'));
+    card.appendChild(supplierChips(cardTerm, 'parts-chips--card', { brand: lp.brand, model: lp.brand + ' ' + lp.model }));
 
     const act = el('div', 'parts-card__act');
     const tbtn = el('button', 'btn btn--ghost btn--sm parts-ticketbtn', '＋ Add to ticket');

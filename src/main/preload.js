@@ -165,6 +165,12 @@ contextBridge.exposeInMainWorld('parts', {
   search: (args) => ipcRenderer.invoke('parts:search', args),
 });
 
+contextBridge.exposeInMainWorld('ebay', {
+  get: () => ipcRenderer.invoke('ebay:get'),
+  save: (args) => ipcRenderer.invoke('ebay:save', args),
+  test: () => ipcRenderer.invoke('ebay:test'),
+});
+
 contextBridge.exposeInMainWorld('emsisoft', {
   get: () => ipcRenderer.invoke('emsisoft:get'),
   save: (payload) => ipcRenderer.invoke('emsisoft:save', payload),
