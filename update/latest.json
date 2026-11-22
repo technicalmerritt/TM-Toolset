@@ -1,5 +1,5 @@
 {
-  "version": "0.70.42",
-  "notes": "Clearer live-price results for laptops. When a model resolves to its panels, there's now a summary at the top telling you how many DIFFERENT panels that laptop takes and who makes each — if it's just one, it says you can order without opening it up; if there are several, it flags that you should check the number on the back. Each distinct panel gets its own colour and its cheapest price. The live listings are now grouped under each panel number (with its maker) instead of one long mixed list, and near-identical listings at the same price from the same shop are collapsed to one with a '+N more' note, so you're not scrolling past the same thing over and over.",
-  "zip": "tmtoolset-app-0.70.42.zip"
+  "version": "0.70.43",
+  "notes": "New Parts History tab — business intelligence from your own searches. Every time you compare prices for a panel or battery it's counted, building up over time: it shows which parts you look up most, how many times (all-time and last 12 months), when you last looked, which laptops each fits, and — the clever bit — which other part numbers it's cross-compatible with (learned from your own searches). Anything you've searched 3+ times gets a '📦 consider keeping in stock' nudge, so you can spot what's worth holding. One click re-runs the live price search for any part or its compatible alternatives. Also added a real gotcha you flagged: the SAME panel model number can ship different revisions with a different connector position/PCB size or 'with vs without brackets' — so there's now a warning on the results and in the help to match the revision and connector, not just the model number.",
+  "zip": "tmtoolset-app-0.70.43.zip"
 }

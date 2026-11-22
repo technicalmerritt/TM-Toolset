@@ -163,6 +163,9 @@ contextBridge.exposeInMainWorld('parts', {
   save: (args) => ipcRenderer.invoke('parts:save', args),
   thisPc: () => ipcRenderer.invoke('parts:thisPc'),
   search: (args) => ipcRenderer.invoke('parts:search', args),
+  historyGet: () => ipcRenderer.invoke('parts:historyGet'),
+  historyLog: (args) => ipcRenderer.invoke('parts:historyLog', args),
+  historyClear: () => ipcRenderer.invoke('parts:historyClear'),
 });
 
 contextBridge.exposeInMainWorld('ebay', {

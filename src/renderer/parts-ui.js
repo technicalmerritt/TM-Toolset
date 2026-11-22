@@ -385,7 +385,8 @@
         + '<li><strong>Refresh</strong> — 60 vs 120/144/165Hz. A mismatch can mean no image.</li>'
         + '<li><strong>Connector</strong> — 30-pin vs 40-pin eDP, and which side.</li>'
         + '<li><strong>Size, brackets, finish</strong> — matte vs glossy; bracket tabs can differ by revision.</li>'
-        + '<li><strong>Touch panels</strong> — these can need a matching <strong>controller/firmware revision</strong>; an otherwise-identical touch assembly may not register correctly, so match the full part/revision, not just the size.</li></ul>'
+        + '<li><strong>Touch panels</strong> — these can need a matching <strong>controller/firmware revision</strong>; an otherwise-identical touch assembly may not register correctly, so match the full part/revision, not just the size.</li>'
+        + '<li><strong>Same number, different revision = different connector.</strong> A panel like <code>N156HGA-EA3 REV.C1</code> vs <code>REV.C5</code> can have a different PCB size and <strong>connector position</strong> (one may even say “smaller PCB 260mm”), or ship “with brackets” vs “without”. So the model number alone isn’t always enough — match the <strong>revision suffix and the connector location</strong> (which side, how many pins) to what came out, or you can get the right number with the wrong cable.</li></ul>'
         + '<p class="pn-legend">⚠ <strong>Easy-to-misread characters:</strong> below, <span class="pn-a">letters are blue</span> and <span class="pn-d">digits are amber</span> — so a <span class="pn-a">B</span> can’t be mistaken for an <span class="pn-d">8</span>, nor <span class="pn-a">O</span> for <span class="pn-d">0</span>. Always double-check B/8, O/0, I/1, S/5, Z/2, G/6 before ordering.</p>';
     } else {
       body.innerHTML = '<p>Go by the <strong>battery part number</strong> on the cell (e.g. <code>AP18C8K</code>, <code>WY9MP</code>, <code>SI03XL</code>), not just the laptop model:</p>'
@@ -409,6 +410,12 @@
     if (!sups.length) { toast('No readable suppliers ticked (AJ Parts / eBay).'); return; }
     const { terms, resolved } = liveTermsFor(q);
     liveResults = { query: q, terms, resolved, loading: true, items: [], perSupplier: [] };
+    // Log the lookup for the parts-history intelligence (only real part numbers).
+    if (terms.every(isPartNumber) && window.parts && window.parts.historyLog) {
+      const model = resolved ? (resolved.brand + ' ' + resolved.model) : q;
+      const items = terms.map((t) => ({ pn: t, maker: lkind === 'screen' ? panelMaker(t) : '' }));
+      window.parts.historyLog({ kind: lkind, model, items }).catch(() => {});
+    }
     if (els.lresults) drawLaptopResults(els.lresults);
     let r = null;
     try { r = await window.parts.search({ queries: terms, suppliers: sups }); } catch (e) { /* ignore */ }
@@ -478,6 +485,7 @@
     }
     // Group by the panel/battery number searched; dedupe near-identical listings.
     if (termsArePns()) {
+      if (lkind === 'screen') wrap.appendChild(el('div', 'parts-live__warn', '⚠ Same number can ship different revisions — check the connector position/pins and “with vs without brackets” against the old panel before ordering.'));
       groupByTerm().forEach((g, i) => wrap.appendChild(groupBlock(g, i)));
     } else {
       const list = el('div', 'parts-live__list');
@@ -746,9 +754,104 @@
     els.body.innerHTML = ''; els.body.appendChild(wrap);
   }
 
+  // ---- parts search history / stock intelligence ----
+  let histWindow = 'all';
+  function last12Count(rec) {
+    const now = new Date(); let n = 0;
+    for (let i = 0; i < 12; i++) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); const ym = d.toISOString().slice(0, 7); n += (rec.months && rec.months[ym]) || 0; }
+    return n;
+  }
+  function histCount(rec) { return histWindow === '12' ? last12Count(rec) : rec.count; }
+  function fmtDate(iso) { try { return new Date(iso).toLocaleDateString('en-GB'); } catch (e) { return ''; } }
+
+  async function renderHistory() {
+    const wrap = el('div', 'parts-view');
+    const top = el('div', 'parts-toolbar');
+    top.appendChild(el('h3', 'parts-h3', 'Parts you look up'));
+    const seg = el('div', 'parts-seg');
+    [['all', 'All time'], ['12', 'Last 12 months']].forEach(([v, t]) => {
+      const bt = el('button', 'btn btn--sm' + (histWindow === v ? ' btn--primary' : ' btn--ghost'), t);
+      bt.addEventListener('click', () => { histWindow = v; renderBody(); });
+      seg.appendChild(bt);
+    });
+    top.appendChild(seg);
+    wrap.appendChild(top);
+    const body = el('div'); wrap.appendChild(body);
+    els.body.innerHTML = ''; els.body.appendChild(wrap);
+    body.appendChild(el('p', 'muted', 'Loading…'));
+
+    let recs = [];
+    try { recs = (await window.parts.historyGet()) || []; } catch (e) { /* ignore */ }
+    body.innerHTML = '';
+    if (!recs.length) {
+      body.appendChild(el('p', 'muted', 'No searches logged yet. Each time you compare prices for a panel or battery, it’s counted here — over time you’ll see which parts you source most, so you know what’s worth keeping in stock.'));
+      return;
+    }
+    recs = recs.filter((r) => histCount(r) > 0).sort((a, b) => histCount(b) - histCount(a));
+    const totalSearches = recs.reduce((s, r) => s + histCount(r), 0);
+    const stockPicks = recs.filter((r) => histCount(r) >= 3);
+    const summary = el('div', 'parts-hist-sum');
+    summary.appendChild(el('span', null, recs.length + ' distinct parts · ' + totalSearches + ' lookups' + (histWindow === '12' ? ' in the last 12 months' : ' all time')));
+    if (stockPicks.length) summary.appendChild(el('span', 'parts-hist-sum__stock', '📦 ' + stockPicks.length + ' worth keeping in stock'));
+    const clr = el('button', 'btn btn--ghost btn--sm', 'Clear history');
+    clr.addEventListener('click', async () => { if (!window.confirm('Clear all parts search history? This can’t be undone.')) return; await window.parts.historyClear(); renderBody(); });
+    summary.appendChild(clr);
+    body.appendChild(summary);
+
+    const grid = el('div', 'parts-grid');
+    recs.forEach((r) => grid.appendChild(historyCard(r)));
+    body.appendChild(grid);
+  }
+
+  function historyCard(r) {
+    const c = last12Count(r); const count = histCount(r);
+    const card = el('div', 'parts-card');
+    const head = el('div', 'parts-card__head');
+    const left = el('div', 'parts-hist-pn'); left.appendChild(pnEl(r.pn));
+    if (r.makers && r.makers.length) left.appendChild(el('span', 'parts-grp__mk', r.makers.join(' / ')));
+    head.appendChild(left);
+    const badge = el('span', 'parts-hist-badge' + (count >= 3 ? ' parts-hist-badge--hot' : ''), '×' + count);
+    head.appendChild(badge);
+    card.appendChild(head);
+
+    if (count >= 3) card.appendChild(el('div', 'parts-hist-stock', '📦 Searched ' + count + ' times — consider keeping one in stock.'));
+
+    const kv = el('div', 'parts-card__kv');
+    const row = (k, v) => { if (!v) return; kv.appendChild(el('span', 'parts-card__k', k)); kv.appendChild(el('span', 'parts-card__v', v)); };
+    row('Type', r.kind === 'battery' ? 'Battery' : 'Screen panel');
+    row('All time', String(r.count));
+    row('Last 12 mo', String(c));
+    row('Last looked', fmtDate(r.last));
+    card.appendChild(kv);
+
+    if (r.models && r.models.length) { const m = el('div', 'parts-hist-models'); m.appendChild(el('span', 'muted', 'Fits: ')); m.appendChild(el('span', null, r.models.join(', '))); card.appendChild(m); }
+
+    if (r.compat && r.compat.length) {
+      const box = el('div', 'parts-hist-compat');
+      box.appendChild(el('div', 'muted parts-hist-compat__lbl', 'Cross-compatible with:'));
+      const chips = el('div', 'parts-chips');
+      r.compat.forEach((pn) => {
+        const chip = el('button', 'parts-chip', pn);
+        chip.title = 'Look this one up';
+        chip.addEventListener('click', () => { sub = 'laptops'; lkind = r.kind || 'screen'; lq = pn; renderBody(); runLiveCompare(pn); syncSubtabs(); });
+        chips.appendChild(chip);
+      });
+      box.appendChild(chips); card.appendChild(box);
+    }
+
+    const act = el('div', 'parts-card__act');
+    const again = el('button', 'btn btn--primary btn--sm parts-ticketbtn', '🔎 Look up again');
+    again.addEventListener('click', () => { sub = 'laptops'; lkind = r.kind || 'screen'; lq = r.pn; renderBody(); runLiveCompare(r.pn); syncSubtabs(); });
+    act.appendChild(again); card.appendChild(act);
+    return card;
+  }
+
+  function syncSubtabs() { if (els.sub) els.sub.querySelectorAll('[data-sub]').forEach((x) => x.classList.toggle('subtab--active', x.dataset.sub === sub)); }
+
   function renderBody() {
     renderPricing();
     if (sub === 'laptops') renderLaptops();
+    else if (sub === 'history') renderHistory();
     else if (sub === 'suppliers') renderSuppliers();
     else renderMobile();
   }

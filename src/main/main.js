@@ -2293,6 +2293,33 @@ function registerIpc() {
       return { ok: false, items: [], perSupplier: [], message: (e && e.message) || 'Search failed.' };
     }
   });
+  // ---- Parts search history (business intelligence: what you look up, how often) ----
+  function historyPath() { return path.join(getDataDir(), 'parts-history.json'); }
+  async function readHistory() { try { const j = JSON.parse(await fsp.readFile(historyPath(), 'utf8')); return (j && typeof j === 'object') ? j : {}; } catch { return {}; } }
+  async function writeHistory(obj) { try { await fsp.writeFile(historyPath(), JSON.stringify(obj), 'utf8'); } catch { /* ignore */ } }
+  ipcMain.handle('parts:historyGet', async () => { const h = await readHistory(); return Object.values(h); });
+  ipcMain.handle('parts:historyClear', async () => { await writeHistory({}); return { ok: true }; });
+  ipcMain.handle('parts:historyLog', async (_evt, args) => {
+    const a = args || {};
+    const items = Array.isArray(a.items) ? a.items : [];
+    if (!items.length) return { ok: true };
+    const h = await readHistory();
+    const now = new Date(); const ym = now.toISOString().slice(0, 7); const iso = now.toISOString();
+    const allPns = items.map((i) => String(i.pn || '').toUpperCase().trim()).filter(Boolean);
+    items.forEach((it) => {
+      const pn = String(it.pn || '').toUpperCase().trim(); if (!pn) return;
+      const r = h[pn] || { pn, kind: a.kind || 'screen', count: 0, first: iso, last: iso, months: {}, makers: [], models: [], compat: [] };
+      r.count += 1; r.last = iso; r.kind = a.kind || r.kind;
+      r.months[ym] = (r.months[ym] || 0) + 1;
+      if (it.maker && !r.makers.includes(it.maker)) r.makers.push(it.maker);
+      if (a.model && !r.models.includes(a.model)) { r.models.push(a.model); if (r.models.length > 8) r.models.shift(); }
+      allPns.forEach((o) => { if (o !== pn && !r.compat.includes(o)) { r.compat.push(o); if (r.compat.length > 12) r.compat.shift(); } });
+      h[pn] = r;
+    });
+    await writeHistory(h);
+    return { ok: true };
+  });
+
   // eBay developer keys (for reliable live eBay prices)
   ipcMain.handle('ebay:get', async () => settings.getEbayPublic());
   ipcMain.handle('ebay:save', async (_evt, a) => settings.saveEbay(a || {}));

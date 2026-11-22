@@ -2498,3 +2498,15 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .parts-grp__hd { display: flex; align-items: center; gap: 10px; margin: 6px 0 7px; }
 .parts-grp__mk { font-size: 11.5px; color: var(--text-dim); background: var(--bg-elev-2); border-radius: 999px; padding: 2px 9px; }
 .parts-grp__none { font-size: 12.5px; margin: 2px 0 6px; }
+
+/* Parts history / stock intelligence */
+.parts-live__warn { font-size: 12px; color: #ffb063; background: rgba(255,153,60,0.08); border: 1px solid rgba(255,153,60,0.25); border-radius: 8px; padding: 7px 10px; margin: 0 0 12px; }
+.parts-hist-sum { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--text-dim); margin: 2px 0 14px; }
+.parts-hist-sum__stock { color: #7ee6a0; font-weight: 600; }
+.parts-hist-pn { display: flex; flex-direction: column; gap: 2px; }
+.parts-hist-badge { font-size: 13px; font-weight: 800; color: var(--text-dim); background: var(--bg-elev-2); border-radius: 999px; padding: 2px 10px; }
+.parts-hist-badge--hot { color: #20120a; background: var(--accent); }
+.parts-hist-stock { font-size: 12px; color: #7ee6a0; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 8px; padding: 6px 9px; margin: 2px 0 6px; }
+.parts-hist-models { font-size: 12px; margin: 4px 0; }
+.parts-hist-compat { margin-top: 8px; }
+.parts-hist-compat__lbl { font-size: 11.5px; margin-bottom: 5px; }
