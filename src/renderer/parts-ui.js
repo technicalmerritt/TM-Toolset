@@ -14,7 +14,7 @@
   function isDb() { return ptype === 'screen' || ptype === 'battery'; }
   function setPtype(v) { ptype = v; lkind = (v === 'screen') ? 'screen' : 'battery'; }
   let partsDb = { entries: {} };
-  function pinnedFor(rm) { if (!rm) return []; const e = partsDb.entries[rm.id + '|' + ptype]; return (e && e.numbers) ? e.numbers : []; }
+  function pinnedFor(rm) { if (!rm) return []; const e = partsDb.entries[dbModelIdFor(rm) + '|' + ptype]; return (e && e.numbers) ? e.numbers : []; }
   let detect = null; // last "this PC" detection, for the banner
   let liveResults = null; // { query, loading, items, perSupplier } for in-app price compare
   const EDID_MAKERS = { AUO: 'AU Optronics', BOE: 'BOE', LGD: 'LG Display', SHP: 'Sharp', CMN: 'Innolux', CMO: 'Innolux', INL: 'Innolux', SDC: 'Samsung', SEC: 'Samsung', SAM: 'Samsung', IVO: 'InfoVision', PnP: '', APP: 'Apple', LEN: 'Lenovo' };
@@ -307,19 +307,34 @@
     const toks = ql.split(/[^a-z0-9]+/).filter((t) => t.length > 1);
     if (!toks.length) return null;
     let best = null, bestScore = 0;
-    (D.laptops || []).forEach((lp) => {
-      const hay = (lp.brand + ' ' + lp.model + ' ' + (lp.aliases || '')).toLowerCase();
-      let score = 0; toks.forEach((t) => { if (hay.includes(t)) score += 1; });
-      if (score > bestScore) { bestScore = score; best = lp; }
-    });
+    const consider = (obj) => { const hay = (obj.brand + ' ' + obj.model + ' ' + (obj.aliases || '')).toLowerCase(); let s = 0; toks.forEach((t) => { if (hay.includes(t)) s += 1; }); if (s > bestScore) { bestScore = s; best = obj; } };
+    (D.laptops || []).forEach(consider);
+    const models = (partsDb && partsDb.models) || {};
+    Object.keys(models).forEach((id) => { const e = models[id]; consider({ id, brand: e.brand, model: e.model, aliases: e.aliases, _db: true }); });
     return (best && bestScore >= Math.min(2, toks.length)) ? best : null;
   }
+  // Map a resolved model (curated or researched) to the database model id that
+  // actually holds its entries — so a curated model finds its researched twin.
+  function dbModelIdFor(rm) {
+    if (!rm) return null;
+    const ent = partsDb.entries || {};
+    if (Object.keys(ent).some((k) => k.indexOf(rm.id + '|') === 0)) return rm.id;
+    const toks = (rm.brand + ' ' + rm.model + ' ' + (rm.aliases || '')).toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length > 1);
+    const models = partsDb.models || {};
+    let best = null, bestScore = 0;
+    Object.keys(models).forEach((id) => { const e = models[id]; const hay = (e.brand + ' ' + e.model + ' ' + (e.aliases || '')).toLowerCase(); let s = 0; toks.forEach((t) => { if (hay.indexOf(t) >= 0) s += 1; }); if (s > bestScore) { bestScore = s; best = id; } });
+    return (best && bestScore >= 2) ? best : rm.id;
+  }
+  // Researched/pinned part numbers for a resolved model + the current part type.
+  function dbNumbersFor(rm) { if (!rm) return []; const e = (partsDb.entries || {})[dbModelIdFor(rm) + '|' + ptype]; return e && e.numbers ? e.numbers : []; }
+  function confidenceOf(rm, pn) { const ns = dbNumbersFor(rm); const m = ns.find((n) => String(n.pn).toUpperCase() === String(pn).toUpperCase()); return m ? (m.confidence || 0) : null; }
   // Turn whatever the tech searched into the best supplier query terms: a bare part
   // number as-is; a known model → its compatible panel/battery numbers; otherwise
   // the model with a category keyword so suppliers don't return chargers/keyboards.
   function liveTermsFor(query) {
     const q = String(query || '').trim();
-    // Screen / battery: resolve a model to its exact part numbers.
+    // Screen / battery: resolve a model to its exact part numbers (curated panels
+    // first, then the researched/pinned database).
     if (isDb()) {
       if (isPartNumber(q)) return { terms: [q], resolved: null };
       const lp = resolveModel(q);
@@ -328,6 +343,8 @@
         const terms = pns.map(partTerm).filter((t) => t && !/\s/.test(t)).slice(0, 3);
         if (terms.length) return { terms, resolved: lp };
       }
+      const dbNums = lp ? dbNumbersFor(lp).map((n) => n.pn) : [];
+      if (dbNums.length) return { terms: dbNums.slice(0, 4), resolved: lp, pinned: true };
       return { terms: [q + (lkind === 'screen' ? ' laptop screen' : ' laptop battery')], resolved: lp || null };
     }
     // Other part types: if you've pinned exact numbers for this model+part, use
@@ -365,14 +382,19 @@
   async function pinNumber(rm, pn, note) {
     if (!(window.partsdb && window.partsdb.pin)) { toast('Update the app to use this.'); return; }
     try {
-      const r = await window.partsdb.pin({ modelId: rm.id, model: rm.brand + ' ' + rm.model, part: ptype, pn, note: note || '' });
+      const r = await window.partsdb.pin({ modelId: dbModelIdFor(rm), model: rm.brand + ' ' + rm.model, part: ptype, pn, note: note || '' });
       if (r && r.db) partsDb = r.db;
       toast(r && r.pushed ? ('Pinned & synced “' + pn + '”.') : r && r.pushMsg ? ('Pinned locally. Sync: ' + r.pushMsg) : ('Pinned “' + pn + '” (set a GitHub token to sync).'));
       if (els.lresults) drawLaptopResults(els.lresults);
     } catch (e) { toast('Pin failed.'); }
   }
   async function unpinNumber(rm, pn) {
-    try { const r = await window.partsdb.remove({ modelId: rm.id, model: rm.brand + ' ' + rm.model, part: ptype, pn }); if (r && r.db) partsDb = r.db; if (els.lresults) drawLaptopResults(els.lresults); } catch (e) { /* ignore */ }
+    try { const r = await window.partsdb.remove({ modelId: dbModelIdFor(rm), model: rm.brand + ' ' + rm.model, part: ptype, pn }); if (r && r.db) partsDb = r.db; if (els.lresults) drawLaptopResults(els.lresults); } catch (e) { /* ignore */ }
+  }
+  function confBadge(conf) {
+    if (conf == null) return null;
+    const cls = conf >= 80 ? 'parts-conf--hi' : conf >= 65 ? 'parts-conf--mid' : 'parts-conf--lo';
+    return el('span', 'parts-conf ' + cls, (conf >= 100 ? '✓ yours' : conf + '%'));
   }
   function pinBox(rm) {
     const box = el('div', 'parts-pinbox');
@@ -383,12 +405,14 @@
       pinned.forEach((n) => {
         const c = el('span', 'parts-pin');
         c.appendChild(el('code', null, n.pn));
+        const b = confBadge(n.confidence != null ? n.confidence : (n.confirmed ? 100 : null)); if (b) c.appendChild(b);
         if (n.note) c.appendChild(el('span', 'parts-pin__note', n.note));
         const x = el('button', 'parts-pin__x', '×'); x.title = 'Remove'; x.addEventListener('click', () => unpinNumber(rm, n.pn));
         c.appendChild(x); prow.appendChild(c);
       });
     } else prow.appendChild(el('span', 'muted', 'None yet — pin one below and it becomes the search next time (and syncs to your other devices).'));
     box.appendChild(prow);
+    if (pinned.some((n) => n.source === 'researched')) box.appendChild(el('div', 'muted parts-pinbox__sub', 'Figures with a % are researched (OEM + eBay corroborated) — confirm one on a real repair and it becomes 100% “yours”.'));
     // candidates spotted in the live listings
     const cands = harvestCandidates(liveResults.items, rm);
     if (cands.length) {
@@ -590,7 +614,7 @@
     wrap.appendChild(status);
     if (!liveResults.items.length) {
       wrap.appendChild(el('p', 'muted', 'No live results came back. Use the “open on site” buttons below — some suppliers (eBay included) block apps from reading them, especially on a VPN.'));
-      if (liveResults.resolved && !isDb()) wrap.appendChild(pinBox(liveResults.resolved));
+      if (liveResults.resolved) wrap.appendChild(pinBox(liveResults.resolved));
       return wrap;
     }
     // Group by the panel/battery number searched; dedupe near-identical listings.
@@ -602,7 +626,7 @@
       liveResults.items.forEach((it) => list.appendChild(liveRow(it)));
       wrap.appendChild(list);
     }
-    if (liveResults.resolved && !isDb()) wrap.appendChild(pinBox(liveResults.resolved));
+    if (liveResults.resolved) wrap.appendChild(pinBox(liveResults.resolved));
     return wrap;
   }
 
@@ -625,6 +649,7 @@
     const hd = el('div', 'parts-grp__hd');
     hd.appendChild(pnEl(g.term));
     if (g.maker) hd.appendChild(el('span', 'parts-grp__mk', g.maker));
+    const cb = confBadge(confidenceOf(liveResults.resolved, g.term)); if (cb) hd.appendChild(cb);
     sec.appendChild(hd);
     if (!g.items.length) { sec.appendChild(el('p', 'muted parts-grp__none', 'No live results for this one — try the “open on site” buttons below.')); return sec; }
     const list = el('div', 'parts-live__list');
@@ -764,11 +789,14 @@
     container.innerHTML = '';
     const q = lq.trim();
 
-    // Model-specific part gotcha (e.g. "this T14s has soldered RAM").
+    // Model-specific part gotcha (e.g. "this T14s has soldered RAM", or the
+    // researched charge-port soldered/modular note).
     if (q) {
       const rm = resolveModel(q);
-      const notes = rm && D.partNotesByModel && D.partNotesByModel[rm.id];
-      if (notes && notes[ptype]) container.appendChild(modelNoteBox(rm, notes[ptype]));
+      const curated = rm && D.partNotesByModel && D.partNotesByModel[rm.id];
+      const researched = rm && partsDb.models && partsDb.models[rm.id] && partsDb.models[rm.id].notes;
+      const note = (curated && curated[ptype]) || (researched && researched[ptype]);
+      if (note) container.appendChild(modelNoteBox(rm, note));
     }
 
     const se = el('div', 'parts-searchrow');

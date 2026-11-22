@@ -2334,7 +2334,8 @@ function registerIpc() {
   async function readPartsDb() { try { const j = JSON.parse(await fsp.readFile(partsDbPath(), 'utf8')); return (j && j.entries) ? j : { version: 1, entries: {} }; } catch { return { version: 1, entries: {} }; } }
   async function writePartsDb(db) { try { await fsp.writeFile(partsDbPath(), JSON.stringify(db), 'utf8'); } catch { /* ignore */ } }
   function mergePartsDb(a, b) {
-    const out = { version: 1, entries: Object.assign({}, (a && a.entries) || {}) };
+    const out = { version: Math.max((a && a.version) || 1, (b && b.version) || 1), entries: Object.assign({}, (a && a.entries) || {}), models: Object.assign({}, (a && a.models) || {}) };
+    for (const [k, e] of Object.entries((b && b.models) || {})) { if (!out.models[k]) out.models[k] = e; }
     for (const [k, e] of Object.entries((b && b.entries) || {})) {
       const cur = out.entries[k];
       if (!cur) { out.entries[k] = e; continue; }
@@ -2407,8 +2408,8 @@ function registerIpc() {
     const e = db.entries[key] || { model: a.model || '', modelId: a.modelId || '', part: a.part, numbers: [] };
     const now = new Date().toISOString();
     const ex = e.numbers.find((n) => String(n.pn).toUpperCase() === pn.toUpperCase());
-    if (ex) { ex.confirmed = true; ex.count = (ex.count || 1) + 1; if (a.note) ex.note = a.note; ex.last = now; }
-    else e.numbers.push({ pn, note: a.note || '', confirmed: true, count: 1, last: now });
+    if (ex) { ex.confirmed = true; ex.confidence = 100; ex.count = (ex.count || 1) + 1; if (a.note) ex.note = a.note; ex.last = now; }
+    else e.numbers.push({ pn, note: a.note || '', confirmed: true, confidence: 100, count: 1, last: now });
     if (a.model) e.model = a.model;
     db.entries[key] = e; db.updated = now;
     await writePartsDb(db);
