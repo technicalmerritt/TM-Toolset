@@ -174,6 +174,19 @@ contextBridge.exposeInMainWorld('ebay', {
   test: () => ipcRenderer.invoke('ebay:test'),
 });
 
+contextBridge.exposeInMainWorld('partsdb', {
+  get: () => ipcRenderer.invoke('partsdb:get'),
+  sync: () => ipcRenderer.invoke('partsdb:sync'),
+  test: () => ipcRenderer.invoke('partsdb:test'),
+  pin: (args) => ipcRenderer.invoke('partsdb:pin', args),
+  remove: (args) => ipcRenderer.invoke('partsdb:remove', args),
+});
+
+contextBridge.exposeInMainWorld('github', {
+  get: () => ipcRenderer.invoke('github:get'),
+  save: (args) => ipcRenderer.invoke('github:save', args),
+});
+
 contextBridge.exposeInMainWorld('emsisoft', {
   get: () => ipcRenderer.invoke('emsisoft:get'),
   save: (payload) => ipcRenderer.invoke('emsisoft:save', payload),

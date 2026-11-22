@@ -200,8 +200,32 @@ async function saveEbay({ appId, certId } = {}) {
   return { hasKeys: !!(next.appId && next.appId.v && next.certId && next.certId.v) };
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+//  GitHub token (fine-grained PAT) for syncing the shared part-number database.
+// ─────────────────────────────────────────────────────────────────────────
+async function readGithub() {
+  if (!_readConfig) return {};
+  let cfg; try { cfg = await _readConfig(); } catch { cfg = null; }
+  cfg = cfg && typeof cfg === 'object' ? cfg : {};
+  return (cfg.github && typeof cfg.github === 'object') ? cfg.github : {};
+}
+async function getGithubPublic() { const g = await readGithub(); return { hasToken: !!(g && g.token && g.token.v) }; }
+async function getGithubForApi() { const g = await readGithub(); return { token: unpackToken(g && g.token) }; }
+async function saveGithub({ token } = {}) {
+  if (!_readConfig || !_writeConfig) throw new Error('Settings store not initialised.');
+  const cfg = (await _readConfig()) || {};
+  const cur = (cfg.github && typeof cfg.github === 'object') ? cfg.github : {};
+  const next = { token: cur.token || null };
+  if (token === null) next.token = null;
+  else if (typeof token === 'string' && token.length) next.token = packToken(token.trim());
+  cfg.github = next;
+  await _writeConfig(cfg);
+  return { hasToken: !!(next.token && next.token.v) };
+}
+
 module.exports = {
   configure, getPublic, getForApi, save,
   getEmsisoftPublic, getEmsisoftForApi, saveEmsisoft,
   getEbayPublic, getEbayForApi, saveEbay,
+  getGithubPublic, getGithubForApi, saveGithub,
 };

@@ -1,5 +1,5 @@
 {
-  "version": "0.70.46",
-  "notes": "Model-aware part gotchas. When the finder recognises the laptop, it now shows a note specific to THAT model and THAT part at the top — e.g. a ThinkPad T14s tells you its RAM is soldered (not upgradable) and its charge port is soldered to the board (a board-repair job), while an Inspiron 15 tells you its charge port is a modular DC jack on a cable (quick swap). Covers charge port, RAM and storage across the common Dell / HP / Lenovo / Asus / Acer / Apple / Surface / MSI models, plus a few keyboard notes. Figures are trade-typical and hedged where builds vary — always confirm against the machine in front of you.",
-  "zip": "tmtoolset-app-0.70.46.zip"
+  "version": "0.70.47",
+  "notes": "Self-building part-number database. When you search a part (charge port, keyboard, etc.) the finder now pulls the candidate part numbers out of the live listings and lets you PIN the right one. Once pinned it becomes the exact search next time — and it SYNCS across your devices through GitHub: add a GitHub token (Contents: read & write on your tm-toolset repo) under the laptop ⚙ Suppliers panel and every pin you make is pushed to a shared database that all your machines read back. Pins also save locally on the stick if you don't set a token. You can add numbers by hand too, and remove wrong ones. Honest note: I tried to auto-fill the database by harvesting a supplier, but the results were too unreliable (it returns chargers when you search 'charging port', and mistakes connector specs like '5-PIN' for part numbers), so it starts empty and fills accurately from the numbers you confirm.",
+  "zip": "tmtoolset-app-0.70.47.zip"
 }

@@ -2329,6 +2329,107 @@ function registerIpc() {
     return require('./parts/suppliers').testEbay(c);
   });
 
+  // ---- Shared part-number database (harvest + pin, synced via GitHub) ----
+  function partsDbPath() { return path.join(getDataDir(), 'parts-db.json'); }
+  async function readPartsDb() { try { const j = JSON.parse(await fsp.readFile(partsDbPath(), 'utf8')); return (j && j.entries) ? j : { version: 1, entries: {} }; } catch { return { version: 1, entries: {} }; } }
+  async function writePartsDb(db) { try { await fsp.writeFile(partsDbPath(), JSON.stringify(db), 'utf8'); } catch { /* ignore */ } }
+  function mergePartsDb(a, b) {
+    const out = { version: 1, entries: Object.assign({}, (a && a.entries) || {}) };
+    for (const [k, e] of Object.entries((b && b.entries) || {})) {
+      const cur = out.entries[k];
+      if (!cur) { out.entries[k] = e; continue; }
+      cur.model = cur.model || e.model;
+      (e.numbers || []).forEach((n) => {
+        const ex = (cur.numbers || []).find((x) => String(x.pn).toUpperCase() === String(n.pn).toUpperCase());
+        if (ex) { ex.count = Math.max(ex.count || 1, n.count || 1); ex.confirmed = ex.confirmed || n.confirmed; if (!ex.note && n.note) ex.note = n.note; }
+        else { cur.numbers = cur.numbers || []; cur.numbers.push(n); }
+      });
+    }
+    return out;
+  }
+  async function fetchRemotePartsDb(token) {
+    const repo = await getUpdateRepo();
+    const headers = { 'User-Agent': 'TMToolset', Accept: 'application/vnd.github+json' };
+    if (token) headers.Authorization = 'token ' + token;
+    try {
+      const r = await fetch('https://api.github.com/repos/' + repo + '/contents/parts-db.json?ref=' + UPDATE_BRANCH, { headers });
+      if (r.status === 404) return { ok: true, db: { version: 1, entries: {} }, sha: null };
+      if (!r.ok) return { ok: false, status: r.status };
+      const j = await r.json();
+      let db = { version: 1, entries: {} };
+      try { db = JSON.parse(Buffer.from(j.content, 'base64').toString('utf8')); } catch { /* ignore */ }
+      return { ok: true, db, sha: j.sha || null };
+    } catch (e) { return { ok: false, error: (e && e.message) || 'fetch failed' }; }
+  }
+  async function pushRemotePartsDb(token, localDb) {
+    const repo = await getUpdateRepo();
+    const got = await fetchRemotePartsDb(token);
+    if (!got.ok) return { ok: false, message: 'Could not read the remote database (HTTP ' + (got.status || '?') + ').' };
+    const merged = mergePartsDb(got.db || { entries: {} }, localDb);
+    merged.updated = new Date().toISOString();
+    const body = { message: 'Update parts-db.json', content: Buffer.from(JSON.stringify(merged, null, 2), 'utf8').toString('base64'), branch: UPDATE_BRANCH };
+    if (got.sha) body.sha = got.sha;
+    try {
+      const p = await fetch('https://api.github.com/repos/' + repo + '/contents/parts-db.json', { method: 'PUT', headers: { Authorization: 'token ' + token, 'User-Agent': 'TMToolset', 'Content-Type': 'application/json', Accept: 'application/vnd.github+json' }, body: JSON.stringify(body) });
+      if (p.status >= 200 && p.status < 300) return { ok: true, db: merged };
+      let msg = 'HTTP ' + p.status; try { msg = (await p.json()).message || msg; } catch { /* ignore */ }
+      if (p.status === 401 || p.status === 403) msg = 'Token rejected or missing Contents:write on the repo. ' + msg;
+      return { ok: false, message: msg };
+    } catch (e) { return { ok: false, message: (e && e.message) || 'push failed' }; }
+  }
+  ipcMain.handle('partsdb:get', async () => readPartsDb());
+  ipcMain.handle('partsdb:sync', async () => {
+    const local = await readPartsDb();
+    const { token } = await settings.getGithubForApi();
+    const got = await fetchRemotePartsDb(token);
+    if (!got.ok) return { ok: false, db: local, message: 'Could not reach GitHub.' };
+    const merged = mergePartsDb(got.db || { entries: {} }, local);
+    await writePartsDb(merged);
+    return { ok: true, db: merged };
+  });
+  ipcMain.handle('partsdb:test', async () => {
+    const { token } = await settings.getGithubForApi();
+    if (!token) return { ok: false, message: 'Enter a GitHub token first.' };
+    const repo = await getUpdateRepo();
+    try {
+      const r = await fetch('https://api.github.com/repos/' + repo, { headers: { Authorization: 'token ' + token, 'User-Agent': 'TMToolset', Accept: 'application/vnd.github+json' } });
+      if (!r.ok) return { ok: false, message: 'Token rejected (HTTP ' + r.status + ').' };
+      const j = await r.json();
+      if (j && j.permissions && j.permissions.push) return { ok: true, message: 'Token verified — database sync is on.' };
+      return { ok: false, message: 'Token works but has no write access to the repo — give it Contents: read & write.' };
+    } catch (e) { return { ok: false, message: (e && e.message) || 'test failed' }; }
+  });
+  ipcMain.handle('partsdb:pin', async (_evt, a) => {
+    a = a || {};
+    const pn = String(a.pn || '').trim(); if (!pn) return { ok: false, message: 'No part number.' };
+    const db = await readPartsDb();
+    const key = (a.modelId || 'q') + '|' + a.part;
+    const e = db.entries[key] || { model: a.model || '', modelId: a.modelId || '', part: a.part, numbers: [] };
+    const now = new Date().toISOString();
+    const ex = e.numbers.find((n) => String(n.pn).toUpperCase() === pn.toUpperCase());
+    if (ex) { ex.confirmed = true; ex.count = (ex.count || 1) + 1; if (a.note) ex.note = a.note; ex.last = now; }
+    else e.numbers.push({ pn, note: a.note || '', confirmed: true, count: 1, last: now });
+    if (a.model) e.model = a.model;
+    db.entries[key] = e; db.updated = now;
+    await writePartsDb(db);
+    let pushed = false; let pushMsg = '';
+    const { token } = await settings.getGithubForApi();
+    if (token) { const r = await pushRemotePartsDb(token, db); if (r.ok) { await writePartsDb(r.db); pushed = true; } else pushMsg = r.message; }
+    return { ok: true, db: await readPartsDb(), pushed, pushMsg };
+  });
+  ipcMain.handle('partsdb:remove', async (_evt, a) => {
+    a = a || {};
+    const db = await readPartsDb();
+    const key = (a.modelId || 'q') + '|' + a.part;
+    const e = db.entries[key];
+    if (e) { e.numbers = (e.numbers || []).filter((n) => String(n.pn).toUpperCase() !== String(a.pn).toUpperCase()); if (!e.numbers.length) delete db.entries[key]; db.updated = new Date().toISOString(); await writePartsDb(db); }
+    const { token } = await settings.getGithubForApi();
+    if (token) { const r = await pushRemotePartsDb(token, db); if (r.ok) await writePartsDb(r.db); }
+    return { ok: true, db: await readPartsDb() };
+  });
+  ipcMain.handle('github:get', async () => settings.getGithubPublic());
+  ipcMain.handle('github:save', async (_evt, a) => settings.saveGithub(a || {}));
+
   // Detect THIS machine's make/model (+ internal panel EDID) for "find the part for this PC".
   ipcMain.handle('parts:thisPc', async () => {
     try {

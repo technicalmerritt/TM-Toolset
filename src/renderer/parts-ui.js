@@ -13,6 +13,8 @@
   function ptDef() { return (D.partTypes || []).find((t) => t.id === ptype) || { id: ptype, label: ptype, short: 'Part', search: ptype, gotchas: '' }; }
   function isDb() { return ptype === 'screen' || ptype === 'battery'; }
   function setPtype(v) { ptype = v; lkind = (v === 'screen') ? 'screen' : 'battery'; }
+  let partsDb = { entries: {} };
+  function pinnedFor(rm) { if (!rm) return []; const e = partsDb.entries[rm.id + '|' + ptype]; return (e && e.numbers) ? e.numbers : []; }
   let detect = null; // last "this PC" detection, for the banner
   let liveResults = null; // { query, loading, items, perSupplier } for in-app price compare
   const EDID_MAKERS = { AUO: 'AU Optronics', BOE: 'BOE', LGD: 'LG Display', SHP: 'Sharp', CMN: 'Innolux', CMO: 'Innolux', INL: 'Innolux', SDC: 'Samsung', SEC: 'Samsung', SAM: 'Samsung', IVO: 'InfoVision', PnP: '', APP: 'Apple', LEN: 'Lenovo' };
@@ -328,13 +330,80 @@
       }
       return { terms: [q + (lkind === 'screen' ? ' laptop screen' : ' laptop battery')], resolved: lp || null };
     }
-    // Other part types: search the model + the part keyword so suppliers return
-    // the right category, not accessories.
+    // Other part types: if you've pinned exact numbers for this model+part, use
+    // them; otherwise search the model + the part keyword (so suppliers return
+    // the right category, not accessories).
     const lp = resolveModel(q);
+    const pinned = lp ? pinnedFor(lp).map((n) => n.pn) : [];
+    if (pinned.length) return { terms: pinned.slice(0, 4), resolved: lp, pinned: true };
     const base = (lp ? (lp.brand + ' ' + lp.model) : q);
     const kw = ptDef().search;
     const term = (kw ? (base + ' ' + kw) : base).trim();
     return { terms: [term], resolved: lp || null };
+  }
+
+  // Pull candidate part numbers out of the live result titles, for pinning.
+  function harvestCandidates(items, rm) {
+    const stop = new Set(['FHD', 'HD', 'LED', 'LCD', 'IPS', 'OLED', 'USB', 'SSD', 'NVME', 'DDR4', 'DDR5', 'INCH', 'NEW', 'OEM', 'REPLACEMENT', 'LAPTOP', 'SCREEN', 'BATTERY', 'KEYBOARD', 'CHARGING', 'CHARGER', 'ADAPTER', 'GENUINE', 'ORIGINAL', 'BLACK', 'SILVER']);
+    const modelToks = new Set((((rm ? rm.brand + ' ' + rm.model + ' ' + (rm.aliases || '') : '')).toUpperCase().match(/[A-Z0-9]+/g) || []));
+    const pinnedSet = new Set((rm ? pinnedFor(rm) : []).map((n) => String(n.pn).toUpperCase()));
+    const freq = {};
+    (items || []).forEach((it) => {
+      const toks = (it.title || '').toUpperCase().match(/\b[0-9A-Z][0-9A-Z.\-]{4,}\b/g) || [];
+      toks.forEach((raw) => {
+        const c = raw.replace(/[.\-]+$/, '');
+        if (c.length < 5 || c.length > 22) return;
+        if (!/[0-9]/.test(c) || !/[A-Z]/.test(c)) return;
+        if (stop.has(c) || modelToks.has(c) || pinnedSet.has(c)) return;
+        // Skip connector/spec noise (5-PIN, 5.5MM, 3.25A, 65W, 20V, 1920X1080…)
+        if (/PIN$/i.test(c) || /^\d+(\.\d+)?(MM|CM|A|V|W|WH|HZ|GHZ|GB|TB)$/i.test(c) || /^\d+X\d+$/i.test(c)) return;
+        freq[c] = (freq[c] || 0) + 1;
+      });
+    });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([pn, n]) => ({ pn, n }));
+  }
+  async function pinNumber(rm, pn, note) {
+    if (!(window.partsdb && window.partsdb.pin)) { toast('Update the app to use this.'); return; }
+    try {
+      const r = await window.partsdb.pin({ modelId: rm.id, model: rm.brand + ' ' + rm.model, part: ptype, pn, note: note || '' });
+      if (r && r.db) partsDb = r.db;
+      toast(r && r.pushed ? ('Pinned & synced “' + pn + '”.') : r && r.pushMsg ? ('Pinned locally. Sync: ' + r.pushMsg) : ('Pinned “' + pn + '” (set a GitHub token to sync).'));
+      if (els.lresults) drawLaptopResults(els.lresults);
+    } catch (e) { toast('Pin failed.'); }
+  }
+  async function unpinNumber(rm, pn) {
+    try { const r = await window.partsdb.remove({ modelId: rm.id, model: rm.brand + ' ' + rm.model, part: ptype, pn }); if (r && r.db) partsDb = r.db; if (els.lresults) drawLaptopResults(els.lresults); } catch (e) { /* ignore */ }
+  }
+  function pinBox(rm) {
+    const box = el('div', 'parts-pinbox');
+    box.appendChild(el('div', 'parts-pinbox__hd', '📌 Saved part numbers for ' + rm.brand + ' ' + rm.model + ' — ' + ptDef().short));
+    const pinned = pinnedFor(rm);
+    const prow = el('div', 'parts-chips');
+    if (pinned.length) {
+      pinned.forEach((n) => {
+        const c = el('span', 'parts-pin');
+        c.appendChild(el('code', null, n.pn));
+        if (n.note) c.appendChild(el('span', 'parts-pin__note', n.note));
+        const x = el('button', 'parts-pin__x', '×'); x.title = 'Remove'; x.addEventListener('click', () => unpinNumber(rm, n.pn));
+        c.appendChild(x); prow.appendChild(c);
+      });
+    } else prow.appendChild(el('span', 'muted', 'None yet — pin one below and it becomes the search next time (and syncs to your other devices).'));
+    box.appendChild(prow);
+    // candidates spotted in the live listings
+    const cands = harvestCandidates(liveResults.items, rm);
+    if (cands.length) {
+      box.appendChild(el('div', 'parts-pinbox__sub', 'Spotted in the listings — pin the right one:'));
+      const crow = el('div', 'parts-chips');
+      cands.forEach((c) => { const b = el('button', 'parts-chip', '+ ' + c.pn + (c.n > 1 ? ' ·' + c.n : '')); b.addEventListener('click', () => pinNumber(rm, c.pn)); crow.appendChild(b); });
+      box.appendChild(crow);
+    }
+    // manual add
+    const add = el('div', 'parts-pinadd');
+    const inp = el('input', 'parts-input'); inp.type = 'text'; inp.placeholder = 'Add a part number by hand…';
+    const btn = el('button', 'btn btn--ghost btn--sm', 'Pin'); btn.addEventListener('click', () => { const v = inp.value.trim(); if (v) { pinNumber(rm, v); inp.value = ''; } });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const v = inp.value.trim(); if (v) { pinNumber(rm, v); inp.value = ''; } } });
+    add.appendChild(inp); add.appendChild(btn); box.appendChild(add);
+    return box;
   }
 
   // Part number with letters vs digits colour-coded, so B/8 and O/0 can't be mixed up.
@@ -385,6 +454,25 @@
     });
     testBtn.addEventListener('click', async () => { testBtn.disabled = true; testBtn.textContent = 'Testing…'; try { const r = await window.ebay.test(); toast((r && r.message) || (r && r.ok ? 'OK' : 'Failed')); } catch (e) { toast('Test failed.'); } testBtn.disabled = false; testBtn.textContent = 'Test'; });
     helpBtn.addEventListener('click', () => openUrl('https://developer.ebay.com/join'));
+
+    // Shared part-number database (GitHub sync)
+    const gh = el('div', 'parts-ebay');
+    gh.appendChild(el('div', 'parts-ebay__hd', 'Part-number database sync (optional): add a GitHub token (Contents: read & write on your tm-toolset repo) so the part numbers you pin sync across all your devices. Without one, pins stay on this machine/stick.'));
+    const grow = el('div', 'parts-ebay__row');
+    const gstatus = el('span', 'muted parts-ebay__status', 'checking…');
+    const gset = el('button', 'btn btn--ghost btn--sm', 'Set token');
+    const gtest = el('button', 'btn btn--ghost btn--sm', 'Test');
+    const gsync = el('button', 'btn btn--ghost btn--sm', 'Sync now');
+    grow.appendChild(gstatus); grow.appendChild(gset); grow.appendChild(gtest); grow.appendChild(gsync);
+    gh.appendChild(grow); panel.appendChild(gh);
+    if (window.github && window.github.get) window.github.get().then((s) => { gstatus.textContent = (s && s.hasToken) ? '✓ Token saved — sync on' : 'Not set'; }).catch(() => { gstatus.textContent = ''; });
+    gset.addEventListener('click', async () => {
+      const t = window.prompt('GitHub fine-grained Personal Access Token (Contents: read & write on the tm-toolset repo):');
+      if (t === null) return;
+      try { const r = await window.github.save({ token: t.trim() }); gstatus.textContent = (r && r.hasToken) ? '✓ Token saved — sync on' : 'Not set'; toast((r && r.hasToken) ? 'Token saved. Hit Test.' : 'Token cleared.'); } catch (e) { toast('Save failed.'); }
+    });
+    gtest.addEventListener('click', async () => { gtest.disabled = true; gtest.textContent = 'Testing…'; try { const r = await window.partsdb.test(); toast((r && r.message) || 'Done.'); } catch (e) { toast('Test failed.'); } gtest.disabled = false; gtest.textContent = 'Test'; });
+    gsync.addEventListener('click', async () => { gsync.disabled = true; gsync.textContent = 'Syncing…'; try { const r = await window.partsdb.sync(); if (r && r.db) { partsDb = r.db; toast(r.ok ? 'Database synced.' : (r.message || 'Sync failed.')); if (sub === 'laptops') renderBody(); } } catch (e) { toast('Sync failed.'); } gsync.disabled = false; gsync.textContent = 'Sync now'; });
     return panel;
   }
 
@@ -421,8 +509,8 @@
     if (!(window.parts && window.parts.search)) { toast('Update the app to use this.'); return; }
     const sups = liveSupplierPayload();
     if (!sups.length) { toast('No readable suppliers ticked (AJ Parts / eBay).'); return; }
-    const { terms, resolved } = liveTermsFor(q);
-    liveResults = { query: q, terms, resolved, loading: true, items: [], perSupplier: [] };
+    const { terms, resolved, pinned } = liveTermsFor(q);
+    liveResults = { query: q, terms, resolved, pinned, loading: true, items: [], perSupplier: [] };
     // Log the lookup for the parts-history intelligence.
     if (window.parts && window.parts.historyLog) {
       const model = resolved ? (resolved.brand + ' ' + resolved.model) : q;
@@ -434,8 +522,14 @@
     if (els.lresults) drawLaptopResults(els.lresults);
     let r = null;
     try { r = await window.parts.search({ queries: terms, suppliers: sups }); } catch (e) { /* ignore */ }
-    liveResults = { query: q, terms, resolved, loading: false, items: (r && r.items) || [], perSupplier: (r && r.perSupplier) || [] };
+    liveResults = { query: q, terms, resolved, pinned, loading: false, items: (r && r.items) || [], perSupplier: (r && r.perSupplier) || [] };
     if (els.lresults) drawLaptopResults(els.lresults);
+  }
+
+  function loadPartsDb() {
+    if (!(window.partsdb && window.partsdb.get)) return;
+    window.partsdb.get().then((db) => { if (db && db.entries) partsDb = db; }).catch(() => {});
+    if (window.partsdb.sync) window.partsdb.sync().then((r) => { if (r && r.db && r.db.entries) { partsDb = r.db; if (sub === 'laptops') renderBody(); } }).catch(() => {});
   }
 
   // Guess the panel maker from the part-number prefix.
@@ -480,7 +574,7 @@
   function livePanel() {
     const wrap = el('div', 'parts-live');
     wrap.appendChild(el('h3', 'parts-h3', 'Live prices — “' + liveResults.query + '”'));
-    if (liveResults.resolved) wrap.appendChild(el('div', 'parts-live__note', '✓ Matched ' + liveResults.resolved.brand + ' ' + liveResults.resolved.model));
+    if (liveResults.resolved) wrap.appendChild(el('div', 'parts-live__note', '✓ Matched ' + liveResults.resolved.brand + ' ' + liveResults.resolved.model + (liveResults.pinned ? ' — using your pinned part number' + (liveResults.terms.length > 1 ? 's' : '') : '')));
     if (termsArePns()) wrap.appendChild(panelSummary());
     else if (liveResults.terms) wrap.appendChild(el('div', 'parts-live__note', 'Searching: ' + liveResults.terms.join(', ')));
 
@@ -496,6 +590,7 @@
     wrap.appendChild(status);
     if (!liveResults.items.length) {
       wrap.appendChild(el('p', 'muted', 'No live results came back. Use the “open on site” buttons below — some suppliers (eBay included) block apps from reading them, especially on a VPN.'));
+      if (liveResults.resolved && !isDb()) wrap.appendChild(pinBox(liveResults.resolved));
       return wrap;
     }
     // Group by the panel/battery number searched; dedupe near-identical listings.
@@ -507,6 +602,7 @@
       liveResults.items.forEach((it) => list.appendChild(liveRow(it)));
       wrap.appendChild(list);
     }
+    if (liveResults.resolved && !isDb()) wrap.appendChild(pinBox(liveResults.resolved));
     return wrap;
   }
 
@@ -908,6 +1004,7 @@
   async function load() {
     if (loaded) { renderBody(); return; }
     try { const p = await window.parts.get(); if (p) store = Object.assign(store, p); } catch (e) { /* defaults */ }
+    loadPartsDb();
     loaded = true;
     renderBody();
   }
