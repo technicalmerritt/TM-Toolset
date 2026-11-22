@@ -220,6 +220,36 @@ async function postComment({ subdomain, token, ticketId, subject, body, hidden }
 
 // Pull Syncro's real error text out of a failed response (JSON {message:[...]}
 // or plain text), so we surface the actual reason instead of a guess.
+// Add a billable line item to a ticket (POST /tickets/{id}/add_line_item).
+// Syncro requires name + description even when a product_id is supplied.
+async function addTicketLineItem({ subdomain, token, ticketId, name, description, quantity, price, cost, taxable, productId }) {
+  const base = normalizeBase(subdomain);
+  if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
+  if (!token) return { ok: false, message: 'Syncro API token is not set.' };
+  if (!ticketId) return { ok: false, message: 'No ticket is set in the top bar.' };
+  const nm = String(name || '').trim();
+  if (!nm) return { ok: false, message: 'The line item needs a name.' };
+  try {
+    const body = { name: nm, description: String(description || nm), quantity: quantity || 1 };
+    if (price != null) body.price = Math.round(Number(price) * 100) / 100;
+    if (cost != null) body.cost = Math.round(Number(cost) * 100) / 100;
+    if (taxable != null) body.taxable = !!taxable;
+    if (productId) body.product_id = productId;
+    const res = await apiRequest(base, token, '/tickets/' + ticketId + '/add_line_item', { method: 'POST', body });
+    if (res.status >= 200 && res.status < 300) {
+      let id = null;
+      try { const j = await res.json(); id = (j && j.line_item && j.line_item.id) || (j && j.id) || null; } catch { /* ignore */ }
+      return { ok: true, lineItemId: id };
+    }
+    const detail = await readError(res);
+    if (res.status === 401 || res.status === 403) return { ok: false, message: `Syncro rejected it (HTTP ${res.status}).${detail ? ' ' + detail : ' The token needs permission to edit tickets.'}` };
+    if (res.status === 404) return { ok: false, message: 'Ticket not found — re-select it in the top bar.' };
+    return { ok: false, message: `Syncro returned HTTP ${res.status}.${detail ? ' ' + detail : ''}` };
+  } catch (e) {
+    return { ok: false, message: 'Could not reach Syncro: ' + e.message };
+  }
+}
+
 async function readError(res) {
   let bodyText = '';
   try { bodyText = await res.text(); } catch { /* ignore */ }
@@ -236,6 +266,74 @@ async function readError(res) {
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function gbp(n) { return '£' + (Number(n) || 0).toFixed(2); }
+
+// Create a catalogue product, or update its price if one with the same name
+// already exists. Used by the Parts & Quotes tab so a quote can become a
+// reusable Syncro product without making duplicates.
+async function upsertProduct({ subdomain, token, name, priceRetail, priceCost, description }) {
+  const base = normalizeBase(subdomain);
+  if (!base) return { ok: false, message: 'Syncro subdomain is not set.' };
+  if (!token) return { ok: false, message: 'Syncro API token is not set.' };
+  const nm = String(name || '').trim();
+  if (!nm) return { ok: false, message: 'The product needs a name.' };
+  const retail = priceRetail != null ? Math.round(Number(priceRetail) * 100) / 100 : null;
+  const cost = priceCost != null ? Math.round(Number(priceCost) * 100) / 100 : null;
+  try {
+    // 1) Look for an existing product with the same name.
+    let existing = null;
+    try {
+      const res = await apiRequest(base, token, '/products?query=' + encodeURIComponent(nm) + '&per_page=100');
+      if (res.status === 401 || res.status === 403) {
+        return { ok: false, message: `Token rejected (HTTP ${res.status}) — the API token needs Products permission.` };
+      }
+      if (res.status === 200) {
+        let j = {};
+        try { j = await res.json(); } catch { /* ignore */ }
+        const list = (j && (j.products || j.data)) || [];
+        existing = list.find((p) => String(p.name || '').trim().toLowerCase() === nm.toLowerCase()) || null;
+      }
+    } catch { /* unreachable search -> fall through and attempt create */ }
+
+    // 2) Update the price if it differs.
+    if (existing) {
+      const curRetail = Number(existing.price_retail);
+      const curCost = Number(existing.price_cost);
+      const needRetail = retail != null && Math.abs((curRetail || 0) - retail) >= 0.005;
+      const needCost = cost != null && Math.abs((curCost || 0) - cost) >= 0.005;
+      if (!needRetail && !needCost) {
+        return { ok: true, action: 'unchanged', productId: existing.id, message: `“${nm}” already in Syncro at ${gbp(curRetail)} — no change needed.` };
+      }
+      const body = {};
+      if (needRetail) body.price_retail = retail;
+      if (needCost) body.price_cost = cost;
+      const up = await apiRequest(base, token, '/products/' + existing.id, { method: 'PUT', body });
+      if (up.status >= 200 && up.status < 300) {
+        return { ok: true, action: 'updated', productId: existing.id, message: `Updated “${nm}”${needRetail ? ` — price now ${gbp(retail)}` : ''}${needCost ? ` (cost ${gbp(cost)})` : ''}.` };
+      }
+      const d = await readError(up);
+      return { ok: false, message: `Couldn’t update the product (HTTP ${up.status}).${d ? ' ' + d : ''}` };
+    }
+
+    // 3) Create a new product.
+    const body = { name: nm };
+    if (retail != null) body.price_retail = retail;
+    if (cost != null) body.price_cost = cost;
+    if (description) body.description = description;
+    const res = await apiRequest(base, token, '/products', { method: 'POST', body });
+    if (res.status >= 200 && res.status < 300) {
+      let id = null;
+      try { const j = await res.json(); id = (j && j.product && j.product.id) || (j && j.id) || null; } catch { /* ignore */ }
+      return { ok: true, action: 'created', productId: id, message: `Created “${nm}” at ${gbp(retail)}.` };
+    }
+    const d = await readError(res);
+    if (res.status === 401 || res.status === 403) return { ok: false, message: `Syncro rejected it (HTTP ${res.status}).${d ? ' ' + d : ' The token needs permission to create products.'}` };
+    return { ok: false, message: `Syncro returned HTTP ${res.status}.${d ? ' ' + d : ''}` };
+  } catch (e) {
+    return { ok: false, message: 'Could not reach Syncro: ' + e.message };
+  }
 }
 
 function buildFindingsComment(result) {
@@ -266,4 +364,4 @@ function buildFindingsComment(result) {
   return out.join('\n');
 }
 
-module.exports = { testConnection, lookupTicket, listActiveTickets, getCustomer, postComment, listAssetTypes, createAsset, buildFindingsComment, normalizeBase };
+module.exports = { testConnection, lookupTicket, listActiveTickets, getCustomer, postComment, listAssetTypes, createAsset, upsertProduct, addTicketLineItem, buildFindingsComment, normalizeBase };

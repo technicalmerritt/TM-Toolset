@@ -49,6 +49,33 @@ window.TM_PARTS = {
     { supplier: 'Fonefunshop', product: 'Workshop Grade Cell', capacity: 'OEM', health: 'Standard', warranty: '12 Months', off: -2 }
   ],
 
+  // iPads, newest first. `screenBase` / `batteryBase` are per-model trade
+  // estimates (iPads vary far too much for a formula). Suppliers adjust around them.
+  ipads: [
+    { id: 'ipp129-6', name: 'iPad Pro 12.9" (6th gen, M2)', a: 'A2436', panel: 'Fully laminated LCD + glass (assembly)', screenBase: 175, batteryBase: 48, screenGotchas: 'Face ID dot-projector flex runs along the top edge — nick it and Face ID is dead with no aftermarket fix. One fully-laminated assembly (no glass-only repair); huge adhesive footprint and high crack risk on the 12.9. Disconnect the battery before the display flex.', batteryGotchas: 'Big multi-cell pack bonded hard to the chassis. Use adhesive remover and patience — a punctured iPad cell can catch fire. Budget serious bench time.' },
+    { id: 'ipp11-4', name: 'iPad Pro 11" (4th gen, M2)', a: 'A2759', panel: 'Fully laminated LCD + glass (assembly)', screenBase: 105, batteryBase: 38, screenGotchas: 'Face ID flex sits along the top edge — protect it or Face ID is lost. Laminated assembly only; replace the whole unit. Heat evenly, lift at a shallow angle.', batteryGotchas: 'Cells glued to the frame; lever gently with plastic only, never metal. Disconnect the battery first.' },
+    { id: 'ipair5', name: 'iPad Air (5th gen, M1)', a: 'A2588', panel: 'Laminated LCD + glass (assembly)', screenBase: 68, batteryBase: 30, screenGotchas: 'Fully bonded LCD + glass — no cheap glass-only fix, swap the whole assembly. Touch ID lives in the top button (not the screen), so a screen swap keeps it. Mind the top-edge flex.', batteryGotchas: 'Battery is bonded to the rear case; warm it and pry slowly. Never fold or puncture the cell.' },
+    { id: 'ipair4', name: 'iPad Air (4th gen)', a: 'A2316', panel: 'Laminated LCD + glass (assembly)', screenBase: 62, batteryBase: 28, screenGotchas: 'Same bonded assembly as the Air 5; Touch ID in the top button is unaffected by a screen swap. Don’t disturb the top-button flex.', batteryGotchas: 'Heavily glued cell; adhesive remover and patience. A bent cell is a fire risk — bin it.' },
+    { id: 'ipad10', name: 'iPad (10th gen)', a: 'A2696', panel: 'Non-laminated LCD + digitizer', screenBase: 48, batteryBase: 28, screenGotchas: 'Digitizer and LCD are separate layers — a glass-only fix is possible but fiddly. The front-camera/ambient flex runs along the LONG edge now (landscape camera) — very easy to tear. Touch ID is in the top button, so a screen swap keeps it.', batteryGotchas: 'Standard glued pack; lift with plastic tools only.' },
+    { id: 'ipad9', name: 'iPad (9th gen)', a: 'A2602', panel: 'Separate glass digitizer + LCD', screenBase: 20, batteryBase: 20, screenGotchas: 'Classic separate glass digitizer over the LCD — a cracked-glass-only repair is cheap. You MUST transfer the original Touch ID home button or Touch ID is lost forever. Heavy frame adhesive; watch the long digitizer flex top-left.', batteryGotchas: 'Glued cell under the logic board shielding; straightforward but slow.' },
+    { id: 'ipadmini6', name: 'iPad mini (6th gen)', a: 'A2567', panel: 'Laminated LCD + glass (assembly)', screenBase: 58, batteryBase: 26, screenGotchas: 'The faint “jelly scroll” on this panel is normal, not damage you caused — tell the customer up front. Laminated assembly; Touch ID in the top button is unaffected by a screen swap.', batteryGotchas: 'Compact, heavily-taped cell; gentle heat and plastic tools only.' },
+    { id: 'ipad78', name: 'iPad (7th / 8th gen)', a: 'A2197 / A2270', panel: 'Separate glass digitizer + LCD', screenBase: 18, batteryBase: 18, screenGotchas: 'Separate glass digitizer — cheap glass-only fix. Transfer the original Touch ID home button or lose Touch ID. Lots of frame adhesive; heat and take your time at the flex corner.', batteryGotchas: 'Glued cell beneath board shielding; easy but slow, never force it.' }
+  ],
+
+  ipadScreenSuppliers: [
+    { supplier: 'MobileSentrix UK', product: 'OEM-grade assembly / digitizer', closeness: 95, warranty: '6 Months', off: 14, preferred: true },
+    { supplier: 'ReplaceBase', product: 'Aftermarket assembly', closeness: 92, warranty: '12 Months', off: 9, preferred: true },
+    { supplier: 'iParts4U', product: 'Digitizer / assembly', closeness: 90, warranty: '6 Months', off: 5, preferred: false },
+    { supplier: 'Maxbhi UK', product: 'Budget digitizer', closeness: 84, warranty: '3 Months', off: -6, preferred: false },
+    { supplier: 'TVC-Mall Trade', product: 'Bulk aftermarket', closeness: 82, warranty: '3 Months', off: -9, preferred: false }
+  ],
+
+  ipadBatterySuppliers: [
+    { supplier: 'MobileSentrix UK', product: 'OEM-spec cell', capacity: 'OEM', health: 'Standard', warranty: '6 Months', off: 7 },
+    { supplier: 'ReplaceBase', product: 'Trade cell', capacity: 'OEM', health: 'Standard', warranty: '12 Months', off: 4 },
+    { supplier: 'iParts4U', product: 'Workshop cell', capacity: 'OEM', health: 'Standard', warranty: '6 Months', off: 0 }
+  ],
+
   suppliersDir: [
     { name: 'MobileSentrix UK', specialty: 'AmpSentrix & XO7 Screens', warranty: 'Lifetime (excl. physical damage)', cutoff: '19:00 UK dispatch', url: 'https://www.mobilesentrix.co.uk' },
     { name: 'ReplaceBase', specialty: 'Repair Pro & OEM Parts', warranty: 'Lifetime on screens', cutoff: '17:30 UK dispatch', url: 'https://www.replacebase.co.uk' },

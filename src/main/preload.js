@@ -154,6 +154,8 @@ contextBridge.exposeInMainWorld('syncro', {
   postNote: (args) => ipcRenderer.invoke('syncro:postNote', args),
   assetTypes: () => ipcRenderer.invoke('syncro:assetTypes'),
   createAsset: (args) => ipcRenderer.invoke('syncro:createAsset', args),
+  upsertProduct: (args) => ipcRenderer.invoke('syncro:upsertProduct', args),
+  addTicketPart: (args) => ipcRenderer.invoke('syncro:addTicketPart', args),
 });
 
 contextBridge.exposeInMainWorld('parts', {

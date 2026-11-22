@@ -2420,6 +2420,41 @@ function registerIpc() {
     });
   });
 
+  ipcMain.handle('syncro:upsertProduct', async (_evt, args) => {
+    const { subdomain, token } = await settings.getForApi();
+    if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
+    return syncro.upsertProduct({
+      subdomain,
+      token,
+      name: args && args.name,
+      priceRetail: args && args.priceRetail,
+      priceCost: args && args.priceCost,
+      description: args && args.description,
+    });
+  });
+
+  // Add a part to a ticket as a billable line item, keeping the catalogue
+  // product in sync (upsert first for a product_id + current price; the line
+  // item still goes on even if the token can't manage products).
+  ipcMain.handle('syncro:addTicketPart', async (_evt, args) => {
+    const { subdomain, token } = await settings.getForApi();
+    if (!subdomain || !token) return { ok: false, message: 'Configure Syncro in the Settings tab first.' };
+    const a = args || {};
+    let productId = null;
+    let productMsg = '';
+    try {
+      const up = await syncro.upsertProduct({ subdomain, token, name: a.name, priceRetail: a.price, priceCost: a.cost, description: a.description });
+      if (up && up.ok) { productId = up.productId || null; productMsg = up.action || ''; }
+    } catch { /* product sync is best-effort */ }
+    const li = await syncro.addTicketLineItem({
+      subdomain, token,
+      ticketId: a.ticketId, name: a.name, description: a.description,
+      quantity: 1, price: a.price, cost: a.cost, taxable: a.taxable, productId,
+    });
+    if (li && li.ok) return { ok: true, productId, productAction: productMsg };
+    return li;
+  });
+
   // ---- Install the Syncro RMM agent on this PC for the active ticket's customer ----
   ipcMain.handle('agent:get', async () => {
     const cfg = await readConfig();

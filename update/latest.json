@@ -1,5 +1,5 @@
 {
-  "version": "0.70.36",
-  "notes": "Maintenance update: rotated the licence signing key. The app now verifies licences against a new signing key. Existing activations are unaffected; any new licence must be generated with the current key. No visible changes to features.",
-  "zip": "tmtoolset-app-0.70.36.zip"
+  "version": "0.70.37",
+  "notes": "Parts & Quotes upgrades. New iPad sub-tab with iPad screen and battery finder, prices, bench gotchas and suppliers — the same as the iPhone one. Every part card now shows a copyable precise search term (the 'SKU' to paste straight into the supplier's site) and the Buy link searches that exact term, so you land on the right product fast; paste a direct product URL into the Link box once and it's saved for next time. New '＋ Add to ticket' button on each part (iPhone, iPad and laptop screens) adds it to the Syncro ticket in the top bar as a billable line item, and quietly creates or price-updates the matching Syncro catalogue product so you never get duplicates. Syncro is sent the ex-VAT price and adds the tax itself, so VAT is never double-counted.",
+  "zip": "tmtoolset-app-0.70.37.zip"
 }
