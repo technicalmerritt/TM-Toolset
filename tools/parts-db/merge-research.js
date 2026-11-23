@@ -46,13 +46,24 @@ const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
 const idFor = (brand,model) => norm(brand).replace(/[^a-z0-9]/g,'') + '-' +
   (model||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 
+// A token is only trustworthy for matching if it is a genuine model/chassis
+// CODE: it must contain a digit AND be either hyphenated (cb315-3h, cb314-1h)
+// or long (>=6: np950xdb, da0zcatb8d0). This deliberately EXCLUDES short
+// line-markers that merely contain digits — x360, x1, r752t, c733 — because
+// those are shared across unrelated models of one brand (e.g. Envy x360 laptop
+// vs Chromebook x360) and would wrongly collapse distinct models together.
+// Idempotent re-runs still match via the exact normalised model name below, so
+// erring toward "create new" here is safe: a visible duplicate beats a silent
+// bad merge into a good model.
+const isCode = t => /\d/.test(t) && (t.includes('-') || t.length >= 6);
+
 // index existing models for matching
 const byNormModel = {};            // normalised model string -> id
-const aliasToId = {};              // alias token -> id (only reasonably specific tokens)
+const aliasToId = {};              // code-like alias token -> id
 for (const id in db.models) {
   const m = db.models[id];
   byNormModel[norm(m.model)] = id;
-  (m.aliases||'').split(/\s+/).filter(t=>t.length>=4).forEach(t => { if(!aliasToId[t]) aliasToId[t]=id; });
+  (m.aliases||'').toLowerCase().split(/\s+/).filter(isCode).forEach(t => { if(!aliasToId[t]) aliasToId[t]=id; });
 }
 
 function matchId(e) {
@@ -60,8 +71,8 @@ function matchId(e) {
   if (db.models[cand]) return cand;
   const nm = norm(e.model);
   if (byNormModel[nm]) return byNormModel[nm];
-  // alias token overlap (same brand only)
-  const toks = (e.aliases||'').toLowerCase().split(/\s+/).filter(t=>t.length>=4);
+  // code-like alias token overlap (same brand only)
+  const toks = (e.aliases||'').toLowerCase().split(/\s+/).filter(isCode);
   for (const t of toks) {
     const hit = aliasToId[t];
     if (hit && db.models[hit] && norm(db.models[hit].brand) === norm(e.brand)) return hit;

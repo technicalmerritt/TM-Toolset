@@ -695,7 +695,7 @@
    "aliases": "chromebook 315 cb315-3h cb315-3ht",
    "years": "2019-2021",
    "notes": {
-    "chargeport": "USB-C charging (on board/daughterboard) — no barrel jack. Fanless."
+    "chargeport": "USB-C charging via a separate daughterboard; exact board number not corroborated."
    }
   },
   "acer-travelmate-p2-p215-53": {
@@ -1344,6 +1344,204 @@
    "years": "2020-2021",
    "notes": {
     "chargeport": "Modular DC barrel jack 19V on a DC-IN cable. No cable FRU verified."
+   }
+  },
+  "hp-chromebook-11-g6-ee": {
+   "brand": "HP",
+   "model": "Chromebook 11 G6 EE",
+   "aliases": "hp chromebook 11 g6 ee 11 g6 education edition",
+   "years": "2018-2019",
+   "notes": {
+    "chargeport": "Charges over USB-C via a MODULAR USB/power daughterboard (most common repair). L14923-001 = Intel board; L57729-001 = AMD board."
+   }
+  },
+  "hp-chromebook-11-g7-ee": {
+   "brand": "HP",
+   "model": "Chromebook 11 G7 EE",
+   "aliases": "hp chromebook 11 g7 ee 11 g7 education edition",
+   "years": "2019-2020",
+   "notes": {
+    "chargeport": "USB-C charging via a MODULAR USB/power daughterboard (with cables). Most common repair."
+   }
+  },
+  "hp-chromebook-11-g8-ee": {
+   "brand": "HP",
+   "model": "Chromebook 11 G8 EE",
+   "aliases": "hp chromebook 11 g8 ee 11 g8 education edition",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a modular connector/USB daughterboard. Exact Intel-G8 board number not corroborated — verify (cf. 11A G8 EE L92816-001)."
+   }
+  },
+  "hp-chromebook-11-g9-ee": {
+   "brand": "HP",
+   "model": "Chromebook 11 G9 EE",
+   "aliases": "hp chromebook 11 g9 ee 11 g9 education edition",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "USB-C charging via a MODULAR USB daughterboard (Intel variant). Separate board for AMD/MediaTek SKUs."
+   }
+  },
+  "hp-chromebook-11a-g6-ee": {
+   "brand": "HP",
+   "model": "Chromebook 11A G6 EE",
+   "aliases": "hp chromebook 11a g6 ee 11a g6 education edition amd",
+   "years": "2019-2020",
+   "notes": {
+    "chargeport": "USB-C charging via a modular USB daughterboard; exact 11A G6 EE board number not corroborated — verify."
+   }
+  },
+  "hp-chromebook-11a-g8-ee": {
+   "brand": "HP",
+   "model": "Chromebook 11A G8 EE",
+   "aliases": "hp chromebook 11a g8 ee 11a g8 education edition amd",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a MODULAR USB/connector board with cables (incl. audio jack + USB). Most common repair."
+   }
+  },
+  "hp-chromebook-14-g5": {
+   "brand": "HP",
+   "model": "Chromebook 14 G5",
+   "aliases": "hp chromebook 14 g5",
+   "years": "2018-2019",
+   "notes": {
+    "chargeport": "USB-C charging routed through a board, but a standalone daughterboard number was not corroborated — verify."
+   }
+  },
+  "hp-chromebook-14-g6": {
+   "brand": "HP",
+   "model": "Chromebook 14 G6",
+   "aliases": "hp chromebook 14 g6",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging; standalone USB/power board number not corroborated — verify (14 G7 M47195-001 is the HDMI board, not USB)."
+   }
+  },
+  "hp-chromebook-14-g7": {
+   "brand": "HP",
+   "model": "Chromebook 14 G7",
+   "aliases": "hp chromebook 14 g7",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "USB-C charging; HDMI board is M47195-001, USB bracket L90438-001, but the USB/power daughterboard number was not corroborated — verify."
+   }
+  },
+  "hp-chromebook-x360-11-g2-ee": {
+   "brand": "HP",
+   "model": "Chromebook x360 11 G2 EE",
+   "aliases": "hp chromebook x360 11 g2 ee x360 11 g2 education edition",
+   "years": "2019-2020",
+   "notes": {
+    "chargeport": "USB-C charging via a MODULAR power+USB daughterboard. Most common repair."
+   }
+  },
+  "hp-chromebook-x360-11-g3-ee": {
+   "brand": "HP",
+   "model": "Chromebook x360 11 G3 EE",
+   "aliases": "hp chromebook x360 11 g3 ee x360 11 g3 education edition",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a MODULAR USB daughterboard with cable (REV A/C). Most common repair."
+   }
+  },
+  "hp-chromebook-x360-11-g4-ee": {
+   "brand": "HP",
+   "model": "Chromebook x360 11 G4 EE",
+   "aliases": "hp chromebook x360 11 g4 ee x360 11 g4 education edition",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "USB-C charging via a MODULAR USB/power daughterboard (HP SPS USB BOARD). Most common repair."
+   }
+  },
+  "hp-chromebook-14a-14a-na": {
+   "brand": "HP",
+   "model": "Chromebook 14a (14a-na)",
+   "aliases": "hp chromebook 14a 14a-na",
+   "years": "2020-2022",
+   "notes": {
+    "chargeport": "USB-C charging; standalone board number not corroborated — verify."
+   }
+  },
+  "acer-chromebook-311-c733-c733t": {
+   "brand": "Acer",
+   "model": "Chromebook 311 (C733 / C733T)",
+   "aliases": "c733 c733t chromebook 311",
+   "years": "2019-2021",
+   "notes": {
+    "chargeport": "USB-C charging on a separate USB/USB-C daughterboard (not soldered). Shared with Chromebook 512 C851/C851T."
+   }
+  },
+  "acer-chromebook-spin-511-r752t-r752tn": {
+   "brand": "Acer",
+   "model": "Chromebook Spin 511 (R752T / R752TN)",
+   "aliases": "r752t r752tn spin 511",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging on a separate USB I/O daughterboard (bare board DA0ZAKTB6x0). Most common repair."
+   }
+  },
+  "acer-chromebook-spin-511-r753t-r753tn": {
+   "brand": "Acer",
+   "model": "Chromebook Spin 511 (R753T / R753TN)",
+   "aliases": "r753t r753tn spin 511 gen2",
+   "years": "2021-2023",
+   "notes": {
+    "chargeport": "USB-C charging on a separate daughterboard; bare board DA0ZCATB8D0 (shared with Chromebook 511 C734). Single source."
+   }
+  },
+  "acer-chromebook-spin-311-r721t": {
+   "brand": "Acer",
+   "model": "Chromebook Spin 311 (R721T)",
+   "aliases": "r721t spin 311 cb311 amd",
+   "years": "2019-2020",
+   "notes": {
+    "chargeport": "USB-C charging via a separate daughterboard; exact board number not corroborated for this model."
+   }
+  },
+  "acer-chromebook-314-c933-cb314-1h": {
+   "brand": "Acer",
+   "model": "Chromebook 314 (C933 / CB314-1H)",
+   "aliases": "c933 cb314-1h chromebook 314",
+   "years": "2019-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a separate daughterboard; exact board number not corroborated."
+   }
+  },
+  "acer-chromebook-512-c851-c852": {
+   "brand": "Acer",
+   "model": "Chromebook 512 (C851 / C852)",
+   "aliases": "c851 c852 chromebook 512",
+   "years": "2019-2021",
+   "notes": {
+    "chargeport": "USB-C charging on a separate USB/USB-C daughterboard (Rev E; OEM 1MI5ZZZ011J). Same board as Chromebook 311 C733/C733T. C852 (N5100) may use a different revision — verify."
+   }
+  },
+  "acer-chromebook-712-c871-c871t": {
+   "brand": "Acer",
+   "model": "Chromebook 712 (C871 / C871T)",
+   "aliases": "c871 c871t chromebook 712",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging; board number not corroborated for this model. Comet Lake (Celeron 5205U) — fan presence not verified, some SKUs may be fanless."
+   }
+  },
+  "acer-chromebook-spin-513-cp513-1h-r841t": {
+   "brand": "Acer",
+   "model": "Chromebook Spin 513 (CP513-1H / R841T)",
+   "aliases": "cp513-1h r841t r841 spin 513",
+   "years": "2020-2022",
+   "notes": {
+    "chargeport": "USB-C charging; whether on mainboard or daughterboard not corroborated for this model."
+   }
+  },
+  "acer-chromebook-spin-311-r722t": {
+   "brand": "Acer",
+   "model": "Chromebook Spin 311 (R722T)",
+   "aliases": "r722t spin 311 mediatek",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a separate daughterboard; exact board number not corroborated."
    }
   }
  },
@@ -4390,6 +4588,13 @@
      "confidence": 80,
      "confirmed": false,
      "source": "researched"
+    },
+    {
+     "pn": "AP18C8K",
+     "note": "4-cell ~50.29Wh (Acer KT.00304.012; 3INP5/82/70). Shared with Aspire 5/Swift 3. This is CB315-3H (Intel N4000/N5000); -2H/-1H use different packs.",
+     "confidence": 75,
+     "confirmed": false,
+     "source": "researched"
     }
    ]
   },
@@ -6446,6 +6651,853 @@
      "pn": "PA5366U-1BRS",
      "note": "15.4V ~38Wh 4-cell (4ICP6/47/61). Some L50-G use PA5368U-1BRS (41CP6/47/61) instead — check original label.",
      "confidence": 66,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g6-ee|screen": {
+   "model": "Chromebook 11 G6 EE",
+   "modelId": "hp-chromebook-11-g6-ee",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "L14917-001",
+     "note": "11.6in HD non-touch 30-pin eDP (L14917-001 HP spare; NT116WHM-N21 bare panel). Touch variants use a 40-pin on-cell assembly.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "NT116WHM-N21",
+     "note": "11.6in HD non-touch 30-pin eDP (L14917-001 HP spare; NT116WHM-N21 bare panel). Touch variants use a 40-pin on-cell assembly.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g6-ee|battery": {
+   "model": "Chromebook 11 G6 EE",
+   "modelId": "hp-chromebook-11-g6-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GB02XL",
+     "note": "~47.3Wh 2-cell 7.7V. TWO interchange families: GB02XL (L42583-005) and GM02XL (917725-855) — check the label.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L42583-005",
+     "note": "~47.3Wh 2-cell 7.7V. TWO interchange families: GB02XL (L42583-005) and GM02XL (917725-855) — check the label.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "GM02XL",
+     "note": "~47.3Wh 2-cell 7.7V. TWO interchange families: GB02XL (L42583-005) and GM02XL (917725-855) — check the label.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "917725-855",
+     "note": "~47.3Wh 2-cell 7.7V. TWO interchange families: GB02XL (L42583-005) and GM02XL (917725-855) — check the label.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g6-ee|chargeport": {
+   "model": "Chromebook 11 G6 EE",
+   "modelId": "hp-chromebook-11-g6-ee",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "L14923-001",
+     "note": "Charges over USB-C via a MODULAR USB/power daughterboard (most common repair). L14923-001 = Intel board; L57729-001 = AMD board.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L57729-001",
+     "note": "Charges over USB-C via a MODULAR USB/power daughterboard (most common repair). L14923-001 = Intel board; L57729-001 = AMD board.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g6-ee|keyboard": {
+   "model": "Chromebook 11 G6 EE",
+   "modelId": "hp-chromebook-11-g6-ee",
+   "part": "keyboard",
+   "numbers": [
+    {
+     "pn": "L14921-001",
+     "note": "Sold ONLY as palmrest/top-cover with keyboard. Single source, UK/ISO not confirmed.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g6-ee|palmrest": {
+   "model": "Chromebook 11 G6 EE",
+   "modelId": "hp-chromebook-11-g6-ee",
+   "part": "palmrest",
+   "numbers": [
+    {
+     "pn": "L14921-001",
+     "note": "Top cover C-cover incl. keyboard. Single source.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g7-ee|screen": {
+   "model": "Chromebook 11 G7 EE",
+   "modelId": "hp-chromebook-11-g7-ee",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "L14917-001",
+     "note": "11.6in HD non-touch 30-pin eDP; shares panel with G6 EE. Touch SKUs use 40-pin on-cell assembly.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "NT116WHM-N21",
+     "note": "11.6in HD non-touch 30-pin eDP; shares panel with G6 EE. Touch SKUs use 40-pin on-cell assembly.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g7-ee|battery": {
+   "model": "Chromebook 11 G7 EE",
+   "modelId": "hp-chromebook-11-g7-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GB02XL",
+     "note": "~47.3Wh 2-cell 7.7V (some units GM02XL/917725-855 — check label).",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L42583-005",
+     "note": "~47.3Wh 2-cell 7.7V (some units GM02XL/917725-855 — check label).",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g7-ee|chargeport": {
+   "model": "Chromebook 11 G7 EE",
+   "modelId": "hp-chromebook-11-g7-ee",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "L52570-001",
+     "note": "USB-C charging via a MODULAR USB/power daughterboard (with cables). Most common repair.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g8-ee|screen": {
+   "model": "Chromebook 11 G8 EE",
+   "modelId": "hp-chromebook-11-g8-ee",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "L89783-001",
+     "note": "11.6in HD non-touch 30-pin (L89783-001 current HP spare). Touch SKUs use a separate 40-pin on-cell assembly.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L14917-001",
+     "note": "11.6in HD non-touch 30-pin (L89783-001 current HP spare). Touch SKUs use a separate 40-pin on-cell assembly.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g8-ee|battery": {
+   "model": "Chromebook 11 G8 EE",
+   "modelId": "hp-chromebook-11-g8-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GH02XL",
+     "note": "2-cell 47.36Wh (incl. cable). HP spare L75783-005; HSTNN-IB9C substitute. A few early G8 took GB02XL — check label.",
+     "confidence": 92,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L75783-005",
+     "note": "2-cell 47.36Wh (incl. cable). HP spare L75783-005; HSTNN-IB9C substitute. A few early G8 took GB02XL — check label.",
+     "confidence": 92,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g9-ee|screen": {
+   "model": "Chromebook 11 G9 EE",
+   "modelId": "hp-chromebook-11-g9-ee",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "L89783-001",
+     "note": "11.6in HD non-touch 30-pin (shares non-touch panel family with G8). Touch SKUs separate.",
+     "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g9-ee|battery": {
+   "model": "Chromebook 11 G9 EE",
+   "modelId": "hp-chromebook-11-g9-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GH02XL",
+     "note": "2-cell 47.3Wh 7.7V. Some later/MediaTek G9 SKUs use a different pack — verify label.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L75783-005",
+     "note": "2-cell 47.3Wh 7.7V. Some later/MediaTek G9 SKUs use a different pack — verify label.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11-g9-ee|chargeport": {
+   "model": "Chromebook 11 G9 EE",
+   "modelId": "hp-chromebook-11-g9-ee",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "M44240-001",
+     "note": "USB-C charging via a MODULAR USB daughterboard (Intel variant). Separate board for AMD/MediaTek SKUs.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11a-g6-ee|screen": {
+   "model": "Chromebook 11A G6 EE",
+   "modelId": "hp-chromebook-11a-g6-ee",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "L14917-001",
+     "note": "11.6in HD non-touch 30-pin (shares AMD-chassis panel family with 11 G6/G7 EE).",
+     "confidence": 62,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11a-g6-ee|battery": {
+   "model": "Chromebook 11A G6 EE",
+   "modelId": "hp-chromebook-11a-g6-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GH02XL",
+     "note": "2-cell 47.3Wh 7.7V (also L75253-271). Some sources list GB02XL — verify label before ordering.",
+     "confidence": 65,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L75783-005",
+     "note": "2-cell 47.3Wh 7.7V (also L75253-271). Some sources list GB02XL — verify label before ordering.",
+     "confidence": 65,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11a-g8-ee|screen": {
+   "model": "Chromebook 11A G8 EE",
+   "modelId": "hp-chromebook-11a-g8-ee",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "L89783-001",
+     "note": "11.6in HD non-touch 30-pin (listings pair 11/11A G8 EE non-touch).",
+     "confidence": 65,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11a-g8-ee|battery": {
+   "model": "Chromebook 11A G8 EE",
+   "modelId": "hp-chromebook-11a-g8-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GH02XL",
+     "note": "2-cell 47Wh. HP spare L75783-005 (L75253-271 / HSTNN-DB9M alternates).",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L75783-005",
+     "note": "2-cell 47Wh. HP spare L75783-005 (L75253-271 / HSTNN-DB9M alternates).",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-11a-g8-ee|chargeport": {
+   "model": "Chromebook 11A G8 EE",
+   "modelId": "hp-chromebook-11a-g8-ee",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "L92816-001",
+     "note": "USB-C charging via a MODULAR USB/connector board with cables (incl. audio jack + USB). Most common repair.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "DA00GETB8C0",
+     "note": "USB-C charging via a MODULAR USB/connector board with cables (incl. audio jack + USB). Most common repair.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-14-g5|screen": {
+   "model": "Chromebook 14 G5",
+   "modelId": "hp-chromebook-14-g5",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N140BGA-EA4",
+     "note": "14in HD 30-pin non-touch bare panel = N140BGA-EA4. Touch SKUs use HP spare L14350-001 (bonded assembly). Verify touch vs non-touch.",
+     "confidence": 72,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L14350-001",
+     "note": "14in HD 30-pin non-touch bare panel = N140BGA-EA4. Touch SKUs use HP spare L14350-001 (bonded assembly). Verify touch vs non-touch.",
+     "confidence": 72,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-14-g5|battery": {
+   "model": "Chromebook 14 G5",
+   "modelId": "hp-chromebook-14-g5",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GM02XL",
+     "note": "~47.2Wh 2-cell 7.7V. Two interchange families across 14 G5 production — check label.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "917725-855",
+     "note": "~47.2Wh 2-cell 7.7V. Two interchange families across 14 G5 production — check label.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "GB02XL",
+     "note": "~47.2Wh 2-cell 7.7V. Two interchange families across 14 G5 production — check label.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L42583-005",
+     "note": "~47.2Wh 2-cell 7.7V. Two interchange families across 14 G5 production — check label.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-14-g6|screen": {
+   "model": "Chromebook 14 G6",
+   "modelId": "hp-chromebook-14-g6",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N140BGA-EA4",
+     "note": "14in HD non-touch (bare panel N140BGA-EA4; HP spares L90430-001 / M47192-001). Touch SKUs use M47193-001 / L90431-001 40-pin. FHD SKU L90428-001 — verify.",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L90430-001",
+     "note": "14in HD non-touch (bare panel N140BGA-EA4; HP spares L90430-001 / M47192-001). Touch SKUs use M47193-001 / L90431-001 40-pin. FHD SKU L90428-001 — verify.",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "M47192-001",
+     "note": "14in HD non-touch (bare panel N140BGA-EA4; HP spares L90430-001 / M47192-001). Touch SKUs use M47193-001 / L90431-001 40-pin. FHD SKU L90428-001 — verify.",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-14-g6|battery": {
+   "model": "Chromebook 14 G6",
+   "modelId": "hp-chromebook-14-g6",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GH02XL",
+     "note": "2-cell 47.3Wh 7.7V. HP spare L75783-005 (L75253-271 / HSTNN-DB9M alternates).",
+     "confidence": 88,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L75783-005",
+     "note": "2-cell 47.3Wh 7.7V. HP spare L75783-005 (L75253-271 / HSTNN-DB9M alternates).",
+     "confidence": 88,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-14-g7|screen": {
+   "model": "Chromebook 14 G7",
+   "modelId": "hp-chromebook-14-g7",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N140BGA-EA4",
+     "note": "14in HD non-touch bare panel (shares panel family with 14 G6). Touch/FHD SKUs differ.",
+     "confidence": 66,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-14-g7|battery": {
+   "model": "Chromebook 14 G7",
+   "modelId": "hp-chromebook-14-g7",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GH02XL",
+     "note": "2-cell 47.3Wh 7.7V. HP spare L75783-005; Enterprise 14 G7 same pack.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L75783-005",
+     "note": "2-cell 47.3Wh 7.7V. HP spare L75783-005; Enterprise 14 G7 same pack.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g2-ee|battery": {
+   "model": "Chromebook x360 11 G2 EE",
+   "modelId": "hp-chromebook-x360-11-g2-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GB02XL",
+     "note": "2-cell 47.3Wh 7.7V. HSTNN-IB8W / L42550 alternates.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L42583-005",
+     "note": "2-cell 47.3Wh 7.7V. HSTNN-IB8W / L42550 alternates.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g2-ee|chargeport": {
+   "model": "Chromebook x360 11 G2 EE",
+   "modelId": "hp-chromebook-x360-11-g2-ee",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "L53195-001",
+     "note": "USB-C charging via a MODULAR power+USB daughterboard. Most common repair.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g3-ee|screen": {
+   "model": "Chromebook x360 11 G3 EE",
+   "modelId": "hp-chromebook-x360-11-g3-ee",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "L92337-001",
+     "note": "Convertible — 11.6in HD 40-pin bonded TOUCH module incl. bezel + G-sensor. L92338-001 = stylus; L92337-001 = finger-touch. Full assembly, not bare panel.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L92338-001",
+     "note": "Convertible — 11.6in HD 40-pin bonded TOUCH module incl. bezel + G-sensor. L92338-001 = stylus; L92337-001 = finger-touch. Full assembly, not bare panel.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g3-ee|battery": {
+   "model": "Chromebook x360 11 G3 EE",
+   "modelId": "hp-chromebook-x360-11-g3-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GH02XL",
+     "note": "2-cell 47Wh 7.7V (incl. cable). HP spare L75783-005.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L75783-005",
+     "note": "2-cell 47Wh 7.7V (incl. cable). HP spare L75783-005.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g3-ee|chargeport": {
+   "model": "Chromebook x360 11 G3 EE",
+   "modelId": "hp-chromebook-x360-11-g3-ee",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "L92212-001",
+     "note": "USB-C charging via a MODULAR USB daughterboard with cable (REV A/C). Most common repair.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g3-ee|keyboard": {
+   "model": "Chromebook x360 11 G3 EE",
+   "modelId": "hp-chromebook-x360-11-g3-ee",
+   "part": "keyboard",
+   "numbers": [
+    {
+     "pn": "L92214-001",
+     "note": "Sold ONLY as palmrest/top-cover with keyboard (L92214-001). UK/ISO not separately confirmed.",
+     "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g3-ee|lid": {
+   "model": "Chromebook x360 11 G3 EE",
+   "modelId": "hp-chromebook-x360-11-g3-ee",
+   "part": "lid",
+   "numbers": [
+    {
+     "pn": "L92204-001",
+     "note": "LCD back cover / A-cover (with antenna). Single-retailer source.",
+     "confidence": 58,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g3-ee|palmrest": {
+   "model": "Chromebook x360 11 G3 EE",
+   "modelId": "hp-chromebook-x360-11-g3-ee",
+   "part": "palmrest",
+   "numbers": [
+    {
+     "pn": "L92214-001",
+     "note": "Top cover C-cover incl. keyboard.",
+     "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g3-ee|hinges": {
+   "model": "Chromebook x360 11 G3 EE",
+   "modelId": "hp-chromebook-x360-11-g3-ee",
+   "part": "hinges",
+   "numbers": [
+    {
+     "pn": "L92207-001",
+     "note": "Hinge set (convertible 360 hinges).",
+     "confidence": 72,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g4-ee|battery": {
+   "model": "Chromebook x360 11 G4 EE",
+   "modelId": "hp-chromebook-x360-11-g4-ee",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GG02XL",
+     "note": "2-cell ~47Wh 7.7V. HP spare M25914-005 / model GG02XL (newer pack than GH02XL on G3).",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "M25914-005",
+     "note": "2-cell ~47Wh 7.7V. HP spare M25914-005 / model GG02XL (newer pack than GH02XL on G3).",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-x360-11-g4-ee|chargeport": {
+   "model": "Chromebook x360 11 G4 EE",
+   "modelId": "hp-chromebook-x360-11-g4-ee",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "M47223-001",
+     "note": "USB-C charging via a MODULAR USB/power daughterboard (HP SPS USB BOARD). Most common repair.",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "hp-chromebook-14a-14a-na|battery": {
+   "model": "Chromebook 14a (14a-na)",
+   "modelId": "hp-chromebook-14a-14a-na",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "GH02XL",
+     "note": "2-cell 47.3Wh 7.7V. Newegg lists L75783-005 as original for 14a-na; L75253-271 alternate.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L75783-005",
+     "note": "2-cell 47.3Wh 7.7V. Newegg lists L75783-005 as original for 14a-na; L75253-271 alternate.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-311-c733-c733t|screen": {
+   "model": "Chromebook 311 (C733 / C733T)",
+   "modelId": "acer-chromebook-311-c733-c733t",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "B116XTN02.3",
+     "note": "11.6in HD matte 30-pin eDP non-touch (C733). C733T is a touch glass-bonded assembly (Acer KL.0C733.TSV) sold whole, not a bare panel.",
+     "confidence": 72,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-311-c733-c733t|battery": {
+   "model": "Chromebook 311 (C733 / C733T)",
+   "modelId": "acer-chromebook-311-c733-c733t",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AP13J7K",
+     "note": "3-cell ~45Wh 11.4V; Acer KT.00304.008 / KT.00307.006. CAUTION: some sellers cross-list older AP13J4K/AP13J3K (C720/C740) — verify the cell label.",
+     "confidence": 65,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-311-c733-c733t|chargeport": {
+   "model": "Chromebook 311 (C733 / C733T)",
+   "modelId": "acer-chromebook-311-c733-c733t",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "55.H94N7.002",
+     "note": "USB-C charging on a separate USB/USB-C daughterboard (not soldered). Shared with Chromebook 512 C851/C851T.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-spin-511-r752t-r752tn|battery": {
+   "model": "Chromebook Spin 511 (R752T / R752TN)",
+   "modelId": "acer-chromebook-spin-511-r752t-r752tn",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AP19A5K",
+     "note": "3-cell ~45Wh (3400mAh/11.55V in some sources). UK listings often omit the P/N — single-source confidence.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-spin-511-r752t-r752tn|chargeport": {
+   "model": "Chromebook Spin 511 (R752T / R752TN)",
+   "modelId": "acer-chromebook-spin-511-r752t-r752tn",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "55.H94N7.003",
+     "note": "USB-C charging on a separate USB I/O daughterboard (bare board DA0ZAKTB6x0). Most common repair.",
+     "confidence": 58,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-spin-511-r753t-r753tn|chargeport": {
+   "model": "Chromebook Spin 511 (R753T / R753TN)",
+   "modelId": "acer-chromebook-spin-511-r753t-r753tn",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "DA0ZCATB8D0",
+     "note": "USB-C charging on a separate daughterboard; bare board DA0ZCATB8D0 (shared with Chromebook 511 C734). Single source.",
+     "confidence": 52,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-spin-311-r721t|battery": {
+   "model": "Chromebook Spin 311 (R721T)",
+   "modelId": "acer-chromebook-spin-311-r721t",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AP18K4K",
+     "note": "3-cell Acer KT.00304.013, ~4200mAh 11.4V (3ICP5/81/68). AMD A4/A6 variant; shared with Chromebook 311 C721.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-314-c933-cb314-1h|battery": {
+   "model": "Chromebook 314 (C933 / CB314-1H)",
+   "modelId": "acer-chromebook-314-c933-cb314-1h",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AP19B5K",
+     "note": "Two variants by SKU: AP19B5K 3-cell ~41Wh (KT.00305.011); AP19B8K 4-cell ~48Wh (KT.0030G.022). Check cell count on old pack.",
+     "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "AP19B8K",
+     "note": "Two variants by SKU: AP19B5K 3-cell ~41Wh (KT.00305.011); AP19B8K 4-cell ~48Wh (KT.0030G.022). Check cell count on old pack.",
+     "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-512-c851-c852|chargeport": {
+   "model": "Chromebook 512 (C851 / C852)",
+   "modelId": "acer-chromebook-512-c851-c852",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "55.H94N7.002",
+     "note": "USB-C charging on a separate USB/USB-C daughterboard (Rev E; OEM 1MI5ZZZ011J). Same board as Chromebook 311 C733/C733T. C852 (N5100) may use a different revision — verify.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-spin-513-cp513-1h-r841t|battery": {
+   "model": "Chromebook Spin 513 (CP513-1H / R841T)",
+   "modelId": "acer-chromebook-spin-513-cp513-1h-r841t",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AP16L5J",
+     "note": "2-cell ~36Wh/4670mAh 7.5V (2ICP4/91/91; Acer NX.H7HEF.005). Snapdragon 7c/MediaTek. Do NOT confuse with 3-cell AP16L8J (that is CP311-3H).",
+     "confidence": 75,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "acer-chromebook-spin-311-r722t|battery": {
+   "model": "Chromebook Spin 311 (R722T)",
+   "modelId": "acer-chromebook-spin-311-r722t",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AP19B5K",
+     "note": "3-cell ~41Wh (Acer KT.00305.011, 11.55V). Shared with Chromebook 314/C933 family. MediaTek MT8183 — verify the cell label.",
+     "confidence": 62,
      "confirmed": false,
      "source": "researched"
     }
