@@ -1,6 +1,6 @@
 {
  "version": 2,
- "updated": "2026-11-22",
+ "updated": "2026-11-23",
  "models": {
   "hp-elitebook-840-g6": {
    "brand": "HP",
@@ -1047,6 +1047,303 @@
    "years": "2022",
    "notes": {
     "chargeport": "Surface Connect port on flex; USB-C data. Fanless. SSD = removable M.2 2230."
+   }
+  },
+  "msi-gf63-thin-9sc-ms-16r3": {
+   "brand": "MSI",
+   "model": "GF63 Thin 9SC (MS-16R3)",
+   "aliases": "gf63 thin 9sc ms-16r3 gf63 8rc 8rd",
+   "years": "2019-2020",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable (NOT USB-C). Early MS-16R1/R3 = 5.5/2.5mm 3-pin; later 11SC/MS-16R6 = 4.5/3.0mm 2-pin."
+   }
+  },
+  "msi-gf65-thin-10se-10ue-ms-16w1": {
+   "brand": "MSI",
+   "model": "GF65 Thin 10SE / 10UE (MS-16W1)",
+   "aliases": "gf65 thin 10se 10ue 9se ms-16w1",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable, 5.5/2.5mm 3-pin (NOT USB-C)."
+   }
+  },
+  "msi-katana-gf66-11uc-11ud-ms-1582": {
+   "brand": "MSI",
+   "model": "Katana GF66 11UC / 11UD (MS-1582)",
+   "aliases": "katana gf66 11uc 11ud 11ue ms-1582",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable (NOT USB-C). Cable MS1581_DC_CABLE; shared GF66/Sword 15/GL66."
+   }
+  },
+  "msi-katana-gf76-11uc-12ue-ms-17l1": {
+   "brand": "MSI",
+   "model": "Katana GF76 11UC / 12UE (MS-17L1)",
+   "aliases": "katana gf76 11uc 11ue 12ud 12ue ms-17l1",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable (NOT USB-C); 17in MS-17L1 cable variant of the Katana/Sword family."
+   }
+  },
+  "msi-sword-15-a11ud-a11ue-ms-1581": {
+   "brand": "MSI",
+   "model": "Sword 15 A11UD / A11UE (MS-1581)",
+   "aliases": "sword 15 a11ud a11ue a11uc ms-1581",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable (NOT USB-C); cable MS1581_DC_CABLE, shared with Katana GF66/GL66."
+   }
+  },
+  "msi-cyborg-15-a12v-ms-15k1": {
+   "brand": "MSI",
+   "model": "Cyborg 15 A12V (MS-15K1)",
+   "aliases": "cyborg 15 a12ve a12vf a12vg a13v ms-15k1",
+   "years": "2023-2024",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable (NOT USB-C)."
+   }
+  },
+  "msi-bravo-15-b5dd-ms-158l": {
+   "brand": "MSI",
+   "model": "Bravo 15 B5DD (MS-158L)",
+   "aliases": "bravo 15 b5dd b5dr ms-158l",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable (NOT USB-C)."
+   }
+  },
+  "msi-modern-14-b11m-ms-14d2": {
+   "brand": "MSI",
+   "model": "Modern 14 B11M (MS-14D2)",
+   "aliases": "modern 14 b11m b11mo b11sb b11mw ms-14d2",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable, 4.5/3.0mm; some variants also support USB-C PD."
+   }
+  },
+  "msi-modern-15-a11m-a11sb-ms-1552": {
+   "brand": "MSI",
+   "model": "Modern 15 A11M / A11SB (MS-1552)",
+   "aliases": "modern 15 a11m a11sb a11ml a10m a10rb ms-1552",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable, 19V (A11SB = MS-1552; not reliably USB-C PD)."
+   }
+  },
+  "msi-prestige-14-a11sc-ms-14c4": {
+   "brand": "MSI",
+   "model": "Prestige 14 A11SC (MS-14C4)",
+   "aliases": "prestige 14 a11sc a11scx a10sc a10ras a10m ms-14c4",
+   "years": "2021",
+   "notes": {
+    "chargeport": "USB-C / Thunderbolt charging — port soldered to the board (no DC jack). Confirm which Type-C port is the PD one."
+   }
+  },
+  "msi-prestige-15-a11sc-a11uc-ms-16s8": {
+   "brand": "MSI",
+   "model": "Prestige 15 A11SC / A11UC (MS-16S8)",
+   "aliases": "prestige 15 a11sc a11uc a11ud a10sc ms-16s8",
+   "years": "2021",
+   "notes": {
+    "chargeport": "USB-C / 2x Thunderbolt 4 charging — port soldered to board (no DC jack). PD 3.0."
+   }
+  },
+  "msi-gl65-leopard-10s-gl63-ms-16u7-ms-16p": {
+   "brand": "MSI",
+   "model": "GL65 Leopard 10S / GL63 (MS-16U7 / MS-16P)",
+   "aliases": "gl65 leopard 10sdr 10scsr gl63 8rc 9sc ms-16u7 ms-16p",
+   "years": "2019-2020",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a cable (NOT USB-C)."
+   }
+  },
+  "samsung-galaxy-book-pro-np950xdb-np930xdb": {
+   "brand": "Samsung",
+   "model": "Galaxy Book Pro (NP950XDB / NP930XDB)",
+   "aliases": "samsung galaxy book pro np950xdb np930xdb",
+   "years": "2021",
+   "notes": {
+    "chargeport": "USB-C PD — port soldered to mainboard, no DC jack. RAM soldered (LPDDR), not upgradeable."
+   }
+  },
+  "samsung-galaxy-book-pro-360-np950qdb-np930qdb": {
+   "brand": "Samsung",
+   "model": "Galaxy Book Pro 360 (NP950QDB / NP930QDB)",
+   "aliases": "samsung galaxy book pro 360 np950qdb np930qdb",
+   "years": "2021",
+   "notes": {
+    "chargeport": "USB-C PD — soldered to board, no DC jack. RAM soldered (LPDDR). Screen replaceable without removing battery per Samsung guide."
+   }
+  },
+  "samsung-galaxy-book2-pro-np950xed-np930xed": {
+   "brand": "Samsung",
+   "model": "Galaxy Book2 Pro (NP950XED / NP930XED)",
+   "aliases": "samsung galaxy book2 pro np950xed np930xed",
+   "years": "2022",
+   "notes": {
+    "chargeport": "USB-C PD — soldered to board, no DC jack. RAM soldered (LPDDR)."
+   }
+  },
+  "samsung-galaxy-book3-pro-np940xfg": {
+   "brand": "Samsung",
+   "model": "Galaxy Book3 Pro (NP940XFG)",
+   "aliases": "samsung galaxy book3 pro np940xfg",
+   "years": "2023",
+   "notes": {
+    "chargeport": "USB-C PD — soldered to board, no DC jack. RAM soldered (LPDDR5)."
+   }
+  },
+  "samsung-galaxy-book-np750xda": {
+   "brand": "Samsung",
+   "model": "Galaxy Book (NP750XDA)",
+   "aliases": "samsung galaxy book np750xda",
+   "years": "2021",
+   "notes": {
+    "chargeport": "USB-C PD charging — port soldered to board, no DC jack. RAM typically soldered on this chassis."
+   }
+  },
+  "samsung-galaxy-book-flex-np930qcg-np950qcg": {
+   "brand": "Samsung",
+   "model": "Galaxy Book Flex (NP930QCG / NP950QCG)",
+   "aliases": "samsung galaxy book flex np930qcg np950qcg",
+   "years": "2020",
+   "notes": {
+    "chargeport": "USB-C PD — soldered to board, no DC jack. RAM soldered (LPDDR)."
+   }
+  },
+  "samsung-galaxy-book-ion-np950xcj-np930xcj": {
+   "brand": "Samsung",
+   "model": "Galaxy Book Ion (NP950XCJ / NP930XCJ)",
+   "aliases": "samsung galaxy book ion np950xcj np930xcj",
+   "years": "2020",
+   "notes": {
+    "chargeport": "USB-C PD — soldered to board, no DC jack. Ion 15.6in reportedly has one SODIMM slot PLUS soldered RAM (unlike fully-soldered Pro line) — verify per unit."
+   }
+  },
+  "samsung-galaxy-book-go-np340xla": {
+   "brand": "Samsung",
+   "model": "Galaxy Book Go (NP340XLA)",
+   "aliases": "samsung galaxy book go np340xla",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "USB-C PD charging — port soldered to board, no DC jack. ARM (Snapdragon) platform — RAM soldered. Fanless."
+   }
+  },
+  "samsung-notebook-9-np900x5n": {
+   "brand": "Samsung",
+   "model": "Notebook 9 (NP900X5N)",
+   "aliases": "samsung notebook 9 np900x5n",
+   "years": "2017-2018",
+   "notes": {
+    "chargeport": "USB-C PD charging — port soldered to board, no DC jack."
+   }
+  },
+  "framework-framework-laptop-13": {
+   "brand": "Framework",
+   "model": "Framework Laptop 13",
+   "aliases": "framework laptop 13 framework 13 fw13",
+   "years": "2021-present",
+   "notes": {
+    "chargeport": "MODULAR — no DC jack, no soldered charge port. Charging is USB-C (USB4) through hot-swappable Expansion Cards in four bays; any bay accepts PD. Replace a failed port by swapping the Expansion Card or mainboard bay."
+   }
+  },
+  "framework-framework-laptop-16": {
+   "brand": "Framework",
+   "model": "Framework Laptop 16",
+   "aliases": "framework laptop 16 framework 16 fw16",
+   "years": "2024-present",
+   "notes": {
+    "chargeport": "MODULAR — no DC jack. Charging via USB-C (USB4) Expansion Cards into the mainboard bays; any PD-capable bay charges. Replace via Expansion Card/bay swap."
+   }
+  },
+  "toshiba-satellite-pro-a50-e-a50-ec": {
+   "brand": "Toshiba",
+   "model": "Satellite Pro A50-E / A50-EC",
+   "aliases": "satellite pro a50-e a50-ec tecra a50-e ps599a",
+   "years": "2018-2019",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a 19V DC-IN harness cable — not USB-C. No cable FRU verified."
+   }
+  },
+  "dynabook-portege-x30-e": {
+   "brand": "Dynabook",
+   "model": "Portege X30-E",
+   "aliases": "portege x30-e portege x30e pt282e",
+   "years": "2018-2019",
+   "notes": {
+    "chargeport": "USB-C charging — 2x Thunderbolt 3 USB-C with PD 3.0, soldered to board; NO barrel jack. 45/65W USB-C adapter."
+   }
+  },
+  "dynabook-portege-x30-f": {
+   "brand": "Dynabook",
+   "model": "Portege X30-F",
+   "aliases": "portege x30-f portege x30f pt28",
+   "years": "2019-2020",
+   "notes": {
+    "chargeport": "USB-C charging — 2x Thunderbolt 3 USB-C with PD 3.0, soldered to board; NO barrel jack. 45W USB-C adapter."
+   }
+  },
+  "dynabook-tecra-a50-j-satellite-pro-a50-j": {
+   "brand": "Dynabook",
+   "model": "Tecra A50-J / Satellite Pro A50-J",
+   "aliases": "tecra a50-j satellite pro a50-j pml10e pml12e",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a DC-IN harness cable (CN8001). No cable FRU verified."
+   }
+  },
+  "dynabook-tecra-a40-j-satellite-pro-a40-j": {
+   "brand": "Dynabook",
+   "model": "Tecra A40-J / Satellite Pro A40-J",
+   "aliases": "tecra a40-j satellite pro a40-j pmm10e pmm12e",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a DC-IN harness cable. No cable FRU verified."
+   }
+  },
+  "dynabook-tecra-a50-k-satellite-pro-a50-k": {
+   "brand": "Dynabook",
+   "model": "Tecra A50-K / Satellite Pro A50-K",
+   "aliases": "tecra a50-k satellite pro a50-k pml2",
+   "years": "2022-2023",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a DC-IN harness cable. No cable FRU verified."
+   }
+  },
+  "dynabook-portege-a30-e": {
+   "brand": "Dynabook",
+   "model": "Portege A30-E",
+   "aliases": "portege a30-e portege a30e pt2a1e",
+   "years": "2018-2019",
+   "notes": {
+    "chargeport": "Modular DC barrel jack on a DC-IN cable (value model, not USB-C). No cable FRU verified."
+   }
+  },
+  "dynabook-satellite-pro-c40-h": {
+   "brand": "Dynabook",
+   "model": "Satellite Pro C40-H",
+   "aliases": "satellite pro c40-h c40-h pys36",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "Modular DC barrel jack 3.5x1.35mm 19V (45/65W PS0131EA1ACA). USB-C 3.1 DP-Alt also present and may charge. Primary = barrel jack."
+   }
+  },
+  "dynabook-satellite-pro-c50-h": {
+   "brand": "Dynabook",
+   "model": "Satellite Pro C50-H",
+   "aliases": "satellite pro c50-h c50-h",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "AMBIGUOUS: ships with 19V barrel adapter but some C50-H charge via USB-C (IPC lists a USB-C power-socket repair). Verify per unit."
+   }
+  },
+  "dynabook-satellite-pro-l50-g": {
+   "brand": "Dynabook",
+   "model": "Satellite Pro L50-G",
+   "aliases": "satellite pro l50-g l50-g l50",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "Modular DC barrel jack 19V on a DC-IN cable. No cable FRU verified."
    }
   }
  },
@@ -5372,6 +5669,783 @@
      "pn": "8V0RC",
      "note": "CPU cooling fan+heatsink, shared 3510/3511/3515/3520; DP/N 08V0RC",
      "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-gf63-thin-9sc-ms-16r3|screen": {
+   "model": "GF63 Thin 9SC (MS-16R3)",
+   "modelId": "msi-gf63-thin-9sc-ms-16r3",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N156HGA-EA3",
+     "note": "15.6in FHD 60Hz IPS 30-pin eDP (8RC/9SC). Later 10SC = 40-pin 120Hz B156HAN13.0; 10UC/11UC = 40-pin 144Hz N156HRA-EA1 — match sub-model/refresh.",
+     "confidence": 66,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "B156HAN02.1",
+     "note": "15.6in FHD 60Hz IPS 30-pin eDP (8RC/9SC). Later 10SC = 40-pin 120Hz B156HAN13.0; 10UC/11UC = 40-pin 144Hz N156HRA-EA1 — match sub-model/refresh.",
+     "confidence": 66,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-gf63-thin-9sc-ms-16r3|battery": {
+   "model": "GF63 Thin 9SC (MS-16R3)",
+   "modelId": "msi-gf63-thin-9sc-ms-16r3",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M6K",
+     "note": "3-cell 11.4V ~52.4Wh. Shared across GF63/GF65/GF75 Thin.",
+     "confidence": 88,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-gf63-thin-9sc-ms-16r3|palmrest": {
+   "model": "GF63 Thin 9SC (MS-16R3)",
+   "modelId": "msi-gf63-thin-9sc-ms-16r3",
+   "part": "palmrest",
+   "numbers": [
+    {
+     "pn": "3076R1C216Y31",
+     "note": "Top cover C-case WITH keyboard+touchpad (10SC, MS-16R). US layout, single-retailer source — verify layout.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-gf65-thin-10se-10ue-ms-16w1|screen": {
+   "model": "GF65 Thin 10SE / 10UE (MS-16W1)",
+   "modelId": "msi-gf65-thin-10se-10ue-ms-16w1",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "B156HAN08.4",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP. 9SD/early = 120Hz B156HAN13.0. Confirm refresh.",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "B156HAN08.2",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP. 9SD/early = 120Hz B156HAN13.0. Confirm refresh.",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "N156HRA-EA1",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP. 9SD/early = 120Hz B156HAN13.0. Confirm refresh.",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-gf65-thin-10se-10ue-ms-16w1|battery": {
+   "model": "GF65 Thin 10SE / 10UE (MS-16W1)",
+   "modelId": "msi-gf65-thin-10se-10ue-ms-16w1",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M6K",
+     "note": "3-cell 11.4V ~52.4Wh. CAUTION: some RTX-30 10UE units use BTY-M6J (51Wh) — check pack label.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-katana-gf66-11uc-11ud-ms-1582|screen": {
+   "model": "Katana GF66 11UC / 11UD (MS-1582)",
+   "modelId": "msi-katana-gf66-11uc-11ud-ms-1582",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N156HRA-EA1",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP; MSI spare-parts lists N156HRA-EA1 for GF66 11-series.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "B156HAN08.4",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP; MSI spare-parts lists N156HRA-EA1 for GF66 11-series.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-katana-gf66-11uc-11ud-ms-1582|battery": {
+   "model": "Katana GF66 11UC / 11UD (MS-1582)",
+   "modelId": "msi-katana-gf66-11uc-11ud-ms-1582",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M492",
+     "note": "3-cell 11.4V 53.5Wh (3ICP6/71/74). Shared Katana/Sword/Pulse GL66.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-katana-gf66-11uc-11ud-ms-1582|chargeport": {
+   "model": "Katana GF66 11UC / 11UD (MS-1582)",
+   "modelId": "msi-katana-gf66-11uc-11ud-ms-1582",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "K1G-3004100-H39",
+     "note": "Modular DC barrel jack on a cable (NOT USB-C). Cable MS1581_DC_CABLE; shared GF66/Sword 15/GL66.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "K1G-3004100-J36",
+     "note": "Modular DC barrel jack on a cable (NOT USB-C). Cable MS1581_DC_CABLE; shared GF66/Sword 15/GL66.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-katana-gf76-11uc-12ue-ms-17l1|battery": {
+   "model": "Katana GF76 11UC / 12UE (MS-17L1)",
+   "modelId": "msi-katana-gf76-11uc-12ue-ms-17l1",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M492",
+     "note": "3-cell 11.4V 53.5Wh. Same pack as GF66/Sword 15.",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-sword-15-a11ud-a11ue-ms-1581|screen": {
+   "model": "Sword 15 A11UD / A11UE (MS-1581)",
+   "modelId": "msi-sword-15-a11ud-a11ue-ms-1581",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N156HRA-EA1",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP; MSI spare-parts lists N156HRA-EA1.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "B156HAN08.4",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP; MSI spare-parts lists N156HRA-EA1.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-sword-15-a11ud-a11ue-ms-1581|battery": {
+   "model": "Sword 15 A11UD / A11UE (MS-1581)",
+   "modelId": "msi-sword-15-a11ud-a11ue-ms-1581",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M492",
+     "note": "3-cell 11.4V 53.5Wh (3ICP6/71/74).",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-sword-15-a11ud-a11ue-ms-1581|chargeport": {
+   "model": "Sword 15 A11UD / A11UE (MS-1581)",
+   "modelId": "msi-sword-15-a11ud-a11ue-ms-1581",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "K1G-3004100-H39",
+     "note": "Modular DC barrel jack on a cable (NOT USB-C); cable MS1581_DC_CABLE, shared with Katana GF66/GL66.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "K1G-3004100-J36",
+     "note": "Modular DC barrel jack on a cable (NOT USB-C); cable MS1581_DC_CABLE, shared with Katana GF66/GL66.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-cyborg-15-a12v-ms-15k1|battery": {
+   "model": "Cyborg 15 A12V (MS-15K1)",
+   "modelId": "msi-cyborg-15-a12v-ms-15k1",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M492",
+     "note": "3-cell 11.4V 53.5Wh. Same pack family as Katana/Sword.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-bravo-15-b5dd-ms-158l|screen": {
+   "model": "Bravo 15 B5DD (MS-158L)",
+   "modelId": "msi-bravo-15-b5dd-ms-158l",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N156HRA-EA1",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP (B5DD); some B5 variants shipped 60Hz 30-pin — verify refresh.",
+     "confidence": 62,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-bravo-15-b5dd-ms-158l|battery": {
+   "model": "Bravo 15 B5DD (MS-158L)",
+   "modelId": "msi-bravo-15-b5dd-ms-158l",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M492",
+     "note": "3-cell 11.4V 53.5Wh (B5DD). NOTE earlier Bravo 15 A4DCR/Bravo 17 A4DDR use BTY-M6K.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-modern-14-b11m-ms-14d2|battery": {
+   "model": "Modern 14 B11M (MS-14D2)",
+   "modelId": "msi-modern-14-b11m-ms-14d2",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M49",
+     "note": "3-cell 11.4V 52.4Wh. CAUTION: older Modern 14 A10M (MS-14B) uses BTY-M48 (15.2V 50Wh) — check chassis.",
+     "confidence": 83,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-modern-15-a11m-a11sb-ms-1552|battery": {
+   "model": "Modern 15 A11M / A11SB (MS-1552)",
+   "modelId": "msi-modern-15-a11m-a11sb-ms-1552",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M491",
+     "note": "3-cell 11.4V 52.4Wh (3ICP6/71/74). CAUTION: 8-pin and 10-pin connector variants — match the plug. Shared with Summit B15.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-prestige-14-a11sc-ms-14c4|battery": {
+   "model": "Prestige 14 A11SC (MS-14C4)",
+   "modelId": "msi-prestige-14-a11sc-ms-14c4",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M49",
+     "note": "3-cell 11.4V 52.4Wh. Fits Prestige 14 A10M/A10SC/A10RAS/A11SC/A11SCX.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-prestige-15-a11sc-a11uc-ms-16s8|battery": {
+   "model": "Prestige 15 A11SC / A11UC (MS-16S8)",
+   "modelId": "msi-prestige-15-a11sc-a11uc-ms-16s8",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "BTY-M6L",
+     "note": "4-cell 15.2V 80.25Wh. Shared with GS65/GS75/P65/P75/Modern 15 high-cap/Summit E15.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "msi-gl65-leopard-10s-gl63-ms-16u7-ms-16p|screen": {
+   "model": "GL65 Leopard 10S / GL63 (MS-16U7 / MS-16P)",
+   "modelId": "msi-gl65-leopard-10s-gl63-ms-16u7-ms-16p",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "B156HAN08.4",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP (GL65 Leopard 10Sx). GL63 base = 60Hz 30-pin B156HAN02.1 — verify refresh/pin.",
+     "confidence": 64,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "B156HAN08.2",
+     "note": "15.6in FHD 144Hz IPS 40-pin eDP (GL65 Leopard 10Sx). GL63 base = 60Hz 30-pin B156HAN02.1 — verify refresh/pin.",
+     "confidence": 64,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book-pro-np950xdb-np930xdb|battery": {
+   "model": "Galaxy Book Pro (NP950XDB / NP930XDB)",
+   "modelId": "samsung-galaxy-book-pro-np950xdb-np930xdb",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBMN4VN",
+     "note": "15.6in ~68Wh (cross-ref BA43-00398). 13.3in NP930XDB uses AA-PBMN4MR (63Wh) instead — match the removed pack's label.",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book-pro-360-np950qdb-np930qdb|screen": {
+   "model": "Galaxy Book Pro 360 (NP950QDB / NP930QDB)",
+   "modelId": "samsung-galaxy-book-pro-360-np950qdb-np930qdb",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "BA96-07668A",
+     "note": "15.6in FHD AMOLED touch full display assembly (silver); panel ATNA56YX02-0. Colour/variant dependent — verify exact model+colour. Complete assembly, not bare panel.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "BA96-07668B",
+     "note": "15.6in FHD AMOLED touch full display assembly (silver); panel ATNA56YX02-0. Colour/variant dependent — verify exact model+colour. Complete assembly, not bare panel.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book-pro-360-np950qdb-np930qdb|battery": {
+   "model": "Galaxy Book Pro 360 (NP950QDB / NP930QDB)",
+   "modelId": "samsung-galaxy-book-pro-360-np950qdb-np930qdb",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBMN4VN",
+     "note": "15.6in ~68Wh (cross-ref BA43-00398). 13.3in NP930QDB uses AA-PBMN4MR (63Wh).",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book2-pro-np950xed-np930xed|screen": {
+   "model": "Galaxy Book2 Pro (NP950XED / NP930XED)",
+   "modelId": "samsung-galaxy-book2-pro-np950xed-np930xed",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "BA96-08370A",
+     "note": "15.6in AMOLED full LCD assembly (Book2 Pro 15); complete bonded assembly. Single strong catalogue source.",
+     "confidence": 60,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book2-pro-np950xed-np930xed|battery": {
+   "model": "Galaxy Book2 Pro (NP950XED / NP930XED)",
+   "modelId": "samsung-galaxy-book2-pro-np950xed-np930xed",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBMN4MR",
+     "note": "13.3in NP930XED = AA-PBMN4MR 63Wh (cross-ref BA43-00397); 15.6in NP950XED = AA-PBMN4VN ~68Wh.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "AA-PBMN4VN",
+     "note": "13.3in NP930XED = AA-PBMN4MR 63Wh (cross-ref BA43-00397); 15.6in NP950XED = AA-PBMN4VN ~68Wh.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book3-pro-np940xfg|battery": {
+   "model": "Galaxy Book3 Pro (NP940XFG)",
+   "modelId": "samsung-galaxy-book3-pro-np940xfg",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBMN4MR",
+     "note": "63Wh (Samsung cross-ref BA96-08162A). Some sellers list BA96-07917A for Book3 Pro 14 — treat with caution. UK retailer lists AA-PBMN4MR for NP940XFG.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book-np750xda|battery": {
+   "model": "Galaxy Book (NP750XDA)",
+   "modelId": "samsung-galaxy-book-np750xda",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBSN4AT",
+     "note": "15.4V 54Wh / ~3530mAh (cross-ref BA43-00391B). UK variants e.g. NP750XDA-KC3UK. No single UK-retailer page confirmed, hence capped.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book-flex-np930qcg-np950qcg|battery": {
+   "model": "Galaxy Book Flex (NP930QCG / NP950QCG)",
+   "modelId": "samsung-galaxy-book-flex-np930qcg-np950qcg",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBRN4ZU",
+     "note": "15.4V ~66.9Wh (cross-ref BA43-00393A). Shared with Galaxy Book Ion. No ebay.co.uk exact Flex listing, hence capped.",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book-ion-np950xcj-np930xcj|battery": {
+   "model": "Galaxy Book Ion (NP950XCJ / NP930XCJ)",
+   "modelId": "samsung-galaxy-book-ion-np950xcj-np930xcj",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBRN4ZU",
+     "note": "~66.9Wh (cross-ref BA43-00393A). Two UK retailers list this exact part for NP950XCJ Ion 15.6in. Shared with Galaxy Book Flex.",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-galaxy-book-go-np340xla|battery": {
+   "model": "Galaxy Book Go (NP340XLA)",
+   "modelId": "samsung-galaxy-book-go-np340xla",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBAN2HE",
+     "note": "7.7V ~37Wh (cross-ref BA43-00399A); higher 42.3Wh variant for Snapdragon 7c Gen2 model. Third-party catalogue only.",
+     "confidence": 60,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "samsung-notebook-9-np900x5n|battery": {
+   "model": "Notebook 9 (NP900X5N)",
+   "modelId": "samsung-notebook-9-np900x5n",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "AA-PBTN6QB",
+     "note": "11.5V ~66Wh (also 31CP5/40/88-2). NOTE: AA-PBUN4AR is a DIFFERENT smaller pack for 900X5L/940X3L — do not substitute.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "framework-framework-laptop-13|screen": {
+   "model": "Framework Laptop 13",
+   "modelId": "framework-framework-laptop-13",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "NE135FBM-N41",
+     "note": "BOE 13.5in 2256x1504 60Hz matte 3:2, 40-pin eDP (4-lane) — OEM panel behind the Framework Display Kit. A 2.8K (2880x1920) matte option exists (separate BOE panel). Touch variant uses a different connector.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "framework-framework-laptop-13|battery": {
+   "model": "Framework Laptop 13",
+   "modelId": "framework-framework-laptop-13",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "FRANGWAT01",
+     "note": "Framework marketplace SKU for the Laptop 13 battery; 55Wh and 61Wh (61Wh needs BIOS 3.19+ on 11th Gen / 3.08+ on 12th Gen). Single source (frame.work) — capacity/modularity certain, SKU low-confidence.",
+     "confidence": 52,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "toshiba-satellite-pro-a50-e-a50-ec|battery": {
+   "model": "Satellite Pro A50-E / A50-EC",
+   "modelId": "toshiba-satellite-pro-a50-e-a50-ec",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "PA5212U-1BRS",
+     "note": "14.8V ~45Wh 4-cell; shared across Satellite Pro A50-E/R50/A40-C and Tecra A40/A50-C — family pack, not A50-E exclusive",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "PABAS283",
+     "note": "14.8V ~45Wh 4-cell; shared across Satellite Pro A50-E/R50/A40-C and Tecra A40/A50-C — family pack, not A50-E exclusive",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-portege-x30-e|battery": {
+   "model": "Portege X30-E",
+   "modelId": "dynabook-portege-x30-e",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "PA5278U-1BRS",
+     "note": "11.4V 48Wh 3-cell; shared with Portege X30-D/X30-F and Tecra X40-D/E/F",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "PT28U-0LN03X",
+     "note": "11.4V 48Wh 3-cell; shared with Portege X30-D/X30-F and Tecra X40-D/E/F",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-portege-x30-f|battery": {
+   "model": "Portege X30-F",
+   "modelId": "dynabook-portege-x30-f",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "PA5278U-1BRS",
+     "note": "11.4V 48Wh 3-cell; listed for X30-F-10L/10N; shared with X30-D/E and Tecra X40-D/E/F",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "PT28U-0LN03X",
+     "note": "11.4V 48Wh 3-cell; listed for X30-F-10L/10N; shared with X30-D/E and Tecra X40-D/E/F",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-tecra-a50-j-satellite-pro-a50-j|screen": {
+   "model": "Tecra A50-J / Satellite Pro A50-J",
+   "modelId": "dynabook-tecra-a50-j-satellite-pro-a50-j",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N156HCA-EAB",
+     "note": "15.6in FHD IPS matte; also N156HCA-EAC/CMN15E7 — interchangeable commodity panel, treat as family not exact FRU",
+     "confidence": 64,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-tecra-a50-j-satellite-pro-a50-j|battery": {
+   "model": "Tecra A50-J / Satellite Pro A50-J",
+   "modelId": "dynabook-tecra-a50-j-satellite-pro-a50-j",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "PS0104UA-1BRS",
+     "note": "15.4V 53Wh 4-cell (4ICP5/63/71). TWO interface variants (wired vs wireless connector) — check before fitting.",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "G71C000ML110",
+     "note": "15.4V 53Wh 4-cell (4ICP5/63/71). TWO interface variants (wired vs wireless connector) — check before fitting.",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "P000834200",
+     "note": "15.4V 53Wh 4-cell (4ICP5/63/71). TWO interface variants (wired vs wireless connector) — check before fitting.",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-tecra-a40-j-satellite-pro-a40-j|screen": {
+   "model": "Tecra A40-J / Satellite Pro A40-J",
+   "modelId": "dynabook-tecra-a40-j-satellite-pro-a40-j",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "N140HCA-EAC",
+     "note": "14in FHD IPS matte (Innolux/CMN14D4); interchangeable commodity panel, treat as family not exact FRU",
+     "confidence": 62,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-tecra-a40-j-satellite-pro-a40-j|battery": {
+   "model": "Tecra A40-J / Satellite Pro A40-J",
+   "modelId": "dynabook-tecra-a40-j-satellite-pro-a40-j",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "PS0104UA-1BRS",
+     "note": "15.4V 53Wh 4-cell; shared across Tecra A40-J/A50-J/A40-K/A50-K and Portege X40-K. Two connector variants.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "G71C000ML110",
+     "note": "15.4V 53Wh 4-cell; shared across Tecra A40-J/A50-J/A40-K/A50-K and Portege X40-K. Two connector variants.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-tecra-a50-k-satellite-pro-a50-k|battery": {
+   "model": "Tecra A50-K / Satellite Pro A50-K",
+   "modelId": "dynabook-tecra-a50-k-satellite-pro-a50-k",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "PS0104UA-1BRS",
+     "note": "15.4V 53Wh 4-cell; shared with A40/A50-J generation. A50-K named by one AU retailer (P000834200).",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "P000834200",
+     "note": "15.4V 53Wh 4-cell; shared with A40/A50-J generation. A50-K named by one AU retailer (P000834200).",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-portege-a30-e|battery": {
+   "model": "Portege A30-E",
+   "modelId": "dynabook-portege-a30-e",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "PA5331U-1BRS",
+     "note": "15.4V 42Wh 4-cell (2700mAh); shared with Tecra A40-E/A30-E and Portege X30L-G",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "P000818700",
+     "note": "15.4V 42Wh 4-cell (2700mAh); shared with Tecra A40-E/A30-E and Portege X30L-G",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "P000793710",
+     "note": "15.4V 42Wh 4-cell (2700mAh); shared with Tecra A40-E/A30-E and Portege X30L-G",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-satellite-pro-c40-h|battery": {
+   "model": "Satellite Pro C40-H",
+   "modelId": "dynabook-satellite-pro-c40-h",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "4588105-2S",
+     "note": "7.6V 45.6Wh 2-cell (also 40071698/40072215). Aftermarket/cell-pack codes, no verified Dynabook FRU — use with caution.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "4588106-2S",
+     "note": "7.6V 45.6Wh 2-cell (also 40071698/40072215). Aftermarket/cell-pack codes, no verified Dynabook FRU — use with caution.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-satellite-pro-c50-h|battery": {
+   "model": "Satellite Pro C50-H",
+   "modelId": "dynabook-satellite-pro-c50-h",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "4588105-2S",
+     "note": "7.6V 45.6Wh 2-cell (also 40071698/40072215); same pack as C40-H. Aftermarket/cell codes — caution.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "4588106-2S",
+     "note": "7.6V 45.6Wh 2-cell (also 40071698/40072215); same pack as C40-H. Aftermarket/cell codes — caution.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "dynabook-satellite-pro-l50-g|battery": {
+   "model": "Satellite Pro L50-G",
+   "modelId": "dynabook-satellite-pro-l50-g",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "PA5366U-1BRS",
+     "note": "15.4V ~38Wh 4-cell (4ICP6/47/61). Some L50-G use PA5368U-1BRS (41CP6/47/61) instead — check original label.",
+     "confidence": 66,
      "confirmed": false,
      "source": "researched"
     }
