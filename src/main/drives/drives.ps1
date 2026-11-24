@@ -254,14 +254,20 @@ function Parse-Identify { param([byte[]]$d)
   return [ordered]@{ serial = $enc.GetString($d, 4, 20).Trim(); model = $mn; firmware = $enc.GetString($d, 64, 8).Trim() }
 }
 
+$script:bridgeDiag = ''
 function Try-BridgeNvme { param([int]$drive)
-  if (-not $smartOk) { return $null }
+  if (-not $smartOk) { $script:bridgeDiag = 'engine=off'; return $null }
+  $diag = @()
   foreach ($chip in @('asmedia', 'realtek', 'jmicron')) {
     # Buffers are owned here and filled in place; nothing crosses a scriptblock.
     $sbuf = New-Object byte[] 512
-    if (-not (Invoke-BridgeNvme $drive $chip 0x02 ([uint32]0x007F0002) ([uint32]0xffffffff) $sbuf)) { continue }
+    $ok = Invoke-BridgeNvme $drive $chip 0x02 ([uint32]0x007F0002) ([uint32]0xffffffff) $sbuf
+    if (-not $ok) { $diag += "${chip}=scsiNo"; continue }
     $p = Parse-Nvme $sbuf
-    if (-not (Is-RealNvme $p)) { continue }
+    if (-not $p) { $diag += "${chip}=badLog"; continue }
+    if (-not (Is-RealNvme $p)) { $diag += "${chip}=zeros"; continue }
+    $diag += "${chip}=OK"
+    $script:bridgeDiag = ($diag -join ' ')
     $p.bridge = $chip
     # Same chip just worked; fetch Identify Controller for the real identity.
     $ibuf = New-Object byte[] 4096
@@ -271,6 +277,7 @@ function Try-BridgeNvme { param([int]$drive)
     }
     return $p
   }
+  $script:bridgeDiag = ($diag -join ' ')
   return $null
 }
 
@@ -311,6 +318,7 @@ $out.drives = Safe {
       # USB/SCSI bridge: the standard NVMe/ATA queries can't tunnel through the
       # enclosure, so try the vendor NVMe-over-USB pass-throughs (ASMedia /
       # Realtek / JMicron) to read the drive's real SMART before falling back.
+      $script:bridgeDiag = ''
       if ($smartOk -and -not $nvme -and @($attrs).Count -eq 0 -and ($bus -eq 'USB' -or $bus -eq 'SCSI')) {
         $bn = Safe { Try-BridgeNvme $n }
         if ($bn) {
@@ -354,6 +362,8 @@ $out.drives = Safe {
         readErrors      = if ($rc) { $rc.ReadErrorsTotal } else { $null }
         writeErrors     = if ($rc) { $rc.WriteErrorsTotal } else { $null }
         smartSource     = $source
+        bridgeDiag      = $script:bridgeDiag
+        isAdmin         = [bool]$out.isAdmin
         smartAttributes = @($attrs)
         nvme            = $nvme
         volumes         = $vols

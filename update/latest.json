@@ -1,5 +1,5 @@
 {
-  "version": "0.70.52",
-  "notes": "Fixes the USB-bridge SMART reading that regressed in 0.70.51 (a PowerShell array-handling quirk meant the NVMe health log was read but then lost, so a drive in a caddy fell back to 'Can't read' instead of showing its real health). NVMe-in-a-USB-enclosure drives again report their true health — e.g. the Kioxia reads 48% via the Realtek bridge — plus the real model/serial/firmware from Identify. Also adds a 'Send to Syncro' button on each individual drive card, so you can send one drive's health to a customer's ticket without sending every drive in your own machine (the all-drives button on the tab stays).",
-  "zip": "tmtoolset-app-0.70.52.zip"
+  "version": "0.70.53",
+  "notes": "Adds a diagnostic line to each drive card showing what the USB-bridge SMART probe did (and whether the app is running as administrator), so when an NVMe-in-an-enclosure reads 'Can't read' it's clear exactly why — e.g. 'USB-bridge probe: asmedia=scsiNo realtek=OK' or 'NOT running as administrator'. The bridge SMART reading itself is the fixed 0.70.52 build. Note: reading SMART through a USB enclosure needs the app to be run as administrator.",
+  "zip": "tmtoolset-app-0.70.53.zip"
 }

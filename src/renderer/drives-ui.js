@@ -716,6 +716,11 @@
     // Data-source line, so it is clear where the numbers came from.
     const src = el('p', 'muted drive-source', 'SMART source: ' + (SOURCE_LABEL[dr.smartSource] || dr.smartSource || 'unknown'));
     card.appendChild(src);
+    // Diagnostic: when a USB-bridged drive couldn't be read, show exactly what the
+    // vendor-bridge probe did (and whether we're elevated), so a failure is legible.
+    if (dr.bridgeDiag) {
+      card.appendChild(el('p', 'muted drive-source', 'USB-bridge probe: ' + dr.bridgeDiag + (dr.isAdmin === false ? '  ·  NOT running as administrator — the bridge read needs admin' : '  ·  admin OK')));
+    }
 
     // Volumes
     const vols = arr(dr.volumes);
