@@ -1,5 +1,5 @@
 {
-  "version": "0.70.51",
-  "notes": "Drive Health: show the real drive identity for NVMe SSDs read through a USB enclosure. When the tool reads a drive's SMART through a USB-to-NVMe bridge, it now also fetches the NVMe Identify Controller page over the same bridge, so the card shows the drive's true model number, serial and firmware instead of the enclosure's placeholders (e.g. the real 'KBG40ZNS256G' and serial rather than a generic 'USB3.1 NVME&SATA SCSI Disk Device' with an all-zero serial). Helps with identifying the exact drive for parts/replacement. Health reading is unchanged — this is identity only.",
-  "zip": "tmtoolset-app-0.70.51.zip"
+  "version": "0.70.52",
+  "notes": "Fixes the USB-bridge SMART reading that regressed in 0.70.51 (a PowerShell array-handling quirk meant the NVMe health log was read but then lost, so a drive in a caddy fell back to 'Can't read' instead of showing its real health). NVMe-in-a-USB-enclosure drives again report their true health — e.g. the Kioxia reads 48% via the Realtek bridge — plus the real model/serial/firmware from Identify. Also adds a 'Send to Syncro' button on each individual drive card, so you can send one drive's health to a customer's ticket without sending every drive in your own machine (the all-drives button on the tab stays).",
+  "zip": "tmtoolset-app-0.70.52.zip"
 }

@@ -210,20 +210,23 @@ function Is-RealNvme { param($p) return ($p -and (([int64]$p.dataUnitsWritten -g
 # log (0x02, cdw10 0x007F0002, nsid broadcast, 512B) and Identify Controller
 # (0x06, cdw10 0x00000001, nsid 0, 4096B). Vendor CDB layouts are exactly those
 # in smartmontools (sntasmedia / sntrealtek / sntjmicron).
-function Invoke-BridgeNvme { param([int]$drive, [string]$chip, [int]$opcode, [uint32]$cdw10, [uint32]$nsid, [int]$size)
-  $d = New-Object byte[] $size
+function Invoke-BridgeNvme { param([int]$drive, [string]$chip, [int]$opcode, [uint32]$cdw10, [uint32]$nsid, [byte[]]$buf)
+  # $buf is filled in place by the pass-through (never returned through a
+  # scriptblock, which would let PowerShell enumerate the byte[] and corrupt it).
+  # Returns $true only on a clean read.
+  $size = $buf.Length
   if ($chip -eq 'asmedia') {
     $c = New-Object byte[] 16
     $c[0] = 0xe6; $c[1] = [byte]$opcode; $c[3] = [byte]($cdw10 -band 0xff)
     $hi = ($cdw10 -shr 16) -band 0xffff
     $c[6] = [byte](($hi -shr 8) -band 0xff); $c[7] = [byte]($hi -band 0xff)
-    if (Safe { [TMSmart]::Scsi($drive, $c, $true, $d) }) { return , $d }
+    return [bool](Safe { [TMSmart]::Scsi($drive, $c, $true, $buf) })
   }
   elseif ($chip -eq 'realtek') {
     $c = New-Object byte[] 16
     $c[0] = 0xe4; $c[1] = [byte]($size -band 0xff); $c[2] = [byte](($size -shr 8) -band 0xff)
     $c[3] = [byte]$opcode; $c[4] = [byte]($cdw10 -band 0xff)
-    if (Safe { [TMSmart]::Scsi($drive, $c, $true, $d) }) { return , $d }
+    return [bool](Safe { [TMSmart]::Scsi($drive, $c, $true, $buf) })
   }
   elseif ($chip -eq 'jmicron') {
     $cmd = New-Object byte[] 512
@@ -234,13 +237,12 @@ function Invoke-BridgeNvme { param([int]$drive, [string]$chip, [int]$opcode, [ui
     $cmd[48] = [byte]($cdw10 -band 0xff); $cmd[49] = [byte](($cdw10 -shr 8) -band 0xff)
     $cmd[50] = [byte](($cdw10 -shr 16) -band 0xff); $cmd[51] = [byte](($cdw10 -shr 24) -band 0xff)
     $c1 = New-Object byte[] 12; $c1[0] = 0xa1; $c1[1] = 0x80; $c1[4] = 0x02 # proto_nvm_cmd; cmd len 512 BE
-    if (-not (Safe { [TMSmart]::Scsi($drive, $c1, $false, $cmd) })) { return $null }
+    if (-not (Safe { [TMSmart]::Scsi($drive, $c1, $false, $cmd) })) { return $false }
     $c2 = New-Object byte[] 12; $c2[0] = 0xa1; $c2[1] = 0x82               # proto_dma_in; data len BE
     $c2[3] = [byte](($size -shr 16) -band 0xff); $c2[4] = [byte](($size -shr 8) -band 0xff); $c2[5] = [byte]($size -band 0xff)
-    if (-not (Safe { [TMSmart]::Scsi($drive, $c2, $true, $d) })) { return $null }
-    return , $d
+    return [bool](Safe { [TMSmart]::Scsi($drive, $c2, $true, $buf) })
   }
-  return $null
+  return $false
 }
 
 # NVMe Identify Controller -> real model / serial / firmware (ASCII, space-padded).
@@ -255,15 +257,18 @@ function Parse-Identify { param([byte[]]$d)
 function Try-BridgeNvme { param([int]$drive)
   if (-not $smartOk) { return $null }
   foreach ($chip in @('asmedia', 'realtek', 'jmicron')) {
-    $raw = Safe { Invoke-BridgeNvme $drive $chip 0x02 ([uint32]0x007F0002) ([uint32]0xffffffff) 512 }
-    if (-not $raw) { continue }
-    $p = Parse-Nvme $raw
+    # Buffers are owned here and filled in place; nothing crosses a scriptblock.
+    $sbuf = New-Object byte[] 512
+    if (-not (Invoke-BridgeNvme $drive $chip 0x02 ([uint32]0x007F0002) ([uint32]0xffffffff) $sbuf)) { continue }
+    $p = Parse-Nvme $sbuf
     if (-not (Is-RealNvme $p)) { continue }
     $p.bridge = $chip
     # Same chip just worked; fetch Identify Controller for the real identity.
-    $idraw = Safe { Invoke-BridgeNvme $drive $chip 0x06 ([uint32]0x00000001) ([uint32]0) 4096 }
-    $id = if ($idraw) { Parse-Identify $idraw } else { $null }
-    if ($id) { $p.idModel = $id.model; $p.idSerial = $id.serial; $p.idFirmware = $id.firmware }
+    $ibuf = New-Object byte[] 4096
+    if (Invoke-BridgeNvme $drive $chip 0x06 ([uint32]0x00000001) ([uint32]0) $ibuf) {
+      $id = Parse-Identify $ibuf
+      if ($id) { $p.idModel = $id.model; $p.idSerial = $id.serial; $p.idFirmware = $id.firmware }
+    }
     return $p
   }
   return $null
