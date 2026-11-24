@@ -102,12 +102,25 @@
     // Drive health
     if (drRes && drRes.ok && drRes.data) {
       const ds = arr(drRes.data.drives);
-      let worst = 100;
-      for (const d of ds) { const h = window.tmDriveHealth ? window.tmDriveHealth(d) : 100; if (h < worst) worst = h; }
-      if (!ds.length) worst = 0;
-      const cls = !ds.length ? '' : worst >= 85 ? 'good' : worst >= 55 ? 'warn' : 'bad';
-      if (ds.length && worst < 85) attention.push('a drive at ' + worst + '% health');
-      els.grid.appendChild(tile('drives', '💽', 'Drive Health', ds.length ? worst + '%' : 'N/A', ds.length + ' drive' + (ds.length === 1 ? '' : 's') + ' - worst health', cls));
+      let worst = 100, known = 0, unknown = 0;
+      for (const d of ds) {
+        const h = window.tmDriveHealth ? window.tmDriveHealth(d) : 100;
+        if (h == null) { unknown++; continue; }
+        known++; if (h < worst) worst = h;
+      }
+      if (!ds.length) {
+        els.grid.appendChild(tile('drives', '💽', 'Drive Health', 'N/A', '0 drives', ''));
+      } else if (known === 0) {
+        // Every drive's SMART is unreadable (e.g. all behind USB bridges).
+        attention.push('a drive whose health can’t be read (USB enclosure?)');
+        els.grid.appendChild(tile('drives', '💽', 'Drive Health', '?', unknown + ' drive' + (unknown === 1 ? '' : 's') + ' — SMART not readable', 'warn'));
+      } else {
+        const cls = worst >= 85 ? 'good' : worst >= 55 ? 'warn' : 'bad';
+        if (worst < 85) attention.push('a drive at ' + worst + '% health');
+        if (unknown > 0) attention.push(unknown + ' drive' + (unknown === 1 ? '' : 's') + ' whose SMART can’t be read');
+        const sub = ds.length + ' drive' + (ds.length === 1 ? '' : 's') + ' - worst health' + (unknown ? ' · ' + unknown + ' unreadable' : '');
+        els.grid.appendChild(tile('drives', '💽', 'Drive Health', worst + '%', sub, cls));
+      }
     } else {
       els.grid.appendChild(tile('drives', '💽', 'Drive Health', '—', 'could not read', ''));
     }
@@ -177,8 +190,8 @@
     let drives = '';
     if (d.dr && d.dr.ok && d.dr.data) {
       for (const dv of arr(d.dr.data.drives)) {
-        const h = window.tmDriveHealth ? window.tmDriveHealth(dv) : '';
-        drives += row((dv.model || 'Drive'), 'Health ' + h + '%' + (dv.sizeGB ? ' · ' + dv.sizeGB + ' GB' : '') + (dv.temperatureC != null ? ' · ' + dv.temperatureC + '°C' : ''));
+        const h = window.tmDriveHealth ? window.tmDriveHealth(dv) : null;
+        drives += row((dv.model || 'Drive'), 'Health ' + (h == null ? 'unknown (SMART not readable)' : h + '%') + (dv.sizeGB ? ' · ' + dv.sizeGB + ' GB' : '') + (dv.temperatureC != null ? ' · ' + dv.temperatureC + '°C' : ''));
       }
     }
     let batt = '';

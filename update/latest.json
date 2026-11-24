@@ -1,5 +1,5 @@
 {
-  "version": "0.70.48",
-  "notes": "The parts database is now pre-populated. Research across the top ~20 HP, Lenovo and Dell laptops of the last 5–6 years — 60 models, 207 part numbers — is loaded into the synced database, every number cross-checked against an OEM/authoritative source AND real eBay listings. Each one shows a confidence percentage (green 80%+, amber 65–79%, with the source behind it); anything that couldn't be corroborated was left out rather than guessed. Batteries are the backbone (corrected several wrong numbers too), plus charge-port types (soldered vs the modular DC-jack cable, with real cable numbers for Dell), keyboards, fans, lids and more. Search any of those 60 models — or hit Find for THIS PC — and it resolves straight to the researched numbers and prices them. Confirm one on a real repair and it becomes 100% 'yours'. It all syncs through GitHub, so every device gets the same database.",
-  "zip": "tmtoolset-app-0.70.48.zip"
+  "version": "0.70.49",
+  "notes": "Drive Health accuracy fix. When a drive is connected through a USB enclosure/adapter that blocks its real SMART, Windows hands back placeholder values (0% wear, an all-zero serial) — and the tool used to read those as a genuine 100% healthy. It no longer does: it now detects the bridge placeholder and shows 'Can't read — connect the drive directly for a true reading' instead of a false green ring, on the Drive Health card, the Overview tile and the printed/Syncro report. A heavily-worn SSD in a caddy can no longer hide behind a fake 100%. (Reading real SMART through common USB bridges is coming next.)",
+  "zip": "tmtoolset-app-0.70.49.zip"
 }

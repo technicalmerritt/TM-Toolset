@@ -68,9 +68,14 @@
     let worst = 100;
     for (const d of drives) {
       const h = window.tmDriveHealth ? window.tmDriveHealth(d) : 100;
+      const temp = num(d.temperatureC) ? num(d.temperatureC) + ' °C' : '-';
+      if (h == null) {
+        issues.push('storage');
+        storageRows += '<tr><td>' + esc(d.model || ('Disk ' + d.number)) + '</td><td>Unknown</td><td>' + temp + '</td><td><span class="rep-pill rep-pill--warn">SMART not readable</span></td></tr>';
+        continue;
+      }
       if (h < worst) worst = h;
       if (h < 85) issues.push('storage');
-      const temp = num(d.temperatureC) ? num(d.temperatureC) + ' °C' : '-';
       storageRows += '<tr><td>' + esc(d.model || ('Disk ' + d.number)) + '</td><td>' + h + '% (' + healthWord(h) + ')</td><td>' + temp + '</td><td><span class="rep-pill rep-pill--' + pillCls(h) + '">' + (h >= 85 ? 'Healthy' : h >= 55 ? 'Monitor' : 'At risk') + '</span></td></tr>';
     }
     if (!drives.length) storageRows = '<tr><td colspan="4" style="color:#6b7280">No drive details available.</td></tr>';

@@ -52,6 +52,38 @@
   function rawOf(m, id) { return m[id] ? num(m[id].raw) : 0; }
   function hasAttr(m, id) { return !!m[id]; }
 
+  // A drive is "bridged" when it's reached through a USB enclosure/adapter or a
+  // SCSI translation layer. Those commonly block the drive's real SMART, so
+  // Windows hands back placeholder telemetry instead.
+  function looksBridged(dr) {
+    const bus = (dr.busType || '').toLowerCase();
+    const iface = (dr.interface || '').toLowerCase();
+    const model = (dr.model || '').toLowerCase();
+    return bus === 'usb' || bus === 'scsi' || iface === 'scsi' ||
+      /\busb\b|scsi disk device|nvme ?& ?sata|sata.?bridge|external/.test(model);
+  }
+  function serialIsPlaceholder(s) {
+    s = (s || '').trim();
+    return !s || /^0+$/.test(s) || /^[Ff]+$/.test(s);
+  }
+  // When a USB bridge blocks SMART, Windows' reliability counters return
+  // placeholder zeros — 0% wear, an all-zero serial, a generic "...SCSI Disk
+  // Device" model. Reading that as a genuine 0% wear / 100% health hides a worn
+  // drive behind a false green ring (exactly what HD Sentinel catches and we
+  // missed). Detect it so we can honestly say "can't read" instead of inventing
+  // a number. Real NVMe-log or ATA-passthrough data is never a placeholder.
+  function smartIsPlaceholder(dr) {
+    if (dr.nvme) return false;
+    if (arr(dr.smartAttributes).length > 0) return false;
+    const src = (dr.smartSource || '').toLowerCase();
+    if (src !== 'reliability-counter' && src !== 'none') return false;
+    const noLiveTelemetry = dr.temperatureC == null && !(num(dr.powerOnHours) > 0);
+    const ph = serialIsPlaceholder(dr.serial);
+    if (looksBridged(dr) && (ph || noLiveTelemetry)) return true; // bridge not passing SMART
+    if (ph && noLiveTelemetry) return true;                       // nothing real at all
+    return false;
+  }
+
   // ---- Health %: data-integrity focused ----
   function healthPct(dr, m) {
     const nv = dr.nvme;
@@ -110,11 +142,20 @@
   // Does this drive actually report SMART we can trust? USB enclosures usually
   // don't, so we must NOT present a confident "100%" built on nothing.
   function smartIsKnown(dr) {
+    if (smartIsPlaceholder(dr)) return false;
     if (dr.nvme) return true;
     if (arr(dr.smartAttributes).length > 0) return true;
     const src = (dr.smartSource || '').toLowerCase();
     if (src === 'nvme-log' || src === 'ata-passthrough') return true;
-    if (src === 'reliability-counter' && (dr.temperatureC != null || dr.powerOnHours != null || dr.wearPct != null)) return true;
+    // Reliability counters only count as real if the drive is actually giving
+    // live telemetry. The USB-bridge placeholder (0% wear, all-zero serial, no
+    // temperature/hours) is already excluded by smartIsPlaceholder above; here
+    // we accept genuine live temperature/hours, or a wear figure backed by a
+    // real (non-placeholder) serial.
+    if (src === 'reliability-counter') {
+      if (dr.temperatureC != null || num(dr.powerOnHours) > 0) return true;
+      if (dr.wearPct != null && !serialIsPlaceholder(dr.serial)) return true;
+    }
     return false;
   }
   function summariseSurface(d) {
@@ -131,33 +172,44 @@
   // unreadable regions can't sit behind a green "100%".
   function assess(dr, m) {
     const surf = surfaceByDisk[dr.number];
-    const known = smartIsKnown(dr);
+    const placeholder = smartIsPlaceholder(dr);
+    const known = !placeholder && smartIsKnown(dr);
     let pct = known ? healthPct(dr, m) : null;
-    let basis = known ? 'SMART' : 'no SMART data';
+    let basis = known ? 'SMART' : (placeholder ? 'SMART not readable (USB bridge)' : 'no SMART data');
     const reasons = [];
 
     if (surf) {
-      basis = known ? 'SMART + surface scan' : 'surface scan';
       const base = known ? pct : 100;
       if (surf.readErrors > 0) {
-        pct = Math.min(base, 10);
+        pct = Math.min(base, 10); basis = known ? 'SMART + surface scan' : 'surface scan';
         reasons.push(surf.readErrors + ' unreadable region(s) in the surface scan — the drive is failing.');
       } else if (surf.maxMs >= 1200 || surf.slow >= 10) {
-        pct = Math.min(base, 42);
+        pct = Math.min(base, 42); basis = known ? 'SMART + surface scan' : 'surface scan';
         reasons.push('Slow/failing regions in the surface scan (slowest ' + Math.round(surf.maxMs) + ' ms, ' + surf.slow + ' slow spot' + (surf.slow === 1 ? '' : 's') + ') — a classic sign of a weak or dying drive.');
       } else if (surf.maxMs >= 600 || surf.slow >= 3) {
-        pct = Math.min(base, 66);
+        pct = Math.min(base, 66); basis = known ? 'SMART + surface scan' : 'surface scan';
         reasons.push(surf.slow + ' slow region' + (surf.slow === 1 ? '' : 's') + ' in the surface scan (slowest ' + Math.round(surf.maxMs) + ' ms) — worth watching / backing up.');
       } else if (surf.slow >= 1) {
-        pct = Math.min(base, 82);
+        pct = Math.min(base, 82); basis = known ? 'SMART + surface scan' : 'surface scan';
         reasons.push('A couple of mildly slow spots in the surface scan (slowest ' + Math.round(surf.maxMs) + ' ms) — minor, keep an eye on it.');
       } else {
-        if (!known) pct = 90;
-        reasons.push('Surface scan found no read errors or slow regions.');
+        // Clean surface scan. With real SMART, keep the SMART %. With no SMART at
+        // all (but not a bridge placeholder), the surface read is our only signal.
+        // With a bridge PLACEHOLDER, a clean read only proves the media is
+        // readable — not how worn the SSD is — so health must stay Unknown.
+        if (known) basis = 'SMART + surface scan';
+        else if (!placeholder) { pct = 90; basis = 'surface scan'; }
+        reasons.push('Surface scan found no read errors or slow regions.' + (placeholder ? ' (This only confirms the media reads — it can’t reveal the drive’s true wear through the enclosure.)' : ''));
       }
     }
 
     if (pct == null) {
+      if (placeholder) {
+        return {
+          pct: null, cls: 'warn', label: 'Can’t read', basis,
+          reasons: ['This drive is connected through a USB enclosure/adapter that isn’t passing its real SMART data — the serial (all zeros), firmware and 0% wear shown here are placeholders from the bridge, not the drive’s true condition, so a heavily-worn drive can still look perfect. Connect it directly to a SATA/NVMe port for an accurate reading.'].concat(reasons),
+        };
+      }
       return {
         pct: null, cls: 'warn', label: 'Unknown', basis,
         reasons: ['This drive doesn’t report SMART data (common for USB enclosures and some adapters), so its condition can’t be read electronically. Run a Surface test below to actually check the media.'],
@@ -674,13 +726,15 @@
     const out = ['<p><strong>TM Toolset — Drive Health</strong><br>' + e(new Date().toLocaleString()) + '</p>'];
     for (const dr of ds) {
       const m = attrMap(dr);
-      const h = healthPct(dr, m), perf = performancePct(dr, m);
+      const known = smartIsKnown(dr);
+      const h = known ? healthPct(dr, m) : null, perf = performancePct(dr, m);
       out.push('<p><strong>' + e(dr.model || ('Disk ' + dr.number)) + '</strong> — ' +
         [dr.mediaType, dr.interface || dr.busType, dr.sizeGB ? dr.sizeGB + ' GB' : ''].filter(Boolean).map(e).join(' · ') + '<br>' +
-        'Health <strong>' + h + '%</strong> · Performance ' + perf + '%' +
+        'Health <strong>' + (h == null ? 'Unknown' : h + '%') + '</strong>' +
+        (h == null ? ' (SMART not readable through this connection — connect the drive directly)' : ' · Performance ' + perf + '%') +
         (dr.temperatureC != null ? ' · ' + e(dr.temperatureC) + ' °C' : '') +
         (dr.powerOnHours != null ? ' · ' + e(dr.powerOnHours) + ' h on' : '') +
-        (dr.wearPct != null ? ' · wear ' + e(dr.wearPct) + '%' : '') +
+        (dr.wearPct != null && known ? ' · wear ' + e(dr.wearPct) + '%' : '') +
         '<br><em>SMART source:</em> ' + e(dr.smartSource || 'n/a') + '</p>');
     }
     out.push('<p><em>Generated by TM Toolset · Technical Merritt Computer Services</em></p>');
@@ -703,8 +757,10 @@
     for (const dr of ds) els.list.appendChild(driveCard(dr));
   }
 
-  // Expose the health calc so the Overview tab can reuse it.
-  window.tmDriveHealth = (dr) => healthPct(dr, attrMap(dr));
+  // Expose the health calc so the Overview tab can reuse it. Returns null when
+  // the drive's SMART can't be trusted (USB bridge placeholder / no data), so
+  // callers show "unknown" instead of a fabricated percentage.
+  window.tmDriveHealth = (dr) => (smartIsKnown(dr) ? healthPct(dr, attrMap(dr)) : null);
 
   window.addEventListener('DOMContentLoaded', () => {
     els.status = $('#drivesStatus');
