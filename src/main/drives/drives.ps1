@@ -81,6 +81,59 @@ public static class TMSmart {
       return data;
     } catch { return null; } finally { CloseHandle(h); }
   }
+
+  // ---- Generic SCSI pass-through (for NVMe-over-USB bridge vendor commands) ----
+  [StructLayout(LayoutKind.Sequential)]
+  public struct SPTD {
+    public ushort Length; public byte ScsiStatus; public byte PathId; public byte TargetId; public byte Lun;
+    public byte CdbLength; public byte SenseInfoLength; public byte DataIn;
+    public uint DataTransferLength; public uint TimeOutValue; public IntPtr DataBuffer; public uint SenseInfoOffset;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public byte[] Cdb;
+  }
+  [StructLayout(LayoutKind.Sequential)]
+  public struct SPTDWS { public SPTD s; [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)] public byte[] Sense; }
+
+  [DllImport("kernel32.dll", SetLastError = true)]
+  [return: MarshalAs(UnmanagedType.Bool)]
+  static extern bool DeviceIoControl(IntPtr h, uint code, IntPtr inBuf, uint inSize, IntPtr outBuf, uint outSize, out uint ret, IntPtr ov);
+
+  const uint IOCTL_SCSI_PASS_THROUGH_DIRECT = 0x4D014;
+
+  // One SCSI pass-through. fromDevice=true reads 'data' back; otherwise sends 'data'.
+  // Returns true only on a clean SCSI status (0). All failures degrade to false so
+  // the caller falls back to the reliability-counter path (and the UI's honest
+  // "can't read" state) rather than ever surfacing a made-up number.
+  public static bool Scsi(int drive, byte[] cdb, bool fromDevice, byte[] data) {
+    IntPtr h = Open(drive);
+    if (h == IntPtr.Zero || h == (IntPtr)(-1)) return false;
+    GCHandle pin = GCHandle.Alloc(data, GCHandleType.Pinned);
+    IntPtr buf = IntPtr.Zero;
+    try {
+      SPTDWS w = new SPTDWS();
+      w.s.Length = (ushort)Marshal.SizeOf(typeof(SPTD));
+      w.s.CdbLength = (byte)cdb.Length;
+      w.s.SenseInfoLength = 32;
+      w.s.DataIn = (byte)(fromDevice ? 1 : 0);
+      w.s.DataTransferLength = (uint)data.Length;
+      w.s.TimeOutValue = 10;
+      w.s.DataBuffer = pin.AddrOfPinnedObject();
+      w.s.SenseInfoOffset = (uint)Marshal.OffsetOf(typeof(SPTDWS), "Sense");
+      w.s.Cdb = new byte[16];
+      Array.Copy(cdb, w.s.Cdb, Math.Min(cdb.Length, 16));
+      w.Sense = new byte[32];
+      int size = Marshal.SizeOf(typeof(SPTDWS));
+      buf = Marshal.AllocHGlobal(size);
+      Marshal.StructureToPtr(w, buf, false);
+      uint ret;
+      bool ok = DeviceIoControl(h, IOCTL_SCSI_PASS_THROUGH_DIRECT, buf, (uint)size, buf, (uint)size, out ret, IntPtr.Zero);
+      if (!ok) return false;
+      SPTDWS o = (SPTDWS)Marshal.PtrToStructure(buf, typeof(SPTDWS));
+      return o.s.ScsiStatus == 0;
+    } catch { return false; } finally {
+      if (buf != IntPtr.Zero) Marshal.FreeHGlobal(buf);
+      pin.Free(); CloseHandle(h);
+    }
+  }
 }
 "@
   $smartOk = $true
@@ -140,6 +193,64 @@ function Parse-Nvme {
   return $o
 }
 
+# ---- NVMe SMART through USB bridges (ASMedia / Realtek / JMicron) --------------
+# Standard Windows NVMe queries don't tunnel through a USB enclosure, so a worn
+# NVMe behind a caddy falls back to placeholder reliability counters. These
+# vendor pass-throughs fetch the drive's real SMART/Health log (page 0x02) — the
+# exact command sequences smartmontools uses (sntasmedia / sntrealtek /
+# sntjmicron). Every call is read-only and any failure returns $null.
+
+# A parsed NVMe log only counts if it carries genuine telemetry — an unsupported
+# bridge can return all-zeros, which would otherwise look like a pristine 0%-used
+# drive and re-create the very false-100% bug we're fixing.
+function Is-RealNvme { param($p) return ($p -and (([int64]$p.dataUnitsWritten -gt 0) -or ([int64]$p.powerOnHours -gt 0) -or ($p.temperatureC))) }
+
+function Get-SmartLog-Asmedia { param([int]$drive)
+  # cdb[0]=0xe6, opcode 0x02, CDW10=0x007F0002 (LID 0x02, 128 dwords); read 512B.
+  $c = New-Object byte[] 16
+  $c[0] = 0xe6; $c[1] = 0x02; $c[3] = 0x02; $c[7] = 0x7f
+  $d = New-Object byte[] 512
+  if (Safe { [TMSmart]::Scsi($drive, $c, $true, $d) }) { return (Parse-Nvme $d) }
+  return $null
+}
+function Get-SmartLog-Realtek { param([int]$drive)
+  # cdb[0]=0xe4, size LE16 at [1..2]=0x0200, opcode at [3]=0x02, CDW10 low at [4]=0x02.
+  $c = New-Object byte[] 16
+  $c[0] = 0xe4; $c[2] = 0x02; $c[3] = 0x02; $c[4] = 0x02
+  $d = New-Object byte[] 512
+  if (Safe { [TMSmart]::Scsi($drive, $c, $true, $d) }) { return (Parse-Nvme $d) }
+  return $null
+}
+function Get-SmartLog-Jmicron { param([int]$drive)
+  # 3-step over ATA PASSTHROUGH(12) 0xa1. Step 1: send 512B NVM command payload.
+  $cmd = New-Object byte[] 512
+  $cmd[0] = 0x4e; $cmd[1] = 0x56; $cmd[2] = 0x4d; $cmd[3] = 0x45   # dword0 'NVME' signature (LE)
+  $cmd[8] = 0x02                                                   # dword2 = opcode 0x02
+  $cmd[12] = 0xff; $cmd[13] = 0xff; $cmd[14] = 0xff; $cmd[15] = 0xff # dword3 = nsid broadcast
+  $cmd[48] = 0x02; $cmd[50] = 0x7f                                 # dword12 = cdw10 0x007F0002
+  $c1 = New-Object byte[] 12; $c1[0] = 0xa1; $c1[1] = 0x80; $c1[4] = 0x02 # proto_nvm_cmd; len 512 BE
+  if (-not (Safe { [TMSmart]::Scsi($drive, $c1, $false, $cmd) })) { return $null }
+  # Step 2: read the 512B log (proto_dma_in -> cdb[1]=0x82).
+  $c2 = New-Object byte[] 12; $c2[0] = 0xa1; $c2[1] = 0x82; $c2[4] = 0x02
+  $d = New-Object byte[] 512
+  if (-not (Safe { [TMSmart]::Scsi($drive, $c2, $true, $d) })) { return $null }
+  return (Parse-Nvme $d)
+}
+function Try-BridgeNvme { param([int]$drive)
+  if (-not $smartOk) { return $null }
+  foreach ($chip in @('asmedia', 'realtek', 'jmicron')) {
+    $p = Safe {
+      switch ($chip) {
+        'asmedia' { Get-SmartLog-Asmedia $drive }
+        'realtek' { Get-SmartLog-Realtek $drive }
+        'jmicron' { Get-SmartLog-Jmicron $drive }
+      }
+    }
+    if (Is-RealNvme $p) { $p.bridge = $chip; return $p }
+  }
+  return $null
+}
+
 # ---- Win32_DiskDrive by index (model/serial/firmware/interface) ----
 $ddByIndex = @{}
 Safe { Get-CimInstance Win32_DiskDrive | ForEach-Object { $ddByIndex["$($_.Index)"] = $_ } }
@@ -172,6 +283,13 @@ $out.drives = Safe {
             if ($nvme) { $source = 'nvme-log' }
           }
         }
+      }
+      # USB/SCSI bridge: the standard NVMe/ATA queries can't tunnel through the
+      # enclosure, so try the vendor NVMe-over-USB pass-throughs (ASMedia /
+      # Realtek / JMicron) to read the drive's real SMART before falling back.
+      if ($smartOk -and -not $nvme -and @($attrs).Count -eq 0 -and ($bus -eq 'USB' -or $bus -eq 'SCSI')) {
+        $bn = Safe { Try-BridgeNvme $n }
+        if ($bn) { $nvme = $bn; $source = 'nvme-usb-' + $bn.bridge }
       }
       if (-not $smartOk -or ($source -eq 'reliability-counter')) {
         if (-not $rc) { $source = 'none' }

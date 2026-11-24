@@ -374,6 +374,9 @@
   const SOURCE_LABEL = {
     'ata-passthrough': 'Live ATA SMART (direct pass-through)',
     'nvme-log': 'Live NVMe SMART / health log',
+    'nvme-usb-asmedia': 'Live NVMe SMART via USB bridge (ASMedia)',
+    'nvme-usb-realtek': 'Live NVMe SMART via USB bridge (Realtek)',
+    'nvme-usb-jmicron': 'Live NVMe SMART via USB bridge (JMicron)',
     'reliability-counter': 'Windows reliability counters (limited — no sector-level SMART)',
     'none': 'No SMART source available',
     'error': 'SMART read error',

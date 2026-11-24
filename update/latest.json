@@ -1,5 +1,5 @@
 {
-  "version": "0.70.49",
-  "notes": "Drive Health accuracy fix. When a drive is connected through a USB enclosure/adapter that blocks its real SMART, Windows hands back placeholder values (0% wear, an all-zero serial) — and the tool used to read those as a genuine 100% healthy. It no longer does: it now detects the bridge placeholder and shows 'Can't read — connect the drive directly for a true reading' instead of a false green ring, on the Drive Health card, the Overview tile and the printed/Syncro report. A heavily-worn SSD in a caddy can no longer hide behind a fake 100%. (Reading real SMART through common USB bridges is coming next.)",
-  "zip": "tmtoolset-app-0.70.49.zip"
+  "version": "0.70.50",
+  "notes": "Drive Health now reads real SMART through USB enclosures. Standard Windows queries can't see an NVMe SSD's health through a USB-to-NVMe bridge, so a worn drive in a caddy used to fall back to placeholder data. The tool now tunnels the drive's actual NVMe SMART/Health log through the common bridge chips — ASMedia, Realtek and JMicron — using the same vendor commands smartmontools uses, so a Kioxia (or any NVMe) in a dock reports its true wear/health just like it would connected internally. Each reading is validated (an unsupported bridge can't fake a pristine drive), and if a bridge genuinely can't be read it still shows the honest 'connect the drive directly' message from the previous update rather than a false 100%. The card shows where the reading came from (e.g. 'Live NVMe SMART via USB bridge (ASMedia)').",
+  "zip": "tmtoolset-app-0.70.50.zip"
 }
