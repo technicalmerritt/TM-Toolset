@@ -1,6 +1,6 @@
 {
  "version": 2,
- "updated": "2026-11-23",
+ "updated": "2026-11-24",
  "models": {
   "hp-elitebook-840-g6": {
    "brand": "HP",
@@ -989,28 +989,28 @@
   "ms-surface-laptop-4": {
    "brand": "Microsoft",
    "model": "Surface Laptop 4 (13.5\"/15\")",
-   "aliases": "surface laptop 4 1950 1951 1958 1959",
+   "aliases": "surface laptop 4 1950 1951 1958 1959 1978 1979",
    "years": "2021",
    "notes": {
-    "chargeport": "Surface Connect port on flex. Assembly-level. SSD = removable M.2 2230."
+    "chargeport": "Surface Connect (soldered) + USB-C + USB-A. No DC jack, no separate FRU."
    }
   },
   "ms-surface-laptop-5": {
    "brand": "Microsoft",
    "model": "Surface Laptop 5 (13.5\"/15\")",
-   "aliases": "surface laptop 5 1958 1959 1979",
+   "aliases": "surface laptop 5 1958 1959 1979 13.5 15",
    "years": "2022",
    "notes": {
-    "chargeport": "Surface Connect port on flex. Assembly-level. SSD = removable M.2 2230."
+    "chargeport": "Surface Connect (soldered) + USB-C (USB4/Thunderbolt) + USB-A. No DC jack."
    }
   },
   "ms-surface-pro-7": {
    "brand": "Microsoft",
    "model": "Surface Pro 7",
-   "aliases": "surface pro 7 1866",
+   "aliases": "surface pro 7 1866 1960",
    "years": "2019-2020",
    "notes": {
-    "chargeport": "Surface Connect charge port on flex; USB-C data. Assembly-level. SSD = removable M.2 2230 under kickstand."
+    "chargeport": "Charges via magnetic Surface Connect port (soldered) OR USB-C (USB 3.1, soldered — not Thunderbolt). No DC jack, no separate FRU."
    }
   },
   "ms-surface-pro-8": {
@@ -1019,16 +1019,16 @@
    "aliases": "surface pro 8 1982 1983",
    "years": "2021-2022",
    "notes": {
-    "chargeport": "Surface Connect port on flex; 2× USB-C/TB4 data. SSD = removable M.2 2230 under kickstand."
+    "chargeport": "Surface Connect (soldered) OR Thunderbolt 4 / USB-C (soldered). No DC jack, no separate FRU."
    }
   },
   "ms-surface-pro-9": {
    "brand": "Microsoft",
    "model": "Surface Pro 9",
-   "aliases": "surface pro 9 2038 2037",
+   "aliases": "surface pro 9 2038 2037 1996 5g",
    "years": "2022-2023",
    "notes": {
-    "chargeport": "Surface Connect port on flex; USB-C/TB4 (Intel) data. SSD = removable M.2 2230 under kickstand."
+    "chargeport": "Surface Connect (soldered) OR USB-C. Intel = 2x Thunderbolt 4; 5G/SQ3 = USB-C non-TB. All soldered."
    }
   },
   "ms-surface-laptop-go": {
@@ -1542,6 +1542,177 @@
    "years": "2020-2021",
    "notes": {
     "chargeport": "USB-C charging via a separate daughterboard; exact board number not corroborated."
+   }
+  },
+  "lg-gram-14-14z90n-14z90p-14z90q": {
+   "brand": "LG",
+   "model": "Gram 14 (14Z90N / 14Z90P / 14Z90Q)",
+   "aliases": "lg gram 14 14z90n 14z90p 14z90q",
+   "years": "2020-2022",
+   "notes": {
+    "chargeport": "USB-C/Thunderbolt charging — port soldered to the mainboard, no DC jack or daughterboard.",
+    "ram": "Partly soldered — one SO-DIMM slot + onboard RAM; a board swap changes the RAM config."
+   }
+  },
+  "lg-gram-15-15z90n-15z95p": {
+   "brand": "LG",
+   "model": "Gram 15 (15Z90N / 15Z95P)",
+   "aliases": "lg gram 15 15z90n 15z95p",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C/Thunderbolt charging — port soldered to the mainboard, no DC jack.",
+    "ram": "Partly soldered — one SO-DIMM slot + onboard RAM."
+   }
+  },
+  "lg-gram-16-16z90p-16z90q": {
+   "brand": "LG",
+   "model": "Gram 16 (16Z90P / 16Z90Q)",
+   "aliases": "lg gram 16 16z90p 16z90q 16t90p",
+   "years": "2021-2022",
+   "notes": {
+    "chargeport": "USB-C/Thunderbolt 4 charging — port soldered to the mainboard, no DC jack.",
+    "ram": "Partly soldered — one SO-DIMM slot + onboard RAM."
+   }
+  },
+  "lg-gram-17-17z90n-17z90p": {
+   "brand": "LG",
+   "model": "Gram 17 (17Z90N / 17Z90P)",
+   "aliases": "lg gram 17 17z90n 17z90p 17z95p",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C/Thunderbolt charging (65W USB-C adapter) — port soldered to the mainboard, no DC jack.",
+    "ram": "Partly soldered — one SO-DIMM slot + onboard RAM."
+   }
+  },
+  "huawei-matebook-d14-2020-2021-2022": {
+   "brand": "Huawei",
+   "model": "MateBook D14 (2020/2021/2022)",
+   "aliases": "matebook d14 nbl-waq9r nbl-wap9r nbb-wah9p 53010tvs",
+   "years": "2020-2022",
+   "notes": {
+    "chargeport": "USB-C charging — port soldered to the mainboard, no DC jack.",
+    "ram": "Fully soldered (no SO-DIMM) — not upgradeable."
+   }
+  },
+  "huawei-matebook-d15-2020-2021": {
+   "brand": "Huawei",
+   "model": "MateBook D15 (2020/2021)",
+   "aliases": "matebook d15 boh-waq9r nbb-wah9p nbde-wdh9 bod-wdh9",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging — port soldered to the mainboard, no DC jack.",
+    "ram": "Fully soldered (no SO-DIMM) — not upgradeable."
+   }
+  },
+  "huawei-matebook-14-2020-2021": {
+   "brand": "Huawei",
+   "model": "MateBook 14 (2020/2021)",
+   "aliases": "matebook 14 klvl-wfh9 klvl-wfe9 klvl-wdh9 klvc-wah9l",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C charging — port soldered to the mainboard, no DC jack.",
+    "ram": "Fully soldered (no SO-DIMM) — not upgradeable."
+   }
+  },
+  "huawei-matebook-x-pro-2020-2021": {
+   "brand": "Huawei",
+   "model": "MateBook X Pro (2020/2021)",
+   "aliases": "matebook x pro mach-w19 mach-w29 machr-w29 mach-w19l",
+   "years": "2020-2021",
+   "notes": {
+    "chargeport": "USB-C/Thunderbolt charging — port soldered to the mainboard, no DC jack.",
+    "ram": "Fully soldered (no SO-DIMM) — not upgradeable."
+   }
+  },
+  "huawei-matebook-13-2019-2020": {
+   "brand": "Huawei",
+   "model": "MateBook 13 (2019/2020)",
+   "aliases": "matebook 13 wrt-w19 wrt-w29 hn-w19r hn-w29r",
+   "years": "2019-2020",
+   "notes": {
+    "chargeport": "USB-C charging — port soldered to the mainboard, no DC jack.",
+    "ram": "Fully soldered (no SO-DIMM) — not upgradeable."
+   }
+  },
+  "lenovo-300e-chromebook-2nd-gen-81mb-intel": {
+   "brand": "Lenovo",
+   "model": "300e Chromebook 2nd Gen (81MB, Intel)",
+   "aliases": "300e chromebook gen 2 81mb 300e 2nd gen intel",
+   "years": "2019-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a separate USB & power daughterboard on a cable — NOT soldered; the most common repair. Variant 5C51D01520 also seen."
+   }
+  },
+  "lenovo-100e-chromebook-2nd-gen-81ma-intel": {
+   "brand": "Lenovo",
+   "model": "100e Chromebook 2nd Gen (81MA, Intel)",
+   "aliases": "100e chromebook gen 2 81ma 100e 2nd gen intel",
+   "years": "2019-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a separate power & USB daughterboard on a cable — not soldered. Board 5C51C99115 ties to 81MA0020US — confirm sub-model."
+   }
+  },
+  "lenovo-500e-chromebook-2nd-gen-81mc-intel": {
+   "brand": "Lenovo",
+   "model": "500e Chromebook 2nd Gen (81MC, Intel)",
+   "aliases": "500e chromebook gen 2 81mc 500e 2nd gen",
+   "years": "2019-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a separate USB & power daughterboard on a cable — not soldered. Shared with 300e Gen2; verify against the physical board."
+   }
+  },
+  "lenovo-14e-chromebook-81mh-amd": {
+   "brand": "Lenovo",
+   "model": "14e Chromebook (81MH, AMD)",
+   "aliases": "14e chromebook 81mh lenovo chromebook 14e",
+   "years": "2019-2021",
+   "notes": {
+    "chargeport": "USB-C charging via a separate USB I/O daughterboard — not soldered. iFixit FRU 5C50S73017."
+   }
+  },
+  "lenovo-300e-chromebook-gen-3-82j9-82ja": {
+   "brand": "Lenovo",
+   "model": "300e Chromebook Gen 3 (82J9 / 82JA)",
+   "aliases": "300e chromebook gen 3 82j9 82ja 300e 3rd gen",
+   "years": "2021-2023",
+   "notes": {
+    "chargeport": "USB-C charging via a separate USB/power daughterboard on a cable — not soldered; exact Gen 3 board FRU not corroborated."
+   }
+  },
+  "lenovo-100e-chromebook-gen-3-82j7-82j8": {
+   "brand": "Lenovo",
+   "model": "100e Chromebook Gen 3 (82J7 / 82J8)",
+   "aliases": "100e chromebook gen 3 82j7 82j8 100e 3rd gen",
+   "years": "2021-2023",
+   "notes": {
+    "chargeport": "USB-C charging via a separate power/USB daughterboard on a cable — not soldered; exact Gen 3 board FRU not corroborated."
+   }
+  },
+  "lenovo-500e-chromebook-gen-3-82jb-82jc": {
+   "brand": "Lenovo",
+   "model": "500e Chromebook Gen 3 (82JB / 82JC)",
+   "aliases": "500e chromebook gen 3 82jb 82jc 500e 3rd gen",
+   "years": "2021-2023",
+   "notes": {
+    "chargeport": "USB-C charging via a separate USB/power daughterboard on a cable — not soldered; exact Gen 3 board FRU not corroborated (5B40Z68835 is a bracket, not the board)."
+   }
+  },
+  "lenovo-300e-chromebook-2nd-gen-ast-82ce-amd": {
+   "brand": "Lenovo",
+   "model": "300e Chromebook 2nd Gen AST (82CE, AMD)",
+   "aliases": "300e chromebook gen 2 amd 82ce 300e 2nd gen ast",
+   "years": "2020-2022",
+   "notes": {
+    "chargeport": "USB-C charging via a separate USB/power daughterboard on a cable — not soldered. AMD board 5C50Y97712 (distinct from Intel); MTK uses 5C50T95169/5C51A14226."
+   }
+  },
+  "lenovo-100e-chromebook-gen-4-82w0": {
+   "brand": "Lenovo",
+   "model": "100e Chromebook Gen 4 (82W0)",
+   "aliases": "100e chromebook gen 4 82w0 100e 4th gen",
+   "years": "2023-2024",
+   "notes": {
+    "chargeport": "USB-C charging via a separate power/USB daughterboard on a cable — not soldered; exact 82W0 board FRU not corroborated."
    }
   }
  },
@@ -5197,6 +5368,13 @@
      "confidence": 78,
      "confirmed": false,
      "source": "researched"
+    },
+    {
+     "pn": "G3HTA057H",
+     "note": "13.5in (1867/1868) = G3HTA052H/DYNT02 ~45.8Wh; 15in (1872/1873) = G3HTA057H ~47Wh. Glued in but a common replacement.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
     }
    ]
   },
@@ -5218,6 +5396,13 @@
      "confidence": 78,
      "confirmed": false,
      "source": "researched"
+    },
+    {
+     "pn": "DYNT02",
+     "note": "Shares Laptop 3 chassis: 13.5in (1950/1951/1958/1959) = G3HTA052H/DYNT02 ~45.8Wh; 15in (1978/1979) = G3HTA057H ~47Wh.",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
     }
    ]
   },
@@ -5232,6 +5417,20 @@
      "confidence": 70,
      "confirmed": false,
      "source": "researched"
+    },
+    {
+     "pn": "IF413-011-5",
+     "note": "Battery is bonded into the lower case — Microsoft supplies it only as a genuine 'Lower Case and Battery Assembly' via iFixit. This is the orderable sourcing SKU, not a bare cell code; no eBay-UK match.",
+     "confidence": 58,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "IF413-017-1",
+     "note": "Battery bonded into lower case; supplied only as a genuine 'Lower Case and Battery Assembly' via iFixit (sourcing SKU, not a cell code); no eBay-UK match.",
+     "confidence": 58,
+     "confirmed": false,
+     "source": "researched"
     }
    ]
   },
@@ -5244,6 +5443,13 @@
      "pn": "G3HTA061H",
      "note": "43.2Wh ~5702mAh",
      "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "DYNM03",
+     "note": "~43.2Wh/5702mAh (model 1866). Device-side cell code printed on the pack.",
+     "confidence": 88,
      "confirmed": false,
      "source": "researched"
     }
@@ -5265,6 +5471,13 @@
      "pn": "96BTA016H",
      "note": "~50.2Wh; third-party only — verify connector",
      "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "96BTA015H",
+     "note": "~50.2Wh/4414mAh (models 1982/1983). 015H/016H are the two cell-vendor variants; DYNC01 is the MS code.",
+     "confidence": 88,
      "confirmed": false,
      "source": "researched"
     }
@@ -5307,6 +5520,13 @@
      "pn": "916TA135H",
      "note": "Model 2013; same 1943-pattern pack cited but compatibility not unanimous — verify printed code",
      "confidence": 62,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "N3I-00001",
+     "note": "39.7Wh/5235mAh. Microsoft genuine replacement battery (P/N N3I-00001) via iFixit. Authoritative source only; eBay UK did not corroborate the exact number.",
+     "confidence": 55,
      "confirmed": false,
      "source": "researched"
     }
@@ -7498,6 +7718,741 @@
      "pn": "AP19B5K",
      "note": "3-cell ~41Wh (Acer KT.00305.011, 11.55V). Shared with Chromebook 314/C933 family. MediaTek MT8183 — verify the cell label.",
      "confidence": 62,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-14-14z90n-14z90p-14z90q|screen": {
+   "model": "Gram 14 (14Z90N / 14Z90P / 14Z90Q)",
+   "modelId": "lg-gram-14-14z90n-14z90p-14z90q",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "LP140WU1-SPA1",
+     "note": "14in WUXGA 1920x1200 IPS 16:10, 30-pin eDP (non-touch). Suffix varies by batch.",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "LP140WU2-SPB1",
+     "note": "14in WUXGA 1920x1200 IPS 16:10, 30-pin eDP (non-touch). Suffix varies by batch.",
+     "confidence": 74,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-14-14z90n-14z90p-14z90q|battery": {
+   "model": "Gram 14 (14Z90N / 14Z90P / 14Z90Q)",
+   "modelId": "lg-gram-14-14z90n-14z90p-14z90q",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "LBV7227E",
+     "note": "80Wh 7.74V. Spans 14Z90N (2020) / 14Z90P (2021). 14Z90Q not separately corroborated — verify. (Older LBP7221E is 2016-19 Grams — do NOT use.)",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-15-15z90n-15z95p|battery": {
+   "model": "Gram 15 (15Z90N / 15Z95P)",
+   "modelId": "lg-gram-15-15z90n-15z95p",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "LBV7227E",
+     "note": "80Wh 7.74V. eBay-UK listings name 15Z90N; 15Z95P shares the pack family.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-16-16z90p-16z90q|screen": {
+   "model": "Gram 16 (16Z90P / 16Z90Q)",
+   "modelId": "lg-gram-16-16z90p-16z90q",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "LP160WQ1-SPA1",
+     "note": "16in WQXGA 2560x1600 IPS 16:10, 40-pin eDP (non-touch). Also lists 16Z90N/16Z90Q/16Z95P compatible.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-16-16z90p-16z90q|battery": {
+   "model": "Gram 16 (16Z90P / 16Z90Q)",
+   "modelId": "lg-gram-16-16z90p-16z90q",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "LBV7227E",
+     "note": "80Wh 7.74V. Names 16Z90P/16ZD90P/16Z90PC/16Z90PG. 16Z90Q plausible but not firmly corroborated — verify.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-16-16z90p-16z90q|keyboard": {
+   "model": "Gram 16 (16Z90P / 16Z90Q)",
+   "modelId": "lg-gram-16-16z90p-16z90q",
+   "part": "keyboard",
+   "numbers": [
+    {
+     "pn": "831-00885-00A",
+     "note": "Backlit US (ANSI) layout — the only layout corroborated. UK ISO not confirmed; often sold only within the palmrest.",
+     "confidence": 66,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-16-16z90p-16z90q|fan": {
+   "model": "Gram 16 (16Z90P / 16Z90Q)",
+   "modelId": "lg-gram-16-16z90p-16z90q",
+   "part": "fan",
+   "numbers": [
+    {
+     "pn": "MED65476901",
+     "note": "Thermal heatsink/fan module; shared between 16Z90P and 17Z90P.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-17-17z90n-17z90p|screen": {
+   "model": "Gram 17 (17Z90N / 17Z90P)",
+   "modelId": "lg-gram-17-17z90n-17z90p",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "LP170WQ1-SPA1",
+     "note": "17in WQXGA 2560x1600 IPS 16:10, 40-pin eDP (non-touch). SPA1/SPE1/SPF2 interchangeable suffixes.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "LP170WQ1-SPE1",
+     "note": "17in WQXGA 2560x1600 IPS 16:10, 40-pin eDP (non-touch). SPA1/SPE1/SPF2 interchangeable suffixes.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "LP170WQ1-SPF2",
+     "note": "17in WQXGA 2560x1600 IPS 16:10, 40-pin eDP (non-touch). SPA1/SPE1/SPF2 interchangeable suffixes.",
+     "confidence": 86,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-17-17z90n-17z90p|battery": {
+   "model": "Gram 17 (17Z90N / 17Z90P)",
+   "modelId": "lg-gram-17-17z90n-17z90p",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "LBV7227E",
+     "note": "80Wh 7.74V. Same pack spans the 15/16/17 Z90N/Z90P family.",
+     "confidence": 90,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-17-17z90n-17z90p|palmrest": {
+   "model": "Gram 17 (17Z90N / 17Z90P)",
+   "modelId": "lg-gram-17-17z90n-17z90p",
+   "part": "palmrest",
+   "numbers": [
+    {
+     "pn": "AEW74230312",
+     "note": "Top cover/palmrest with backlit keyboard for 17Z90P/-G/-K/-N/17Z95P (US layout). Single-source.",
+     "confidence": 62,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lg-gram-17-17z90n-17z90p|fan": {
+   "model": "Gram 17 (17Z90N / 17Z90P)",
+   "modelId": "lg-gram-17-17z90n-17z90p",
+   "part": "fan",
+   "numbers": [
+    {
+     "pn": "MED65476901",
+     "note": "Thermal heatsink/fan module (shared with 16Z90P). Bare fan EAL62722401 also sold for Z90P.",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-d14-2020-2021-2022|battery": {
+   "model": "MateBook D14 (2020/2021/2022)",
+   "modelId": "huawei-matebook-d14-2020-2021-2022",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "HB4692Z9ECW-41",
+     "note": "56Wh 15.28V 4-cell. MateBook D14 2020/2021 (NBL-WAQ9R/WAP9R, 53010TVS) + Honor MagicBook 14. 2022 not confirmed; verify -41 vs -22A suffix on the pack.",
+     "confidence": 88,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-d14-2020-2021-2022|fan": {
+   "model": "MateBook D14 (2020/2021/2022)",
+   "modelId": "huawei-matebook-d14-2020-2021-2022",
+   "part": "fan",
+   "numbers": [
+    {
+     "pn": "DQ5D597M024",
+     "note": "CPU cooling fan for D14 NBL-WAQ9R. Single-source — verify board code.",
+     "confidence": 60,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-d15-2020-2021|battery": {
+   "model": "MateBook D15 (2020/2021)",
+   "modelId": "huawei-matebook-d15-2020-2021",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "HB4692Z9ECW-22A",
+     "note": "56Wh 7.64V 7330mAh. MateBook D15 (NBB-WAH9P, NBDE-WDH9). Distinct from D14's -41 (15.28V) — do not cross-fit.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-d15-2020-2021|fan": {
+   "model": "MateBook D15 (2020/2021)",
+   "modelId": "huawei-matebook-d15-2020-2021",
+   "part": "fan",
+   "numbers": [
+    {
+     "pn": "DQ5D598G042",
+     "note": "CPU cooling fan (BoB-WAI9 and related); Intel heatsink FBH98035010 seen for BOD-WDH9. Single-source — verify board code.",
+     "confidence": 60,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-14-2020-2021|screen": {
+   "model": "MateBook 14 (2020/2021)",
+   "modelId": "huawei-matebook-14-2020-2021",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "TV140WTM-NH0",
+     "note": "14in WQHD 2160x1440 IPS 3:2, 30-pin eDP (non-touch). KLVL-WDH9 / KLVC-WAH9L. Touch variants separate.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-14-2020-2021|battery": {
+   "model": "MateBook 14 (2020/2021)",
+   "modelId": "huawei-matebook-14-2020-2021",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "HB4593R1ECW-22A",
+     "note": "56Wh 7.64V 7330mAh. MateBook 14 2020/2021 (AMD, KLVL-WFH9/WFE9). The -22A has a DIFFERENT connector from the plain HB4593R1ECW (X Pro) — not interchangeable.",
+     "confidence": 88,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-x-pro-2020-2021|screen": {
+   "model": "MateBook X Pro (2020/2021)",
+   "modelId": "huawei-matebook-x-pro-2020-2021",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "B139KAN01",
+     "note": "13.9in 3000x2000 (3K) IPS touchscreen — sold as a full bonded touch LCD assembly for MACH-W19/W29. Panel BOE B139KAN01.x; suffix varies.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-x-pro-2020-2021|battery": {
+   "model": "MateBook X Pro (2020/2021)",
+   "modelId": "huawei-matebook-x-pro-2020-2021",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "HB4593R1ECW",
+     "note": "56.3Wh 7.6V 7410mAh. X Pro (MACH-W19/W29/W29C, KPL-W00). Plain pack connector differs from the -22A (MateBook 14) — not interchangeable.",
+     "confidence": 88,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-13-2019-2020|screen": {
+   "model": "MateBook 13 (2019/2020)",
+   "modelId": "huawei-matebook-13-2019-2020",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "P130ZFA-BA1",
+     "note": "13in WQHD 2160x1440 IPS 3:2. WRT-W19/W29, HN-W19R; non-touch and touch assemblies both exist.",
+     "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "huawei-matebook-13-2019-2020|battery": {
+   "model": "MateBook 13 (2019/2020)",
+   "modelId": "huawei-matebook-13-2019-2020",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "HB4593J6ECW",
+     "note": "~41.7Wh 11.4V (also -31). MateBook 13 2020 (WRT-W19). Distinct from the X Pro/MateBook 14 HB4593R1ECW family despite the similar code.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-300e-chromebook-2nd-gen-81mb-intel|screen": {
+   "model": "300e Chromebook 2nd Gen (81MB, Intel)",
+   "modelId": "lenovo-300e-chromebook-2nd-gen-81mb-intel",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "5D10T79505",
+     "note": "11.6in HD bonded TOUCH assembly incl. bezel (300e is a 2-in-1). Also 5D10T95195/5D10Y67266/5D11B01178.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5D10Y97713",
+     "note": "11.6in HD bonded TOUCH assembly incl. bezel (300e is a 2-in-1). Also 5D10T95195/5D10Y67266/5D11B01178.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-300e-chromebook-2nd-gen-81mb-intel|battery": {
+   "model": "300e Chromebook 2nd Gen (81MB, Intel)",
+   "modelId": "lenovo-300e-chromebook-2nd-gen-81mb-intel",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "L17M3PB0",
+     "note": "3-cell 42Wh 11.25V (cell L17M3PB0 / assy SB10W67186). Later builds use 47Wh L19M3PG1 (5B10S75394) — check label. Shared 100e/300e/500e Gen2 Intel.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5B10W67369",
+     "note": "3-cell 42Wh 11.25V (cell L17M3PB0 / assy SB10W67186). Later builds use 47Wh L19M3PG1 (5B10S75394) — check label. Shared 100e/300e/500e Gen2 Intel.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-300e-chromebook-2nd-gen-81mb-intel|chargeport": {
+   "model": "300e Chromebook 2nd Gen (81MB, Intel)",
+   "modelId": "lenovo-300e-chromebook-2nd-gen-81mb-intel",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "5C50T70714",
+     "note": "USB-C charging via a separate USB & power daughterboard on a cable — NOT soldered; the most common repair. Variant 5C51D01520 also seen.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-100e-chromebook-2nd-gen-81ma-intel|screen": {
+   "model": "100e Chromebook 2nd Gen (81MA, Intel)",
+   "modelId": "lenovo-100e-chromebook-2nd-gen-81ma-intel",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "5D10M57333",
+     "note": "11.6in HD NON-touch bare panel, 30-pin eDP (100e is a clamshell). Also 5D10N87520.",
+     "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5D10M57334",
+     "note": "11.6in HD NON-touch bare panel, 30-pin eDP (100e is a clamshell). Also 5D10N87520.",
+     "confidence": 68,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-100e-chromebook-2nd-gen-81ma-intel|battery": {
+   "model": "100e Chromebook 2nd Gen (81MA, Intel)",
+   "modelId": "lenovo-100e-chromebook-2nd-gen-81ma-intel",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "L17M3PB0",
+     "note": "3-cell 42Wh 11.25V (L17M3PB0/L17L3PB0; FRU 5B10W67251/5B10W67369). Some 47Wh L19M3PG1 builds — verify label.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5B10W67369",
+     "note": "3-cell 42Wh 11.25V (L17M3PB0/L17L3PB0; FRU 5B10W67251/5B10W67369). Some 47Wh L19M3PG1 builds — verify label.",
+     "confidence": 80,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-100e-chromebook-2nd-gen-81ma-intel|chargeport": {
+   "model": "100e Chromebook 2nd Gen (81MA, Intel)",
+   "modelId": "lenovo-100e-chromebook-2nd-gen-81ma-intel",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "5C50T81842",
+     "note": "USB-C charging via a separate power & USB daughterboard on a cable — not soldered. Board 5C51C99115 ties to 81MA0020US — confirm sub-model.",
+     "confidence": 65,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-500e-chromebook-2nd-gen-81mc-intel|screen": {
+   "model": "500e Chromebook 2nd Gen (81MC, Intel)",
+   "modelId": "lenovo-500e-chromebook-2nd-gen-81mc-intel",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "5D10T79593",
+     "note": "11.6in HD bonded TOUCH assembly incl. bezel (500e is a 2-in-1). Also 5D11E72134.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5D10Y67267",
+     "note": "11.6in HD bonded TOUCH assembly incl. bezel (500e is a 2-in-1). Also 5D11E72134.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-500e-chromebook-2nd-gen-81mc-intel|battery": {
+   "model": "500e Chromebook 2nd Gen (81MC, Intel)",
+   "modelId": "lenovo-500e-chromebook-2nd-gen-81mc-intel",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "L17M3PB0",
+     "note": "3-cell 42Wh 11.25V (L17M3PB0). FRU 5B10W67306 cited for 81MC. Same pack family as 100e/300e Gen2 Intel.",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5B10W67306",
+     "note": "3-cell 42Wh 11.25V (L17M3PB0). FRU 5B10W67306 cited for 81MC. Same pack family as 100e/300e Gen2 Intel.",
+     "confidence": 84,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-500e-chromebook-2nd-gen-81mc-intel|chargeport": {
+   "model": "500e Chromebook 2nd Gen (81MC, Intel)",
+   "modelId": "lenovo-500e-chromebook-2nd-gen-81mc-intel",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "5C50T70714",
+     "note": "USB-C charging via a separate USB & power daughterboard on a cable — not soldered. Shared with 300e Gen2; verify against the physical board.",
+     "confidence": 60,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-14e-chromebook-81mh-amd|screen": {
+   "model": "14e Chromebook (81MH, AMD)",
+   "modelId": "lenovo-14e-chromebook-81mh-amd",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "5D10S75184",
+     "note": "14in FHD TOUCH panel. NON-touch FHD variant is 5D10R41284/5D10R41283/5D10W73206 (40-pin) — confirm touch vs non-touch.",
+     "confidence": 78,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-14e-chromebook-81mh-amd|battery": {
+   "model": "14e Chromebook (81MH, AMD)",
+   "modelId": "lenovo-14e-chromebook-81mh-amd",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "L18M3PG2",
+     "note": "3-cell 57Wh ~11.52V. Variants L18L3PG2 (5B10W13939) / L18D3PG2 (5B10T04980) differ by cable length — match the connector.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5B10W13941",
+     "note": "3-cell 57Wh ~11.52V. Variants L18L3PG2 (5B10W13939) / L18D3PG2 (5B10T04980) differ by cable length — match the connector.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-14e-chromebook-81mh-amd|chargeport": {
+   "model": "14e Chromebook (81MH, AMD)",
+   "modelId": "lenovo-14e-chromebook-81mh-amd",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "5C50S73017",
+     "note": "USB-C charging via a separate USB I/O daughterboard — not soldered. iFixit FRU 5C50S73017.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-300e-chromebook-gen-3-82j9-82ja|screen": {
+   "model": "300e Chromebook Gen 3 (82J9 / 82JA)",
+   "modelId": "lenovo-300e-chromebook-gen-3-82j9-82ja",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "5D11C95890",
+     "note": "11.6in HD TOUCH IPS assembly (2-in-1). Single-retailer FRU — provisional.",
+     "confidence": 58,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-300e-chromebook-gen-3-82j9-82ja|battery": {
+   "model": "300e Chromebook Gen 3 (82J9 / 82JA)",
+   "modelId": "lenovo-300e-chromebook-gen-3-82j9-82ja",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "L20M3PG0",
+     "note": "3-cell 47Wh 11.52V (cell L20M3PG0 / assy SB11B36304). Shared with 100e Gen 3. Some listings quote 46Wh.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5B11B36312",
+     "note": "3-cell 47Wh 11.52V (cell L20M3PG0 / assy SB11B36304). Shared with 100e Gen 3. Some listings quote 46Wh.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-100e-chromebook-gen-3-82j7-82j8|screen": {
+   "model": "100e Chromebook Gen 3 (82J7 / 82J8)",
+   "modelId": "lenovo-100e-chromebook-gen-3-82j7-82j8",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "5D10X54254",
+     "note": "11.6in HD NON-touch bare panel, 30-pin (clamshell). Also used on 100e Gen4 82W1/83G8. Also 5D10Z90322.",
+     "confidence": 72,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5D10Z77954",
+     "note": "11.6in HD NON-touch bare panel, 30-pin (clamshell). Also used on 100e Gen4 82W1/83G8. Also 5D10Z90322.",
+     "confidence": 72,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-100e-chromebook-gen-3-82j7-82j8|battery": {
+   "model": "100e Chromebook Gen 3 (82J7 / 82J8)",
+   "modelId": "lenovo-100e-chromebook-gen-3-82j7-82j8",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "L20M3PG0",
+     "note": "3-cell 47Wh 11.52V (cell L20M3PG0 / assy SB11B36304). Shared with 300e Gen 3. 42Wh and 47Wh variants — check label.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5B11B36312",
+     "note": "3-cell 47Wh 11.52V (cell L20M3PG0 / assy SB11B36304). Shared with 300e Gen 3. 42Wh and 47Wh variants — check label.",
+     "confidence": 82,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-500e-chromebook-gen-3-82jb-82jc|screen": {
+   "model": "500e Chromebook Gen 3 (82JB / 82JC)",
+   "modelId": "lenovo-500e-chromebook-gen-3-82jb-82jc",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "5D11C95886",
+     "note": "11.6in HD bonded TOUCH assembly (2-in-1).",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5D11M35206",
+     "note": "11.6in HD bonded TOUCH assembly (2-in-1).",
+     "confidence": 76,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-500e-chromebook-gen-3-82jb-82jc|battery": {
+   "model": "500e Chromebook Gen 3 (82JB / 82JC)",
+   "modelId": "lenovo-500e-chromebook-gen-3-82jb-82jc",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "5B11B36309",
+     "note": "3-cell ~47Wh 11.52V (L20M3PG0 family). FRU 5B11B36309/5B11B36314 (82JB) and 5B11B36317 (82JC) across variants.",
+     "confidence": 75,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "5B11B36317",
+     "note": "3-cell ~47Wh 11.52V (L20M3PG0 family). FRU 5B11B36309/5B11B36314 (82JB) and 5B11B36317 (82JC) across variants.",
+     "confidence": 75,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-300e-chromebook-2nd-gen-ast-82ce-amd|screen": {
+   "model": "300e Chromebook 2nd Gen AST (82CE, AMD)",
+   "modelId": "lenovo-300e-chromebook-2nd-gen-ast-82ce-amd",
+   "part": "screen",
+   "numbers": [
+    {
+     "pn": "5D10T79505",
+     "note": "11.6in HD bonded TOUCH assembly (2-in-1); shares the 300e Gen2 touch panel with 81MB. Confirm against the physical panel.",
+     "confidence": 60,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-300e-chromebook-2nd-gen-ast-82ce-amd|battery": {
+   "model": "300e Chromebook 2nd Gen AST (82CE, AMD)",
+   "modelId": "lenovo-300e-chromebook-2nd-gen-ast-82ce-amd",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "L19M3PG1",
+     "note": "3-cell ~47Wh (L19M3PG1/L19L3PG1/L19C3PG1) — AMD AST (82CE) and MTK variants. DIFFERENT pack from the Intel 81MB's L17M3PB0.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "L19L3PG1",
+     "note": "3-cell ~47Wh (L19M3PG1/L19L3PG1/L19C3PG1) — AMD AST (82CE) and MTK variants. DIFFERENT pack from the Intel 81MB's L17M3PB0.",
+     "confidence": 70,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-300e-chromebook-2nd-gen-ast-82ce-amd|chargeport": {
+   "model": "300e Chromebook 2nd Gen AST (82CE, AMD)",
+   "modelId": "lenovo-300e-chromebook-2nd-gen-ast-82ce-amd",
+   "part": "chargeport",
+   "numbers": [
+    {
+     "pn": "5C50Y97712",
+     "note": "USB-C charging via a separate USB/power daughterboard on a cable — not soldered. AMD board 5C50Y97712 (distinct from Intel); MTK uses 5C50T95169/5C51A14226.",
+     "confidence": 62,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "lenovo-100e-chromebook-gen-4-82w0|battery": {
+   "model": "100e Chromebook Gen 4 (82W0)",
+   "modelId": "lenovo-100e-chromebook-gen-4-82w0",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "L22M3PG0",
+     "note": "3-cell ~47Wh (L22M3PG0/L22B3PG0; 5B11K FRU). Aftermarket-only corroboration — provisional; verify FRU on pack. MediaTek Kompanio clamshell.",
+     "confidence": 55,
+     "confirmed": false,
+     "source": "researched"
+    }
+   ]
+  },
+  "ms-surface-pro-9|battery": {
+   "model": "Surface Pro 9",
+   "modelId": "ms-surface-pro-9",
+   "part": "battery",
+   "numbers": [
+    {
+     "pn": "DYNM04",
+     "note": "~46.5Wh/6138mAh — Intel/Wi-Fi Pro 9 (2032/2036/2037/2038). The SQ3/5G Pro 9 (1996/1997) uses a DIFFERENT battery — do not cross-fit.",
+     "confidence": 85,
+     "confirmed": false,
+     "source": "researched"
+    },
+    {
+     "pn": "MQ20",
+     "note": "~46.5Wh/6138mAh — Intel/Wi-Fi Pro 9 (2032/2036/2037/2038). The SQ3/5G Pro 9 (1996/1997) uses a DIFFERENT battery — do not cross-fit.",
+     "confidence": 85,
      "confirmed": false,
      "source": "researched"
     }
