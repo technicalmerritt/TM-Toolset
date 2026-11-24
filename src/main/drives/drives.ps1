@@ -205,44 +205,61 @@ function Parse-Nvme {
 # drive and re-create the very false-100% bug we're fixing.
 function Is-RealNvme { param($p) return ($p -and (([int64]$p.dataUnitsWritten -gt 0) -or ([int64]$p.powerOnHours -gt 0) -or ($p.temperatureC))) }
 
-# One NVMe admin command through a given bridge chip. Returns the raw response
-# bytes ($size long) or $null. opcode/cdw10/nsid/size cover both the SMART/Health
-# log (0x02, cdw10 0x007F0002, nsid broadcast, 512B) and Identify Controller
-# (0x06, cdw10 0x00000001, nsid 0, 4096B). Vendor CDB layouts are exactly those
-# in smartmontools (sntasmedia / sntrealtek / sntjmicron).
-function Invoke-BridgeNvme { param([int]$drive, [string]$chip, [int]$opcode, [uint32]$cdw10, [uint32]$nsid, [byte[]]$buf)
-  # $buf is filled in place by the pass-through (never returned through a
-  # scriptblock, which would let PowerShell enumerate the byte[] and corrupt it).
-  # Returns $true only on a clean read.
-  $size = $buf.Length
-  if ($chip -eq 'asmedia') {
-    $c = New-Object byte[] 16
-    $c[0] = 0xe6; $c[1] = [byte]$opcode; $c[3] = [byte]($cdw10 -band 0xff)
-    $hi = ($cdw10 -shr 16) -band 0xffff
-    $c[6] = [byte](($hi -shr 8) -band 0xff); $c[7] = [byte]($hi -band 0xff)
-    return [bool](Safe { [TMSmart]::Scsi($drive, $c, $true, $buf) })
-  }
-  elseif ($chip -eq 'realtek') {
-    $c = New-Object byte[] 16
-    $c[0] = 0xe4; $c[1] = [byte]($size -band 0xff); $c[2] = [byte](($size -shr 8) -band 0xff)
-    $c[3] = [byte]$opcode; $c[4] = [byte]($cdw10 -band 0xff)
-    return [bool](Safe { [TMSmart]::Scsi($drive, $c, $true, $buf) })
-  }
-  elseif ($chip -eq 'jmicron') {
-    $cmd = New-Object byte[] 512
-    $cmd[0] = 0x4e; $cmd[1] = 0x56; $cmd[2] = 0x4d; $cmd[3] = 0x45          # dword0 'NVME' signature
-    $cmd[8] = [byte]$opcode                                                # dword2 = opcode
-    $cmd[12] = [byte]($nsid -band 0xff); $cmd[13] = [byte](($nsid -shr 8) -band 0xff)
-    $cmd[14] = [byte](($nsid -shr 16) -band 0xff); $cmd[15] = [byte](($nsid -shr 24) -band 0xff)
-    $cmd[48] = [byte]($cdw10 -band 0xff); $cmd[49] = [byte](($cdw10 -shr 8) -band 0xff)
-    $cmd[50] = [byte](($cdw10 -shr 16) -band 0xff); $cmd[51] = [byte](($cdw10 -shr 24) -band 0xff)
-    $c1 = New-Object byte[] 12; $c1[0] = 0xa1; $c1[1] = 0x80; $c1[4] = 0x02 # proto_nvm_cmd; cmd len 512 BE
-    if (-not (Safe { [TMSmart]::Scsi($drive, $c1, $false, $cmd) })) { return $false }
-    $c2 = New-Object byte[] 12; $c2[0] = 0xa1; $c2[1] = 0x82               # proto_dma_in; data len BE
-    $c2[3] = [byte](($size -shr 16) -band 0xff); $c2[4] = [byte](($size -shr 8) -band 0xff); $c2[5] = [byte]($size -band 0xff)
-    return [bool](Safe { [TMSmart]::Scsi($drive, $c2, $true, $buf) })
-  }
-  return $false
+# Per-chip readers in the structure proven to work on real hardware (0.70.50):
+# the pass-through writes into a buffer created in THIS function, which then
+# parses it directly — the byte[] is never passed between functions or returned
+# through a scriptblock, both of which PowerShell can mangle. Each returns the
+# parsed object (a plain object crosses Safe safely) or $null.
+
+# --- SMART / Health log (opcode 0x02, LID 0x02, 512 bytes) ---
+function Get-SmartLog-Asmedia { param([int]$drive)
+  $c = New-Object byte[] 16; $c[0] = 0xe6; $c[1] = 0x02; $c[3] = 0x02; $c[7] = 0x7f
+  $d = New-Object byte[] 512
+  if (Safe { [TMSmart]::Scsi($drive, $c, $true, $d) }) { return (Parse-Nvme $d) }
+  return $null
+}
+function Get-SmartLog-Realtek { param([int]$drive)
+  $c = New-Object byte[] 16; $c[0] = 0xe4; $c[2] = 0x02; $c[3] = 0x02; $c[4] = 0x02
+  $d = New-Object byte[] 512
+  if (Safe { [TMSmart]::Scsi($drive, $c, $true, $d) }) { return (Parse-Nvme $d) }
+  return $null
+}
+function Get-SmartLog-Jmicron { param([int]$drive)
+  $cmd = New-Object byte[] 512
+  $cmd[0] = 0x4e; $cmd[1] = 0x56; $cmd[2] = 0x4d; $cmd[3] = 0x45
+  $cmd[8] = 0x02; $cmd[12] = 0xff; $cmd[13] = 0xff; $cmd[14] = 0xff; $cmd[15] = 0xff
+  $cmd[48] = 0x02; $cmd[50] = 0x7f
+  $c1 = New-Object byte[] 12; $c1[0] = 0xa1; $c1[1] = 0x80; $c1[4] = 0x02
+  if (-not (Safe { [TMSmart]::Scsi($drive, $c1, $false, $cmd) })) { return $null }
+  $c2 = New-Object byte[] 12; $c2[0] = 0xa1; $c2[1] = 0x82; $c2[4] = 0x02
+  $d = New-Object byte[] 512
+  if (-not (Safe { [TMSmart]::Scsi($drive, $c2, $true, $d) })) { return $null }
+  return (Parse-Nvme $d)
+}
+
+# --- Identify Controller (opcode 0x06, CDW10 0x01, 4096 bytes) ---
+function Get-Ident-Asmedia { param([int]$drive)
+  $c = New-Object byte[] 16; $c[0] = 0xe6; $c[1] = 0x06; $c[3] = 0x01
+  $d = New-Object byte[] 4096
+  if (Safe { [TMSmart]::Scsi($drive, $c, $true, $d) }) { return (Parse-Identify $d) }
+  return $null
+}
+function Get-Ident-Realtek { param([int]$drive)
+  $c = New-Object byte[] 16; $c[0] = 0xe4; $c[1] = 0x00; $c[2] = 0x10; $c[3] = 0x06; $c[4] = 0x01
+  $d = New-Object byte[] 4096
+  if (Safe { [TMSmart]::Scsi($drive, $c, $true, $d) }) { return (Parse-Identify $d) }
+  return $null
+}
+function Get-Ident-Jmicron { param([int]$drive)
+  $cmd = New-Object byte[] 512
+  $cmd[0] = 0x4e; $cmd[1] = 0x56; $cmd[2] = 0x4d; $cmd[3] = 0x45
+  $cmd[8] = 0x06; $cmd[48] = 0x01   # opcode 0x06, cdw10 0x01, nsid 0
+  $c1 = New-Object byte[] 12; $c1[0] = 0xa1; $c1[1] = 0x80; $c1[4] = 0x02
+  if (-not (Safe { [TMSmart]::Scsi($drive, $c1, $false, $cmd) })) { return $null }
+  $c2 = New-Object byte[] 12; $c2[0] = 0xa1; $c2[1] = 0x82; $c2[4] = 0x10  # read 4096 BE
+  $d = New-Object byte[] 4096
+  if (-not (Safe { [TMSmart]::Scsi($drive, $c2, $true, $d) })) { return $null }
+  return (Parse-Identify $d)
 }
 
 # NVMe Identify Controller -> real model / serial / firmware (ASCII, space-padded).
@@ -259,22 +276,27 @@ function Try-BridgeNvme { param([int]$drive)
   if (-not $smartOk) { $script:bridgeDiag = 'engine=off'; return $null }
   $diag = @()
   foreach ($chip in @('asmedia', 'realtek', 'jmicron')) {
-    # Buffers are owned here and filled in place; nothing crosses a scriptblock.
-    $sbuf = New-Object byte[] 512
-    $ok = Invoke-BridgeNvme $drive $chip 0x02 ([uint32]0x007F0002) ([uint32]0xffffffff) $sbuf
-    if (-not $ok) { $diag += "${chip}=scsiNo"; continue }
-    $p = Parse-Nvme $sbuf
-    if (-not $p) { $diag += "${chip}=badLog"; continue }
-    if (-not (Is-RealNvme $p)) { $diag += "${chip}=zeros"; continue }
+    $p = Safe {
+      switch ($chip) {
+        'asmedia' { Get-SmartLog-Asmedia $drive }
+        'realtek' { Get-SmartLog-Realtek $drive }
+        'jmicron' { Get-SmartLog-Jmicron $drive }
+      }
+    }
+    if (-not $p) { $diag += "${chip}=no"; continue }               # pass-through failed or log unparseable
+    if (-not (Is-RealNvme $p)) { $diag += "${chip}=zeros"; continue } # read, but all-zero (unsupported bridge)
     $diag += "${chip}=OK"
     $script:bridgeDiag = ($diag -join ' ')
     $p.bridge = $chip
     # Same chip just worked; fetch Identify Controller for the real identity.
-    $ibuf = New-Object byte[] 4096
-    if (Invoke-BridgeNvme $drive $chip 0x06 ([uint32]0x00000001) ([uint32]0) $ibuf) {
-      $id = Parse-Identify $ibuf
-      if ($id) { $p.idModel = $id.model; $p.idSerial = $id.serial; $p.idFirmware = $id.firmware }
+    $id = Safe {
+      switch ($chip) {
+        'asmedia' { Get-Ident-Asmedia $drive }
+        'realtek' { Get-Ident-Realtek $drive }
+        'jmicron' { Get-Ident-Jmicron $drive }
+      }
     }
+    if ($id) { $p.idModel = $id.model; $p.idSerial = $id.serial; $p.idFirmware = $id.firmware }
     return $p
   }
   $script:bridgeDiag = ($diag -join ' ')

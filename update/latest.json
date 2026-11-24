@@ -1,5 +1,5 @@
 {
-  "version": "0.70.53",
-  "notes": "Adds a diagnostic line to each drive card showing what the USB-bridge SMART probe did (and whether the app is running as administrator), so when an NVMe-in-an-enclosure reads 'Can't read' it's clear exactly why — e.g. 'USB-bridge probe: asmedia=scsiNo realtek=OK' or 'NOT running as administrator'. The bridge SMART reading itself is the fixed 0.70.52 build. Note: reading SMART through a USB enclosure needs the app to be run as administrator.",
-  "zip": "tmtoolset-app-0.70.53.zip"
+  "version": "0.70.54",
+  "notes": "Restores the USB-bridge SMART reading to the exact structure that successfully read the Kioxia at 48% (each bridge chip's reader fills and parses its own buffer in one function). Also keeps the diagnostic line on the card so a 'Can't read' shows exactly what the bridge probe did and whether the app is elevated. Reading NVMe SMART through a USB enclosure requires the app to run as administrator.",
+  "zip": "tmtoolset-app-0.70.54.zip"
 }
