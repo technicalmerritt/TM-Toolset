@@ -2378,6 +2378,62 @@ function registerIpc() {
       return { ok: false, message: msg };
     } catch (e) { return { ok: false, message: (e && e.message) || 'push failed' }; }
   }
+  // ---- Syncro agent installer links: synced through the same channel as the
+  // parts database (public read so a fresh machine gets them with zero setup;
+  // authenticated write from a machine that has the GitHub token). File:
+  // agent-links.json = { links: {customerId:url}, template: {host,accountId,folderId,ts} }.
+  async function fetchRemoteAgent(token) {
+    const repo = await getUpdateRepo();
+    const headers = { 'User-Agent': 'TMToolset', Accept: 'application/vnd.github+json' };
+    if (token) headers.Authorization = 'token ' + token;
+    try {
+      const r = await fetch('https://api.github.com/repos/' + repo + '/contents/agent-links.json?ref=' + UPDATE_BRANCH, { headers });
+      if (r.status === 404) return { ok: true, store: { links: {}, template: null }, sha: null };
+      if (!r.ok) return { ok: false, status: r.status };
+      const j = await r.json();
+      let store = { links: {}, template: null };
+      try { store = JSON.parse(Buffer.from(j.content, 'base64').toString('utf8')); } catch { /* ignore */ }
+      if (!store.links || typeof store.links !== 'object') store.links = {};
+      return { ok: true, store, sha: j.sha || null };
+    } catch (e) { return { ok: false, error: (e && e.message) || 'fetch failed' }; }
+  }
+  function mergeAgentStore(remote, local) {
+    const out = { links: {}, template: null };
+    for (const k in ((remote && remote.links) || {})) out.links[k] = remote.links[k];
+    for (const k in ((local && local.links) || {})) out.links[k] = local.links[k]; // local wins on conflict
+    out.template = (local && local.template) || (remote && remote.template) || null;
+    return out;
+  }
+  async function pushRemoteAgent(token, localStore) {
+    const repo = await getUpdateRepo();
+    const got = await fetchRemoteAgent(token);
+    if (!got.ok) return { ok: false, message: 'Could not read the remote agent links (HTTP ' + (got.status || '?') + ').' };
+    const merged = mergeAgentStore(got.store, localStore);
+    merged.updated = new Date().toISOString();
+    const body = { message: 'Update agent-links.json', content: Buffer.from(JSON.stringify(merged, null, 2), 'utf8').toString('base64'), branch: UPDATE_BRANCH };
+    if (got.sha) body.sha = got.sha;
+    try {
+      const p = await fetch('https://api.github.com/repos/' + repo + '/contents/agent-links.json', { method: 'PUT', headers: { Authorization: 'token ' + token, 'User-Agent': 'TMToolset', 'Content-Type': 'application/json', Accept: 'application/vnd.github+json' }, body: JSON.stringify(body) });
+      if (p.status >= 200 && p.status < 300) return { ok: true, store: merged };
+      let msg = 'HTTP ' + p.status; try { msg = (await p.json()).message || msg; } catch { /* ignore */ }
+      if (p.status === 401 || p.status === 403) msg = 'Token rejected or missing Contents:write on the repo. ' + msg;
+      return { ok: false, message: msg };
+    } catch (e) { return { ok: false, message: (e && e.message) || 'push failed' }; }
+  }
+  // Best-effort: pull the synced links and merge them into the local config, so
+  // a machine that has never seen this customer still finds the link.
+  async function syncAgentIn() {
+    try {
+      const { token } = await settings.getGithubForApi();
+      const got = await fetchRemoteAgent(token);
+      if (!got.ok) return;
+      const cfg = await readConfig();
+      const a = getAgentStore(cfg);
+      const merged = mergeAgentStore(got.store, { links: a.links, template: a.template });
+      a.links = merged.links; a.template = merged.template;
+      cfg.syncroAgent = a; await writeConfig(cfg);
+    } catch { /* offline / no token — carry on with local */ }
+  }
   ipcMain.handle('partsdb:get', async () => readPartsDb());
   ipcMain.handle('partsdb:sync', async () => {
     const local = await readPartsDb();
@@ -2625,12 +2681,16 @@ function registerIpc() {
   // Is a saved installer link on file for THIS ticket's customer?
   ipcMain.handle('agent:forCustomer', async (_evt, args) => {
     const custId = String((args && args.customerId) || '').trim();
+    await syncAgentIn(); // pull any links saved on another machine
     const cfg = await readConfig();
     const a = getAgentStore(cfg);
-    const url = custId ? a.links[custId] : '';
+    let url = custId ? a.links[custId] : '';
+    let derived = false;
+    // No exact link for this customer, but we know the account template: build one.
+    if (!url && custId && a.template) { const d = syncroAgent.buildInstallerUrl(a.template, custId); if (d) { url = d; derived = true; } }
     let host = '';
     try { if (url) host = new URL(url).hostname; } catch { /* ignore */ }
-    return { hasLink: !!url, host, customerId: custId, installed: syncroAgent.isInstalled(), savedCount: Object.keys(a.links).length };
+    return { hasLink: !!url, derived, host, customerId: custId, installed: syncroAgent.isInstalled(), savedCount: Object.keys(a.links).length };
   });
   // Save an installer link, FILED UNDER THE CUSTOMER IT IS FOR (decoded from the
   // link). When a ticket customer is supplied, refuse a link for anyone else.
@@ -2652,8 +2712,17 @@ function registerIpc() {
       return { ok: false, mismatch: true, linkCustomerId: link.customerId, message: 'That installer is for a DIFFERENT customer (ID ' + link.customerId + '), not the ticket customer (ID ' + forCustomer + '). It was not saved — grab this customer’s own installer link.' };
     }
     a.links[link.customerId] = link.url;
+    const tmpl = syncroAgent.templateFromUrl(link.url); if (tmpl) a.template = tmpl;
     cfg.syncroAgent = a; await writeConfig(cfg);
-    return { ok: true, host: new URL(link.url).hostname, customerId: link.customerId };
+    // Propagate to the synced channel so other machines get it (best-effort;
+    // needs a GitHub token with Contents:write — the same one the parts DB uses).
+    let synced = false, syncMsg = '';
+    try {
+      const { token } = await settings.getGithubForApi();
+      if (token) { const r = await pushRemoteAgent(token, { links: a.links, template: a.template }); synced = !!r.ok; if (!r.ok) syncMsg = r.message; }
+      else syncMsg = 'Saved on this PC. Add a GitHub token in Settings to sync it to your other machines.';
+    } catch (e) { syncMsg = (e && e.message) || ''; }
+    return { ok: true, host: new URL(link.url).hostname, customerId: link.customerId, synced, syncMsg };
   });
   // Download + signature-verify the installer for the ticket's customer, verifying
   // the link really belongs to that customer first, then leave it in Downloads
@@ -2662,9 +2731,12 @@ function registerIpc() {
     const custId = String((args && args.customerId) || '').trim();
     const custName = String((args && args.customerName) || '').trim();
     if (!custId) return { ok: false, message: 'Pick a ticket first so the agent enrols the right customer.' };
+    await syncAgentIn(); // pull any links saved on another machine
     const cfg = await readConfig();
     const a = getAgentStore(cfg);
-    const url = a.links[custId];
+    let url = a.links[custId];
+    // No exact link, but we know the account template: derive this customer's link.
+    if (!url && a.template) { const d = syncroAgent.buildInstallerUrl(a.template, custId); if (d) url = d; }
     if (!url) return { ok: false, needsLink: true, message: 'No installer link saved for this customer yet. Paste their Syncro installer link to save it.' };
     const info = syncroAgent.decodeInstaller(url);
     if (!info || info.customerId !== custId) {

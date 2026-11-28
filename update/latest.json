@@ -1,5 +1,5 @@
 {
-  "version": "0.70.54",
-  "notes": "Restores the USB-bridge SMART reading to the exact structure that successfully read the Kioxia at 48% (each bridge chip's reader fills and parses its own buffer in one function). Also keeps the diagnostic line on the card so a 'Can't read' shows exactly what the bridge probe did and whether the app is elevated. Reading NVMe SMART through a USB enclosure requires the app to run as administrator.",
-  "zip": "tmtoolset-app-0.70.54.zip"
+  "version": "0.70.55",
+  "notes": "Syncro agent installer: stop re-pasting the link on every machine. The installer link you paste for a customer is now synced through the same channel as the parts database, so any other machine — even a brand-new one — already has it with no setup. The link only varies by customer, so once one is saved the app can build the right link for any other customer from the ticket automatically, no second paste. If a link is ever rejected (Syncro can expire them), it falls back to asking for a fresh one and re-syncs that. Note: saved installer links ride in your public tm-toolset repo via this sync — best used with Syncro's shareable 'public installer links'; clear them any time from the agent settings.",
+  "zip": "tmtoolset-app-0.70.55.zip"
 }

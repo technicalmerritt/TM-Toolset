@@ -63,6 +63,31 @@ function decodeInstaller(url) {
 
 function isId(v) { return /^\d{1,12}$/.test(String(v == null ? '' : v)); }
 
+// The /dl/rs/ token is UNSIGNED base64url of "v1-<customerId>-<ts>-<accountId>-
+// <folderId>", and for one Syncro account only the customerId differs between
+// customers. So one real link yields an account "template" (host + accountId +
+// folderId), and from that we can form the link for any customer — meaning the
+// link only ever needs pasting once, not per customer. (Syncro may still
+// validate/expire the token server-side, so a derived link is used only as a
+// fallback and any download failure falls back to a fresh paste.)
+function templateFromUrl(url) {
+  try {
+    const u = new URL(String(url));
+    if (!ALLOWED_HOSTS.test(u.hostname)) return null;
+    const info = decodeInstaller(u.href);
+    if (!info || !isId(info.accountId) || !isId(info.folderId)) return null;
+    return { host: u.hostname, accountId: info.accountId, folderId: info.folderId, ts: info.generatedAt };
+  } catch { return null; }
+}
+function buildInstallerUrl(template, customerId) {
+  if (!template || !template.host || !isId(template.accountId) || !isId(template.folderId) || !isId(customerId)) return null;
+  if (!ALLOWED_HOSTS.test(template.host)) return null;
+  const ts = /^\d+$/.test(String(template.ts || '')) ? String(template.ts) : String(Date.now());
+  const raw = 'v1-' + customerId + '-' + ts + '-' + template.accountId + '-' + template.folderId;
+  const tok = Buffer.from(raw, 'utf8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return 'https://' + template.host + '/dl/rs/' + tok;
+}
+
 // Arguments for the installer. Never built from free text: ids are digits only.
 function buildArgs(customerId, folderId) {
   if (!isId(customerId)) throw new Error('The ticket has no usable customer id.');
@@ -170,4 +195,4 @@ function launch(exe) {
   });
 }
 
-module.exports = { parseInstallerLink, decodeInstaller, buildArgs, isInstalled, prepare, launch };
+module.exports = { parseInstallerLink, decodeInstaller, templateFromUrl, buildInstallerUrl, buildArgs, isInstalled, prepare, launch };

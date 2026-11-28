@@ -31,8 +31,8 @@
     show(els.run, false);
     const who = t.customerName || 'this customer';
     status(state.hasLink
-      ? 'Downloads ' + who + '’s installer, checks it is signed by Servably AND is for this customer, then you run it.'
-      : 'Paste ' + who + '’s own Syncro installer link (open the customer in Syncro, copy their RMM installer link). It’s saved for next time and only ever used for them.');
+      ? 'Downloads ' + who + '’s installer' + (state.derived ? ' (built from your saved account link — no paste needed)' : '') + ', checks it is signed by Servably AND is for this customer, then you run it.'
+      : 'Paste ' + who + '’s own Syncro installer link (open the customer in Syncro, copy their RMM installer link). It’s saved and synced to your other machines, and only ever used for them.');
     els.modal.hidden = false;
   }
   function close() { if (!busy) els.modal.hidden = true; }
@@ -118,7 +118,7 @@
     if (els.setSave) {
       els.setSave.addEventListener('click', async () => {
         const r = await window.agent.setLink({ link: els.setLink.value });
-        if (r && r.ok && !r.cleared) { setStatus('Saved for customer ID ' + (r.customerId || '?') + '.', true); refreshSettings(); }
+        if (r && r.ok && !r.cleared) { setStatus('Saved for customer ID ' + (r.customerId || '?') + '.' + (r.synced ? ' Synced to your other machines.' : (r.syncMsg ? ' ' + r.syncMsg : '')), true); refreshSettings(); }
         else setStatus((r && r.message) || 'Paste a customer’s installer link from Syncro.', false);
       });
       els.setClear.addEventListener('click', async () => {
